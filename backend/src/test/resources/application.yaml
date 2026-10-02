@@ -1,0 +1,22 @@
+# 테스트용 설정 (main application.yaml 대신 로드됨)
+# CI에서 MySQL 없이 테스트 돌리려고 H2(MySQL 모드) 사용
+spring:
+  datasource:
+    url: jdbc:h2:mem:kkumi;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Seoul
+
+external:
+  molit:
+    service-key: test
+  kis:
+    app-key: test
+    app-secret: test

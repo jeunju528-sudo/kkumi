@@ -1,3 +1,87 @@
+# 공통 설정 (프로필별 값은 아래에서 덮어씀)
+# 비밀값은 환경변수(.env)로 주입
 spring:
   application:
-    name: backend
+    name: kkumi
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Seoul
+        default_batch_fetch_size: 100
+  # 카카오 로그인 (client-id 없으면 앱이 안 떠서 일단 주석 처리)
+  # security:
+  #   oauth2:
+  #     client:
+  #       registration:
+  #         kakao:
+  #           client-id: ${KAKAO_CLIENT_ID}
+  #           client-secret: ${KAKAO_CLIENT_SECRET}
+  #           client-authentication-method: client_secret_post
+  #           authorization-grant-type: authorization_code
+  #           redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+  #           scope: profile_nickname
+  #       provider:
+  #         kakao:
+  #           authorization-uri: https://kauth.kakao.com/oauth/authorize
+  #           token-uri: https://kauth.kakao.com/oauth/token
+  #           user-info-uri: https://kapi.kakao.com/v2/user/me
+  #           user-name-attribute: id
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# 외부 API 키
+external:
+  molit:
+    service-key: ${MOLIT_SERVICE_KEY:}
+  kis:
+    app-key: ${KIS_APP_KEY:}
+    app-secret: ${KIS_APP_SECRET:}
+
+---
+# local: docker-compose.local.yml MySQL
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/kkumi?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:kkumi}
+    password: ${DB_PASSWORD:kkumi}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+# prod: AWS RDS
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # TODO: 런칭 전 validate 전환 검토
+      ddl-auto: update
+    show-sql: false
