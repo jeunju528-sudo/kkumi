@@ -22,6 +22,13 @@
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
 - CI (GitHub Actions), 배포 (EC2 + RDS)
 
+### 외부 대기 · 결정 필요
+- 주식 시세: KIS에 시세 재배포 약관 문의 중 → 답변 전까지 `MockPriceProvider`로 개발, 답변 오면 KIS 구현체 or 공공데이터 종가로 결정
+- 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`)
+- AWS 계정: 확인 필요 (CD 단계 전)
+- CI: CLAUDE.md "자동 검사 > CI (TODO)" 내용대로 추가 예정. 노션 일정표 GitHub Actions 작업 메모에도 기록
+- 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
+
 ### 다음 할 일 (순서)
 1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
@@ -32,5 +39,6 @@
 7. CI/CD → 10-24 런칭
 
 ## 참고
+- 노션 일정표(간트): FRTR 페이지 > "꿈이 런칭 일정 (10/2 ~ 10/24)" DB
 - Figma 시안 사본: 데스크톱 10개, 모바일 7개 (모바일 사기·팔기, 계약서, 내 마을은 Figma 무료 플랜 MCP 호출 한도로 미완). 기준은 Claude Design 시안 v0.2
 - 화면 ↔ 파일 대응표: `frontend/README.md`
