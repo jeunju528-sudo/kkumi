@@ -1,75 +1,36 @@
-# React + TypeScript + Vite
+# 꿈이 frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript (Vite) · react-router-dom
 
-Currently, two official plugins are available:
+## 실행
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+cd frontend
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+검증: `npm run lint && npm run build`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 화면 (시안 v0.2)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| 경로 | 화면 | 파일 |
+|---|---|---|
+| / | 1 시작 | pages/WelcomePage.tsx |
+| /seed | 1-1 시드 선택 | pages/SeedPickPage.tsx |
+| /home | 2 홈 | pages/HomePage.tsx |
+| /trade | 3 종목 목록 | pages/TradePage.tsx |
+| /trade/search | 3-1 종목 검색 | pages/StockSearchPage.tsx |
+| /trade/:code | 3-2 사기·팔기 | pages/OrderPage.tsx |
+| /homes | 4 부동산 | pages/HomesPage.tsx |
+| /contract/:dealId | 5 계약서 | pages/ContractPage.tsx |
+| /village | 6 내 마을 | pages/VillagePage.tsx |
+| /tiers | ★ 변신 4단계 | pages/TiersPage.tsx |
 
-```
+## 현재 상태
+
+- 모든 화면은 페이지 상단의 목업 상수로 그려진다. API·WebSocket 연동 전
+- 공용: components/PixelDefs.tsx(픽셀 스프라이트 심볼), components/Sprite.tsx, utils/format.ts, types/api.ts
+- 스타일: 페이지별 CSS, 페이지 루트 클래스(.page-xxx)로 범위 제한. 색 토큰은 index.css
+- 폰트: Noto Sans KR·Press Start 2P(Google Fonts), Galmuri11 Bold(OFL, assets/fonts)
+- 브레이크포인트 900px (미만은 모바일 레이아웃 + 하단 탭 바)
