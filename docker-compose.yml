@@ -1,0 +1,37 @@
+# 운영용 (EC2): 앱 + nginx만. DB는 RDS
+# 사용: .env 준비 후 docker compose up -d --build
+# 로컬 DB는 docker-compose.local.yml 참고
+services:
+  backend:
+    build: ./backend
+    # CD에서는 레지스트리 이미지로 덮어씀
+    image: ${BACKEND_IMAGE:-kkumi-backend:local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Seoul
+      DB_URL: ${DB_URL:?DB_URL 필요 (.env 확인)}
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME 필요 (.env 확인)}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD 필요 (.env 확인)}
+      MOLIT_SERVICE_KEY: ${MOLIT_SERVICE_KEY:-}
+      KIS_APP_KEY: ${KIS_APP_KEY:-}
+      KIS_APP_SECRET: ${KIS_APP_SECRET:-}
+    # 호스트에 노출 X, nginx만 접근
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  nginx:
+    build: ./frontend
+    image: ${NGINX_IMAGE:-kkumi-nginx:local}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy

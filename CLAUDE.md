@@ -138,7 +138,9 @@ kkumi/
 - pre-commit (`.githooks/pre-commit`)
   - `main` 브랜치에서 커밋 차단
   - `.env` 파일 커밋 차단 (`.env.example` 제외)
-  - `backend/` 변경 시 `./gradlew test` (ArchUnit 포함)
+  - `backend/`의 소스·빌드 설정 변경 시 `./gradlew test` (ArchUnit 포함)
+    - 대상: `src/`, `build.gradle`, `settings.gradle`, `gradle.properties`, `gradle/`, `gradlew*`
+    - 제외: `Dockerfile`, `.dockerignore` 등 인프라 파일 (CI가 전체 검사)
   - `frontend/` 변경 시 `npm run lint` + `tsc -b`
 - commit-msg (`.githooks/commit-msg`): 접두사 형식, AI 작성 문구 검사
 - 검사 실패 시 커밋 불가. `--no-verify` 우회 금지
@@ -152,6 +154,7 @@ kkumi/
   - 트리거: `main` 대상 PR. 새 커밋 오면 이전 실행 취소
   - backend 잡: `./gradlew test` (ArchUnit 포함, Java 21)
   - frontend 잡: `npm ci && npm run lint && npm run build` (Node 22, `tsc -b` 포함)
+  - docker 잡: backend·nginx 이미지 빌드 + `nginx -t` (Dockerfile·nginx.conf 검증용, 필수 체크 등록은 선택)
   - 실패하면 merge 불가: GitHub > Settings > Branches 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (은주가 직접 설정)
   - 잡 이름(`backend`, `frontend`) 변경 금지. 바꾸면 필수 체크 재등록 필요
   - 워크플로에 `paths` 필터 금지. 필수 체크가 skip되면 PR이 pending에서 안 풀림

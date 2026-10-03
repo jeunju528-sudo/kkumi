@@ -15,7 +15,8 @@ if echo "$staged" | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.env\.example$' > /
   exit 1
 fi
 
-if echo "$staged" | grep '^backend/' > /dev/null; then
+# 소스·빌드 설정 변경일 때만 (Dockerfile 등 인프라 파일은 제외, CI가 전체 검사)
+if echo "$staged" | grep -E '^backend/(src/|build\.gradle|settings\.gradle|gradle\.properties|gradle/|gradlew)' > /dev/null; then
   echo "[pre-commit] backend: ./gradlew test (아키텍처 규칙 포함)"
   (cd backend && ./gradlew test -q) || { echo "[pre-commit] backend 테스트 실패 → 커밋 중단"; exit 1; }
 fi
