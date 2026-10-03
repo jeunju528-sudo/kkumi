@@ -89,6 +89,8 @@ Village  : TierProgress, HouseCollection > HouseSlot*, EmptySlot*
 
 ## 4. API 타입
 
+데이터 흐름: `api/xxxApi.ts`(fetch) → `hooks/useXxxQuery`(TanStack Query) → pages → components(props). 실시간 값은 `ws/` → `queryClient.setQueryData()`.
+
 실제 타입은 `frontend/src/types/api.ts`가 기준이다 (백엔드 DTO 이름과 동일하게 유지). 금액은 모두 원 단위 정수.
 
 ## 5. 부동산 카드 상태 → UI 매핑
