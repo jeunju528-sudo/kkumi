@@ -1,0 +1,28 @@
+#!/bin/sh
+# 커밋 전 검사
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$branch" = "main" ]; then
+  echo "[pre-commit] main 직접 커밋 금지 → git checkout -b {type}/{이름} 으로 브랜치 만들기"
+  exit 1
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# .env 커밋 차단 (.env.example 제외)
+if echo "$staged" | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.env\.example$' > /dev/null; then
+  echo "[pre-commit] .env 파일 커밋 금지"
+  exit 1
+fi
+
+if echo "$staged" | grep '^backend/' > /dev/null; then
+  echo "[pre-commit] backend: ./gradlew test (아키텍처 규칙 포함)"
+  (cd backend && ./gradlew test -q) || { echo "[pre-commit] backend 테스트 실패 → 커밋 중단"; exit 1; }
+fi
+
+if echo "$staged" | grep '^frontend/' > /dev/null; then
+  echo "[pre-commit] frontend: lint + 타입 검사"
+  (cd frontend && npm run lint --silent && npx tsc -b) || { echo "[pre-commit] frontend 검사 실패 → 커밋 중단"; exit 1; }
+fi
+
+exit 0
