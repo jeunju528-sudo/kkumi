@@ -37,6 +37,7 @@ kkumi/
 - Controller: 요청 검증(`@Valid`)과 DTO 변환만. `if`로 비즈니스 분기 금지
 - URL: `/api/{복수형 리소스}` (e.g. `POST /api/trades/buy`, `GET /api/houses`)
 - Service: 클래스에 `@Transactional(readOnly = true)`, 쓰기 메서드만 `@Transactional`
+  - `org.springframework.transaction.annotation.Transactional`만 사용 (`jakarta.transaction.Transactional` 금지)
 - 의존성 주입: 생성자 주입(`@RequiredArgsConstructor` + `private final`)만 사용
 - 엔티티
   - `@Setter` 금지 → 상태 변경은 의미 있는 메서드로 (e.g. `withdraw(amount)`, not `setCash()`)
@@ -61,7 +62,7 @@ kkumi/
 - 컴포넌트: 함수형만. 파일명 PascalCase (`StockCard.tsx`), 컴포넌트 하나당 파일 하나
 - 훅: `use` 접두사, `src/hooks/useXxx.ts`
 - export: named export만 사용 (`export function StockCard`). `export default` 금지
-- props 타입: `type StockCardProps = { ... }` 형태로 컴포넌트 위에 선언
+- props 타입: `type StockCardProps = { ... }` 형태로 컴포넌트 위에 선언. `interface` 금지 → `type`
 - 타입
   - `any` 금지 → `unknown` + 타입 가드
   - API 응답 타입은 `src/types/`에, 이름은 백엔드 DTO와 동일 (`HoldingResponse`)
@@ -71,6 +72,7 @@ kkumi/
 - 금액 표시: `src/utils/format.ts`의 `formatKRW()` 사용. 컴포넌트에서 직접 포맷 금지
 - boolean 변수·props: `is`/`has` 접두사 (`isLoading`, `hasHolding`)
 - 이벤트 핸들러: `handle` 접두사 (`handleBuyClick`), props로 넘길 땐 `on` 접두사 (`onBuy`)
+- 비교: `===` / `!==`만 사용
 
 ## 절대 금지
 - 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 은주 작성 → 교정만)
@@ -87,6 +89,21 @@ kkumi/
 - 커밋 메시지·PR·주석에 AI 작성 표시 금지 (Co-Authored-By, "Generated with" 등)
 - `System.out.println` 금지 → `@Slf4j` + `log.info()`
 - `console.log` 커밋 금지
+
+## 자동 검사
+- 클론 후 최초 1회: `git config core.hooksPath .githooks`
+- pre-commit (`.githooks/pre-commit`)
+  - `main` 브랜치에서 커밋 차단
+  - `.env` 파일 커밋 차단 (`.env.example` 제외)
+  - `backend/` 변경 시 `./gradlew test` (ArchUnit 아키텍처 규칙 포함)
+  - `frontend/` 변경 시 `npm run lint` + `tsc -b`
+- commit-msg (`.githooks/commit-msg`): 접두사 형식, AI 작성 문구 검사
+- 검사 실패 시 커밋 불가. `--no-verify`로 우회 금지
+- 코드로 강제되는 규칙
+  - 백엔드 `ArchitectureTest`: Controller→Repository 참조, Controller 엔티티 반환, global→도메인 참조, Service `@Transactional` 누락, `jakarta.transaction.Transactional`, 엔티티 setter, 엔티티·DTO의 `double`/`float`, 필드 주입, `System.out`, `java.util.logging`
+  - 프론트 `eslint.config.js`: `console`, `any`, `interface`, `export default`, `==`, 미사용 변수, 상태관리 라이브러리 import, pages·components·hooks의 `fetch`/`WebSocket`, components→api·ws·pages, api·ws·types→UI 레이어, utils→React·다른 레이어
+- 규칙을 추가·변경하면 이 문서와 `ArchitectureTest` / `eslint.config.js`를 같이 수정
+- 코드로 못 잡는 규칙(네이밍, boolean 접두사, WebSocket cleanup 등)은 PR 리뷰에서 확인
 
 ## PR 규칙
 - 브랜치명: `{type}/{kebab-case}` (e.g. `feat/stock-buy`, `fix/holding-avg-price`)
