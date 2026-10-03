@@ -5,10 +5,16 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// 상태관리 라이브러리 금지 (useState, useContext만)
+// 전역 상태관리 라이브러리 금지 (서버 데이터는 TanStack Query, 클라이언트 상태는 Context)
 const bannedLibs = ['redux', 'react-redux', '@reduxjs/toolkit', 'zustand', 'recoil', 'jotai', 'mobx'].map(
-  (name) => ({ name, message: '상태관리 라이브러리 금지 → useState / useContext 사용' }),
+  (name) => ({ name, message: '전역 상태관리 라이브러리 금지 → 서버 데이터는 TanStack Query, 나머지는 Context' }),
 )
+
+// TanStack Query는 src/hooks에서만 (+ main.tsx Provider)
+const noQueryOutsideHooks = {
+  name: '@tanstack/react-query',
+  message: 'useQuery / useMutation은 src/hooks에서만 → 훅을 만들어서 호출',
+}
 
 // no-restricted-imports는 파일별 설정이 덮어써지므로 공통 금지 목록을 항상 같이 넣음
 const restrictImports = (patterns = [], paths = []) => [
@@ -63,6 +69,29 @@ export default defineConfig([
     },
   },
 
+  // pages: TanStack Query 직접 사용 금지 (hooks 경유)
+  {
+    files: ['src/pages/**'],
+    rules: {
+      'no-restricted-imports': restrictImports([], [noQueryOutsideHooks]),
+    },
+  },
+
+  // hooks: 쿼리 키 문자열 직접 입력 금지 (queryKeys.ts 사용)
+  {
+    files: ['src/hooks/**'],
+    ignores: ['src/hooks/queryKeys.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Property[key.name="queryKey"] > ArrayExpression > Literal',
+          message: '쿼리 키 직접 입력 금지 → src/hooks/queryKeys.ts 사용',
+        },
+      ],
+    },
+  },
+
   // components: api, ws 참조 금지 (데이터는 props로)
   {
     files: ['src/components/**'],
@@ -72,7 +101,7 @@ export default defineConfig([
           group: ['**/api', '**/api/*', '**/ws', '**/ws/*', '**/pages', '**/pages/*'],
           message: 'components에서 api / ws / pages 참조 금지 → 데이터는 props로 받기',
         },
-      ]),
+      ], [noQueryOutsideHooks]),
     },
   },
 
@@ -82,7 +111,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': restrictImports([
         { group: uiLayers, message: 'api / ws / types에서 UI 레이어(pages, components, hooks) 참조 금지' },
-      ]),
+      ], [noQueryOutsideHooks]),
     },
   },
 
@@ -97,7 +126,7 @@ export default defineConfig([
             message: 'utils는 순수 함수만 → 다른 레이어 참조 금지',
           },
         ],
-        [{ name: 'react', message: 'utils는 순수 함수만 → React 사용 금지' }],
+        [{ name: 'react', message: 'utils는 순수 함수만 → React 사용 금지' }, noQueryOutsideHooks],
       ),
     },
   },

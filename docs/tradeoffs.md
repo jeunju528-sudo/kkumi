@@ -100,6 +100,11 @@ A vs B / 장단점 / 선택 이유
 - 풀스택 지원이라 기능 하나 더보다 프론트 직접 짠 게 중요
 - 자연어 검색은 10/17까지 MVP 끝나면 추가
 
+### 프론트 상태 관리: Redux·Zustand vs TanStack Query + Context → TanStack Query + Context
+- Redux·Zustand: 전역 상태 일원화 / 보일러플레이트, 서버 데이터 캐싱은 직접 구현
+- TanStack Query + Context: 서버 데이터 캐싱·로딩·재요청 자동, 써본 경험 있음 / 클라이언트 전역 상태는 Context로 따로
+- 선택 이유: 꿈이 데이터는 대부분 서버 데이터(보유 종목, 시세, 집 목록). 클라이언트 전역 상태는 로그인 회원 정도라 Context로 충분. WebSocket 실시간 값도 setQueryData로 같은 캐시에 합칠 수 있음
+
 ### 자연어 검색: SQL 직접 생성 vs 필터 JSON → 필터 JSON
 - 사용자 입력 예측 불가 → LLM은 필터만 추출, 쿼리는 코드에서 생성
 

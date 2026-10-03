@@ -4,7 +4,7 @@
 - 서비스: 꿈이 — 가짜 시드머니로 실제 종목 투자 → 번 돈으로 실거래가 기준 아파트를 사는 시뮬레이션 웹게임
 - 런칭: 2026-10-24 (날짜 고정. 일정이 밀리면 기능을 줄임)
 - Backend: Java 21, Spring Boot 4.1, Spring Data JPA, MySQL(RDS), WebSocket(STOMP)
-- Frontend: React + TypeScript (Vite), ESLint
+- Frontend: React + TypeScript (Vite), TanStack Query, ESLint
 - 인프라: Docker Compose, GitHub Actions, AWS(EC2 + RDS)
 - MVP 4개
   - ① 카카오 로그인 → 시드 선택(500만/5,000만) + 매수·매도
@@ -41,7 +41,7 @@ kkumi/
 │   ├── components/  # 재사용 UI. 상태는 props로만 받음
 │   ├── api/         # REST 호출 함수만
 │   ├── ws/          # WebSocket 연결·구독만
-│   ├── hooks/       # 커스텀 훅 (useXxx)
+│   ├── hooks/       # 커스텀 훅, TanStack Query (useQuery/useMutation은 여기서만)
 │   ├── types/       # API 요청·응답 타입
 │   └── utils/       # 순수 함수만 (formatKRW 등)
 └── docs/            # design.md, tradeoffs.md, troubleshooting.md
@@ -84,7 +84,16 @@ kkumi/
   - API 응답 타입은 `src/types/`에, 이름은 백엔드 DTO와 동일 (`HoldingResponse`)
 - API 호출: `src/api/xxxApi.ts`의 함수로만. 컴포넌트·페이지에서 `fetch` 직접 호출 금지
 - WebSocket: `src/ws/`에서만 연결. `useEffect` cleanup에서 구독 해제 필수
-- 상태 관리: `useState`, `useContext`만. 외부 상태관리 라이브러리 금지
+- 상태 관리
+  - 서버 데이터(보유 종목, 시세, 집 목록 등): TanStack Query
+  - 클라이언트 전용 상태(로그인 회원 등): `useContext`, 화면 내부 상태: `useState`
+  - Redux, Zustand 등 전역 상태관리 라이브러리 금지
+- TanStack Query
+  - `useQuery` / `useMutation`은 `src/hooks/`에서만. 이름은 `useXxxQuery`, `useXxxMutation` (e.g. `useHoldingsQuery`, `useBuyHouseMutation`)
+  - pages는 훅만 호출, components는 TanStack Query import 금지 (props로만)
+  - 쿼리 키는 `src/hooks/queryKeys.ts`에서만 정의. 문자열 배열 직접 입력 금지
+  - 쓰기 후 관련 쿼리 `invalidateQueries` (e.g. 집 사기 → 회원 현금, 내 마을)
+  - WebSocket 실시간 값은 `queryClient.setQueryData()`로 캐시에 반영
 - 금액 표시: `src/utils/format.ts`의 `formatKRW()` 사용. 컴포넌트에서 직접 포맷 금지
 - boolean 변수·props: `is`/`has` 접두사 (`isLoading`, `hasHolding`)
 - 이벤트 핸들러: `handle` 접두사 (`handleBuyClick`), props로 넘길 땐 `on` 접두사 (`onBuy`)
@@ -106,7 +115,7 @@ kkumi/
 - 비밀값 커밋 금지 → `.env`(로컬), GitHub Secrets(CI), EC2 `.env`(운영). 카카오 클라이언트 시크릿 포함
 - `main` 브랜치 직접 push 금지 → 브랜치 + PR
 - 운영(prod) 프로필에 `ddl-auto: create` / `create-drop` 금지
-- 새 기술 추가 금지: Kafka, Kubernetes, Redis, Elasticsearch, MSA, Next.js, 상태관리 라이브러리
+- 새 기술 추가 금지: Kafka, Kubernetes, Redis, Elasticsearch, MSA, Next.js, 전역 상태관리 라이브러리(Redux, Zustand 등)
 - MVP 범위 밖 기능 구현 금지: 빌딩, 랭킹, 친구 비교, 집 팔기, 집값 하락 표시, 네이티브 모바일앱 (모바일 웹 반응형은 MVP 안)
 - 커밋 메시지·PR·주석에 AI 작성 표시 금지 (Co-Authored-By, "Generated with" 등)
 - `System.out.println` 금지 → `@Slf4j` + `log.info()`
@@ -123,7 +132,7 @@ kkumi/
 - 검사 실패 시 커밋 불가. `--no-verify` 우회 금지
 - 코드로 강제되는 규칙
   - 백엔드 `ArchitectureTest`: Controller→Repository 참조, Controller 엔티티 반환, global→도메인 참조, Service `@Transactional` 누락, `jakarta.transaction.Transactional`, 엔티티 setter, 엔티티·DTO `double`/`float`, 필드 주입, `System.out`, `java.util.logging`
-  - 프론트 `eslint.config.js`: `console`, `any`, `interface`, `export default`, `==`, 미사용 변수, 상태관리 라이브러리, pages·components·hooks의 `fetch`/`WebSocket`, components→api·ws·pages, api·ws·types→UI 레이어, utils→React·다른 레이어
+  - 프론트 `eslint.config.js`: `console`, `any`, `interface`, `export default`, `==`, 미사용 변수, 전역 상태관리 라이브러리, pages·components·api·ws·types·utils의 `@tanstack/react-query`, hooks의 쿼리 키 직접 입력, pages·components·hooks의 `fetch`/`WebSocket`, components→api·ws·pages, api·ws·types→UI 레이어, utils→React·다른 레이어
 - 규칙 추가·변경 시 이 문서 + `ArchitectureTest` / `eslint.config.js` 같이 수정
 - 코드로 못 잡는 규칙(네이밍, boolean 접두사, WebSocket cleanup 등)은 PR 리뷰에서 확인
 - CI (TODO: GitHub Actions 작업 때 추가)
