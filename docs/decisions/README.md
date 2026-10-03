@@ -31,12 +31,12 @@
 | 022 | [프론트 상태 관리: TanStack Query + Context](022-frontend-state-management.md) | 확정 |
 | 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 확정 |
 | 024 | [새 기술 상한선](024-technology-ceiling.md) | 확정 |
+| 025 | [매수 동시성: 비관적 락(Member 행)](025-buy-concurrency-pessimistic-lock.md) | 확정 |
 
-다음 번호: 025
+다음 번호: 026
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
-- 매수 동시성: 낙관적 락 vs 비관적 락 vs Redis 락 (Redis 락은 024와 충돌)
 - 시세 캐싱 TTL
 - WebSocket: 전체 브로드캐스트 vs 보유 종목만 푸시
 - 프론트 실시간: 메시지마다 리렌더 vs throttle

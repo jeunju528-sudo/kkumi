@@ -16,7 +16,7 @@
   - 남은 수동 작업: GitHub 브랜치 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (아래 "외부 대기")
 - 배포 준비 (CD 1단계): `backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`, 운영용 `docker-compose.yml` (앱 + nginx, DB는 RDS), CI `docker` 잡
   - 남은 것: CD 워크플로 (main merge 시 EC2 자동 배포), EC2·RDS 실배포 + Hello World 확인
-- 지식 저장소 정비: `docs/`를 `decisions/`(ADR 24개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
+- 지식 저장소 정비: `docs/`를 `decisions/`(ADR 25개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
