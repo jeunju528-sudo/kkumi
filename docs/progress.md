@@ -30,13 +30,16 @@
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
-2. 매수·매도 (심장 ①) — 테스트 먼저
-3. 평가액 계산 (심장 ②) + WebSocket 푸시
-4. 실거래가 배치 (심장 ③) → 추천 API
-5. 집 사기 → 내 마을, 변신 단계
-6. 프론트 데이터 연결 (TanStack Query, ws)
-7. CI/CD → 10-24 런칭
+1. CI (10/4): GitHub Actions — PR마다 backend `./gradlew test` + frontend `npm ci && npm run lint && npm run build`, 실패 시 merge 차단
+2. CD + Hello World 배포 (10/4~10/5): Dockerfile, docker-compose, nginx → EC2 + RDS. main merge 시 자동 배포
+3. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
+4. 매수·매도 (심장 ①) — 테스트 먼저
+5. 평가액 계산 (심장 ②) + WebSocket 푸시
+6. 실거래가 배치 (심장 ③) → 추천 API
+7. 집 사기 → 내 마을, 변신 단계
+8. 프론트 데이터 연결 (TanStack Query, ws)
+9. 10/17 게이트 체크 → 10/21~23 통합 테스트·버퍼 → 10/24 런칭
+- 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
 
 ## 참고
 - 노션 일정표(간트): FRTR 페이지 > "꿈이 런칭 일정 (10/2 ~ 10/24)" DB
