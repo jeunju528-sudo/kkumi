@@ -15,6 +15,9 @@
 - CI: GitHub Actions `.github/workflows/ci.yml` (main 대상 PR마다 backend `./gradlew test` + frontend `npm ci`, lint, build)
   - 남은 수동 작업: GitHub 브랜치 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (아래 "외부 대기")
 
+- 배포 준비 (CD 1단계): `backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`, 운영용 `docker-compose.yml` (앱 + nginx, DB는 RDS), CI `docker` 잡
+  - 남은 것: CD 워크플로 (main merge 시 EC2 자동 배포), EC2·RDS 실배포 + Hello World 확인
+
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
 - 카카오 로그인 (OAuth)
@@ -22,7 +25,7 @@
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
-- 배포 (EC2 + RDS)
+- CD 워크플로, EC2 + RDS 실배포
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS에 시세 재배포 약관 문의 중 → 답변 전까지 `MockPriceProvider`로 개발, 답변 오면 KIS 구현체 or 공공데이터 종가로 결정
@@ -32,7 +35,7 @@
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. CD + Hello World 배포 (10/4~10/5): Dockerfile, docker-compose, nginx → EC2 + RDS. main merge 시 자동 배포
+1. CD + Hello World 배포 (10/4~10/5): (Dockerfile·compose·nginx는 준비됨) CD 워크플로 → EC2 + RDS. main merge 시 자동 배포
 2. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
 3. 매수·매도 (심장 ①) — 테스트 먼저
 4. 평가액 계산 (심장 ②) + WebSocket 푸시

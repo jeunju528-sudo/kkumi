@@ -2,6 +2,7 @@ name: CI
 
 # PR마다 훅과 같은 검사 재실행 (훅은 --no-verify로 우회 가능)
 # 필수 체크 이름: backend, frontend (브랜치 보호 규칙에 등록)
+# docker: 이미지 빌드 검증용 (배포 전에 Dockerfile·nginx 설정 깨졌는지 확인)
 on:
   pull_request:
     branches: [main]
@@ -61,3 +62,20 @@ jobs:
       # tsc -b 포함
       - name: 빌드
         run: npm run build
+
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: backend 이미지 빌드
+        run: docker build -t kkumi-backend:ci backend
+
+      - name: nginx 이미지 빌드
+        run: docker build -t kkumi-nginx:ci frontend
+
+      # 변수 proxy_pass라 backend 컨테이너 없이도 문법 검사 가능
+      - name: nginx 설정 문법 검사
+        run: docker run --rm kkumi-nginx:ci nginx -t
