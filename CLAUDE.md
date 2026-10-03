@@ -13,6 +13,7 @@
   - ④ 집 사기(계약서) → 내 마을(도감) 컬렉션 + 변신 4단계
 - 상세 설계: 노션 https://app.notion.com/p/From-Rags-To-Riches-FRTR-3db93c322ab780709c78f259c7ad4598
 - UI 기준: `docs/design.md` (v0.2). 화면 구현·리뷰 전에 반드시 읽을 것
+- 진행 현황: `docs/progress.md`. 세션 시작 시 먼저 확인, 작업 끝나면 갱신
 
 ## 도메인 규칙 (확정)
 - 로그인: 카카오 로그인만 사용. ID/비밀번호 로그인 없음
@@ -44,7 +45,7 @@ kkumi/
 │   ├── hooks/       # 커스텀 훅, TanStack Query (useQuery/useMutation은 여기서만)
 │   ├── types/       # API 요청·응답 타입
 │   └── utils/       # 순수 함수만 (formatKRW 등)
-└── docs/            # design.md, tradeoffs.md, troubleshooting.md
+└── docs/            # design.md, ui-spec.md, progress.md, tradeoffs.md, troubleshooting.md
 ```
 - 도메인 패키지 안 구조: `XxxController`, `XxxService`, `XxxRepository`, 엔티티는 패키지 루트, DTO는 `{도메인}/dto/`
 
