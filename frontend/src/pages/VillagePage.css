@@ -1,0 +1,105 @@
+.page-village.k-page{min-height:100vh;display:flex;flex-direction:column;background:#F7F8FC;color:#1B1B2F;font-family:'Noto Sans KR',system-ui,sans-serif}
+.page-village .k-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;height:64px;box-sizing:border-box;padding:0 24px;background:#231B3A;border-bottom:3px solid #0F0B1F}
+.page-village .k-logo{display:flex;align-items:center;gap:10px;color:#FFC93C;font-size:22px;font-weight:800}
+.page-village .k-mark{width:32px;height:32px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;box-shadow:0 2px 0 #0F0B1F;font-size:16px;font-weight:800}
+.page-village .k-links{display:flex;gap:4px;margin-left:12px}
+.page-village .k-link{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid transparent;color:#D7D9E8;font-size:15px;font-weight:700}
+.page-village .k-link svg{fill:currentColor;shape-rendering:crispEdges}
+.page-village .k-on{color:#FFC93C;border-color:#FFC93C}
+.page-village .k-grow{flex-grow:1}
+.page-village .k-chip{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;background:#231B3A;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F}
+.page-village .k-top .k-chip{background:#2E2450}
+.page-village .k-lab{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.4;color:#B9BCD0}
+.page-village .k-num{font-weight:800;font-size:15px;line-height:1.2;font-variant-numeric:tabular-nums}
+.page-village .k-wrap{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 48px;box-sizing:border-box}
+.page-village .k-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start}
+.page-village .k-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.page-village .k-card{background:#FFFFFF;border:1px solid #E6E8F0;border-radius:16px;box-shadow:0 1px 2px rgba(27,27,47,.06);padding:16px}
+.page-village .k-px{background:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;padding:16px;color:#FFFFFF}
+.page-village .k-note{margin:0;text-align:center;font-size:12px;line-height:1.5;color:#6B6F80}
+.page-village .k-hero-hud{display:none}
+.page-village .k-scene{position:relative;height:300px;overflow:hidden;background:#1E90E6}
+.page-village .k-scene .sp{position:absolute;shape-rendering:crispEdges}
+.page-village .k-low{width:80px;height:100px}
+.page-village .k-mid{width:70px;height:130px}
+.page-village .k-tree{width:50px;height:60px}
+.page-village .k-cloud{width:64px;height:24px}
+.page-village .k-slot{position:absolute;bottom:40px;width:80px;height:80px;box-sizing:border-box;border:3px dashed #FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#FFFFFF}
+.page-village .k-next{left:74%}
+.page-village .k-grass{position:absolute;left:0;right:0;bottom:16px;height:24px;background:#6CC24A}
+.page-village .k-soil{position:absolute;left:0;right:0;bottom:0;height:16px;background:#7A4B3A}
+.page-village .k-wide{display:none}
+.page-village .k-stripe{background:repeating-linear-gradient(90deg,transparent 0,transparent 10px,#FFFFFF 10px,#FFFFFF 12px)}
+
+/* 장면 */
+.page-village .village-plus{shape-rendering:crispEdges;fill:#FFFFFF}
+.page-village .village-lab-white{color:#FFFFFF}
+.page-village .village-title-wrap{position:absolute;left:0;right:0;top:84px;text-align:center}
+.page-village .village-title-lab{color:#FFFFFF;text-shadow:0 2px 0 #0F0B1F;font-size:9px}
+.page-village .village-title{margin:8px 0 0;font-size:28px;font-weight:800;color:#FFFFFF;text-shadow:0 3px 0 #0F0B1F;line-height:1.2}
+.page-village .village-hero-hud{position:absolute;left:14px;right:14px;top:14px;justify-content:space-between;align-items:flex-start}
+.page-village .village-clock-lab{font-size:10px;color:#B9BCD0;line-height:1.4}
+
+/* 마을 총 가치 */
+.page-village .village-main{margin-top:-12px}
+.page-village .village-row-between{display:flex;justify-content:space-between;align-items:center}
+.page-village .village-total-lab{font-size:13px;color:#B9BCD0}
+.page-village .village-total{margin-top:4px;font-size:32px;font-weight:800;line-height:1.2;color:#FFC93C;font-variant-numeric:tabular-nums}
+.page-village .village-total-sub{margin-top:4px;font-size:12px;color:#B9BCD0}
+
+/* 변신 단계 */
+.page-village .village-stage{display:flex;align-items:center;gap:14px}
+.page-village .village-stage-img{width:96px;height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#BDE3FF;border:2px solid #0F0B1F}
+.page-village .village-stage-img img{width:96px;height:96px;display:block}
+.page-village .village-stage-text{min-width:0;flex:1}
+.page-village .village-stage-name{margin-top:4px;font-size:16px;font-weight:800}
+.page-village .village-stage-desc{margin-top:2px;font-size:13px;color:#6B6F80;line-height:1.4}
+.page-village .village-progress-row{margin-top:8px;display:flex;align-items:center;gap:8px}
+.page-village .village-progress{position:relative;flex-grow:1;height:12px;background:#E6E8F0;border:2px solid #231B3A}
+.page-village .village-progress-fill{position:absolute;left:0;top:0;bottom:0;background:#FFC93C}
+.page-village .village-progress-stripe{position:absolute;left:0;top:0;right:0;bottom:0}
+.page-village .village-progress-text{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.page-village .village-tiers-link{display:inline-flex;align-items:center;min-height:44px;font-size:13px;font-weight:800;color:#231B3A;text-decoration:underline}
+.page-village .village-share{min-height:56px;background:#FFC93C;color:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;border-radius:0;font-size:16px;font-weight:800}
+
+/* 도감 */
+.page-village .village-dex-head{display:flex;align-items:baseline;justify-content:space-between}
+.page-village .village-dex-title{margin:0;font-size:18px;font-weight:800}
+.page-village .village-dex-sub{font-size:12px;color:#6B6F80}
+.page-village .village-house{display:flex;align-items:center;gap:12px}
+.page-village .village-thumb{position:relative;width:80px;height:72px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;background:#1E90E6;border:2px solid #0F0B1F;overflow:hidden}
+.page-village .village-thumb-grass{position:absolute;left:0;right:0;bottom:0;height:8px;background:#6CC24A}
+.page-village .village-thumb-sprite{position:relative;margin-bottom:4px}
+.page-village .village-house-info{flex-grow:1;min-width:0}
+.page-village .village-house-name{font-size:15px;font-weight:800}
+.page-village .village-house-meta{margin-top:2px;font-size:12px;color:#6B6F80}
+.page-village .village-house-price{margin-top:4px;font-size:13px;font-variant-numeric:tabular-nums}
+.page-village .village-contract-link{display:flex;align-items:center;min-height:44px;padding:0 12px;border:2px solid #231B3A;font-size:13px;font-weight:800;color:#231B3A;flex-shrink:0}
+.page-village .village-empty{display:flex;align-items:center;gap:12px;border:2px dashed #8D90A8;box-shadow:none;background:transparent}
+.page-village .village-empty-box{width:80px;height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#E6E8F0;border:2px solid #8D90A8;color:#6B6F80;font-size:28px;font-weight:800}
+.page-village .village-empty-text{flex-grow:1}
+.page-village .village-empty-sub{margin-top:2px;font-size:13px;color:#6B6F80}
+.page-village .village-empty-cta{display:flex;align-items:center;min-height:44px;font-size:13px;font-weight:800;color:#231B3A;flex-shrink:0}
+.page-village .village-footnote{margin-top:24px}
+
+@media (min-width:900px){
+.page-village .k-scene{height:380px}
+.page-village .k-low{width:96px;height:120px}
+.page-village .k-mid{width:84px;height:156px}
+.page-village .k-tree{width:60px;height:72px}
+.page-village .k-cloud{width:80px;height:30px}
+.page-village .k-slot{width:96px;height:96px}
+.page-village .k-next{left:44%}
+.page-village .k-wide{display:block}
+.page-village .k-wide.k-slot{display:flex}
+}
+@media (max-width:899px){
+.page-village .k-cols{grid-template-columns:minmax(0,1fr)}
+.page-village .k-wrap{padding:16px 16px 104px}
+.page-village .k-links{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;gap:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 8px 12px;background:#231B3A;border-top:3px solid #0F0B1F}
+.page-village .k-link{flex-direction:column;justify-content:center;gap:4px;min-height:60px;padding:0;border:0;font-size:11px}
+.page-village .k-top{padding:0 16px}
+.page-village .k-top--hero{height:0;padding:0;border:0;overflow:visible}
+.page-village .k-top--hero .k-logo,.page-village .k-top--hero .k-chip,.page-village .k-top--hero .k-grow{display:none}
+.page-village .k-hero-hud{display:flex}
+}

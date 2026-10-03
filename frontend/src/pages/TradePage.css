@@ -1,0 +1,69 @@
+.page-trade{min-height:100vh;display:flex;flex-direction:column;background:#F7F8FC;color:#1B1B2F;font-family:'Noto Sans KR',system-ui,sans-serif}
+.page-trade .k-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;height:64px;box-sizing:border-box;padding:0 24px;background:#231B3A;border-bottom:3px solid #0F0B1F}
+.page-trade .k-logo{display:flex;align-items:center;gap:10px;color:#FFC93C;font-size:22px;font-weight:800}
+.page-trade .k-mark{width:32px;height:32px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;box-shadow:0 2px 0 #0F0B1F;font-size:16px;font-weight:800}
+.page-trade .k-links{display:flex;gap:4px;margin-left:12px}
+.page-trade .k-link{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid transparent;color:#D7D9E8;font-size:15px;font-weight:700}
+.page-trade .k-link svg{fill:currentColor;shape-rendering:crispEdges}
+.page-trade .k-on{color:#FFC93C;border-color:#FFC93C}
+.page-trade .k-grow{flex-grow:1}
+.page-trade .k-chip{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;background:#231B3A;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F}
+.page-trade .k-top .k-chip{background:#2E2450}
+.page-trade .k-lab{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.4;color:#B9BCD0}
+.page-trade .k-num{font-weight:800;font-size:15px;line-height:1.2;font-variant-numeric:tabular-nums}
+.page-trade .k-num--cash{color:#FFC93C}
+.page-trade .k-wrap{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 48px;box-sizing:border-box}
+.page-trade .k-cols{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start}
+.page-trade .k-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.page-trade .k-card{background:#FFFFFF;border:1px solid #E6E8F0;border-radius:16px;box-shadow:0 1px 2px rgba(27,27,47,.06);padding:16px}
+.page-trade .k-px{background:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;padding:16px;color:#FFFFFF}
+.page-trade .k-note{margin:24px 0 0;text-align:center;font-size:12px;line-height:1.5;color:#6B6F80}
+.page-trade .k-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #E6E8F0;min-height:44px}
+.page-trade .k-row:last-child{border-bottom:0}
+.page-trade .k-tick{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#231B3A;border:2px solid #0F0B1F;color:#FFC93C;font-size:17px;font-weight:800}
+@keyframes page-trade-blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* 제목 + LIVE */
+.page-trade .k-title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.page-trade .k-title{margin:0;font-size:28px;font-weight:800;line-height:1.2}
+.page-trade .k-live{display:flex;align-items:center;gap:8px;height:28px;padding:0 10px;box-sizing:border-box;border:2px solid #231B3A;background:#FFFFFF}
+.page-trade .k-live-dot{width:8px;height:8px;background:#D32F36;animation:page-trade-blink 1.2s steps(2) infinite}
+.page-trade .k-live .k-lab{color:#231B3A}
+
+/* 검색 진입 */
+.page-trade .k-search{display:flex;align-items:center;gap:10px;min-height:52px;box-sizing:border-box;padding:0 14px;background:#FFFFFF;border:2px solid #231B3A;box-shadow:0 3px 0 #231B3A;color:#6B6F80;font-size:15px}
+.page-trade .k-search svg{shape-rendering:crispEdges;fill:#231B3A}
+
+/* 종목 목록 */
+.page-trade .k-list{padding-top:8px;padding-bottom:4px}
+.page-trade .k-tabs{display:flex;gap:8px;padding:8px 0 4px}
+.page-trade .k-tab{min-height:44px;padding:0 16px;border:2px solid #231B3A;border-radius:0;box-shadow:0 3px 0 #231B3A;color:#231B3A;font-size:14px;font-weight:800;background:#FFFFFF}
+.page-trade .k-tab--on{background:#FFC93C}
+.page-trade .k-row-main{flex-grow:1;min-width:0}
+.page-trade .k-row-name{font-size:15px;font-weight:700}
+.page-trade .k-row-sub{font-size:12px;color:#6B6F80}
+.page-trade .k-row-right{text-align:right}
+.page-trade .k-row-price{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.page-trade .k-row-rate{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.page-trade .k-up{color:#D32F36}
+.page-trade .k-down{color:#2563EB}
+
+/* 사이드 */
+.page-trade .k-px-head{display:flex;justify-content:space-between;align-items:center}
+.page-trade .k-px-label{font-size:13px;color:#B9BCD0}
+.page-trade .k-lab--gold{color:#FFC93C}
+.page-trade .k-stock-value{margin-top:4px;font-size:32px;font-weight:800;line-height:1.2;color:#FFC93C;font-variant-numeric:tabular-nums}
+.page-trade .k-px-sub{margin-top:4px;font-size:12px;color:#B9BCD0}
+.page-trade .k-cheer{display:flex;align-items:center;gap:14px}
+.page-trade .k-avatar{width:96px;height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#BDE3FF;border:2px solid #0F0B1F}
+.page-trade .k-avatar img{width:96px;height:96px;display:block}
+.page-trade .k-cheer-text{font-size:14px;font-weight:700;line-height:1.5}
+
+@media (max-width:899px){
+.page-trade .k-cols{grid-template-columns:minmax(0,1fr)}
+.page-trade .k-wrap{padding:16px 16px 104px}
+.page-trade .k-links{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;gap:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 8px 12px;background:#231B3A;border-top:3px solid #0F0B1F}
+.page-trade .k-link{flex-direction:column;justify-content:center;gap:4px;min-height:60px;padding:0;border:0;font-size:11px}
+.page-trade .k-top{padding:0 16px}
+.page-trade .k-side{order:-1}
+}

@@ -1,0 +1,47 @@
+.page-welcome{min-height:100vh;display:flex;flex-direction:column;background:#1E90E6;color:#1B1B2F;font-family:'Noto Sans KR',system-ui,sans-serif}
+.page-welcome .k-top{display:flex;align-items:center;gap:12px;height:64px;box-sizing:border-box;padding:0 24px;background:#231B3A;border-bottom:3px solid #0F0B1F}
+.page-welcome .k-logo{display:flex;align-items:center;gap:10px;color:#FFC93C;font-size:22px;font-weight:800}
+.page-welcome .k-mark{width:32px;height:32px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;box-shadow:0 2px 0 #0F0B1F;font-size:16px;font-weight:800}
+.page-welcome .k-dot{font-family:'Galmuri','Noto Sans KR',sans-serif;font-weight:700}
+.page-welcome .k-grow{flex-grow:1}
+.page-welcome .k-lab{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.4}
+.page-welcome .k-main{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:40px 24px 64px;box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px;align-items:center}
+.page-welcome .k-btn{display:flex;align-items:center;justify-content:center;min-height:60px;box-sizing:border-box;padding:0 16px;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;border-radius:0;font-size:18px;font-weight:800;color:#231B3A}
+.page-welcome .k-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #0F0B1F}
+.page-welcome .k-scene{position:relative;height:460px;overflow:hidden;background:#CFEBFF;border:3px solid #0F0B1F;box-shadow:6px 6px 0 #0F0B1F}
+.page-welcome .k-scene .sp{position:absolute;shape-rendering:crispEdges}
+
+/* 왼쪽 카피 영역 */
+.page-welcome .k-copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.page-welcome .k-badge{align-self:flex-start;display:flex;align-items:center;min-height:32px;padding:0 12px;background:#231B3A;border:2px solid #0F0B1F;color:#FFFFFF;font-size:13px;font-weight:700}
+.page-welcome .k-title{margin:0;font-size:66px;line-height:1;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.page-welcome .k-title-gold{display:block;margin-bottom:5px;text-shadow:#0F0B1F 0 5px 0;color:#FFC93C}
+.page-welcome .k-title-vs{display:inline-block;margin:0;padding:4px 10px;background:#231B3A;border:3px solid #0F0B1F;color:#FFFFFF;font-size:14px;line-height:1.4}
+.page-welcome .k-title-white{display:block;color:#FFFFFF;text-shadow:#0F0B1F 0 5px 0}
+.page-welcome .k-slogan{font-size:34px;font-weight:800;line-height:1.35;color:#FFFFFF;text-shadow:0 3px 0 #0F0B1F}
+.page-welcome .k-sub{align-self:flex-start;padding:8px 14px;background:#FFFFFF;border:2px solid #0F0B1F;font-size:15px;line-height:1.5}
+.page-welcome .k-gift{align-self:flex-start;display:flex;align-items:center;gap:14px;padding:10px 16px;background:#FFC93C;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F}
+.page-welcome .k-gift-label{font-size:15px;font-weight:800;color:#231B3A}
+.page-welcome .k-gift-value{font-size:26px;font-weight:800;color:#231B3A;font-variant-numeric:tabular-nums}
+.page-welcome .k-actions{display:flex;flex-direction:column;gap:8px;max-width:380px;margin-top:6px}
+.page-welcome .k-kakao{background:#FEE500}
+
+/* 장면 */
+.page-welcome .k-grass{position:absolute;left:0;right:0;bottom:0;height:96px;background:#6CC24A;border-top:3px solid #0F0B1F}
+.page-welcome .k-soil{position:absolute;left:0;right:0;bottom:0;height:24px;background:#7A4B3A}
+.page-welcome .k-bubble{position:absolute;top:24px;left:24px;max-width:240px;padding:12px 16px;background:#FFFFFF;border:3px solid #0F0B1F;box-shadow:4px 4px 0 #0F0B1F;font-size:18px;font-weight:800;line-height:1.4}
+.page-welcome .k-char{position:absolute;left:50%;bottom:72px;margin-left:-112px;animation:welcome-bob 1.2s steps(2) infinite}
+.page-welcome .k-sprite{width:224px;height:224px;display:block}
+
+@keyframes welcome-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+@media (max-width:899px){
+.page-welcome .k-main{grid-template-columns:minmax(0,1fr);gap:28px;padding:24px 16px 48px}
+.page-welcome .k-top{padding:0 16px}
+.page-welcome .k-scene{height:380px}
+.page-welcome .k-title{font-size:44px}
+.page-welcome .k-slogan{font-size:26px}
+.page-welcome .k-wide{display:none}
+.page-welcome .k-sprite{width:160px;height:160px}
+}
+
