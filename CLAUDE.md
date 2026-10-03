@@ -6,19 +6,35 @@
 - Backend: Java 21, Spring Boot 4.1, Spring Data JPA, MySQL(RDS), WebSocket(STOMP)
 - Frontend: React + TypeScript (Vite), ESLint
 - 인프라: Docker Compose, GitHub Actions, AWS(EC2 + RDS)
-- MVP 4개: ① 시드 선택(500만/5,000만) + 매수·매도 ② 평가액·손익 실시간 갱신 ③ 평가액으로 살 수 있는 아파트 추천 ④ 집 사기 → 컬렉션
+- MVP 4개
+  - ① 카카오 로그인 → 시드 선택(500만/5,000만) + 매수·매도
+  - ② 평가액·손익 실시간 갱신
+  - ③ 내 돈 40%로 살 수 있는 아파트 추천 (나머지 60%는 가짜 대출)
+  - ④ 집 사기(계약서) → 내 마을(도감) 컬렉션 + 변신 4단계
 - 상세 설계: 노션 https://app.notion.com/p/From-Rags-To-Riches-FRTR-3db93c322ab780709c78f259c7ad4598
+- UI 기준: `docs/design.md` (v0.2). 화면 구현·리뷰 전에 반드시 읽을 것
+
+## 도메인 규칙 (확정)
+- 로그인: 카카오 로그인만 사용. ID/비밀번호 로그인 없음
+- 가입 흐름: 카카오 로그인 → 시드머니 선택(500만/5,000만) → 홈. 시드 선택은 가입 직후 1회
+- 주식 매수: 현금으로만 산다
+- 집 추천: 집값의 40%는 내 돈, 60%는 가짜 대출. 평가액(현금 + 주식 평가액)이 집값×40% 이상이면 살 수 있는 집으로 추천
+- 변신 4단계: 보유 집 수로 결정. 걸뱅이(0채) / 서민(1채) / 졸부(2~4채) / 갑부(5채 이상)
+- 계약서: 집 사기 확정 시 보여주는 연출. 별도 법적·금융 의미 없음
+- 내 마을(도감): 산 집을 모아 보는 화면. 집 팔기는 없음
+- 집 결제: 현금에서만 40%를 차감한다. 추천은 평가액 기준이지만 결제는 현금 기준. 현금이 모자라면 사용자가 직접 주식을 팔아 현금을 만든 뒤 결제한다 (자동 매도 없음)
+- 주식은 집을 산 뒤에도 유지된다 (포트폴리오 초기화 없음)
 
 ## 디렉토리 구조
 ```
 kkumi/
 ├── backend/src/main/java/com/kkumi/
-│   ├── member/      # 회원, 시드머니
+│   ├── member/      # 회원(카카오 로그인), 시드머니
 │   ├── stock/       # 종목, 시세 조회 (StockPriceProvider)
 │   ├── trade/       # 매수·매도, 보유 종목
 │   ├── portfolio/   # 평가액, WebSocket 푸시
 │   ├── apartment/   # 실거래가, 배치, 추천
-│   ├── house/       # 집 사기, 컬렉션
+│   ├── house/       # 집 사기, 컬렉션, 변신 단계
 │   └── global/      # config, error, 공통 응답만. 도메인 로직 금지
 ├── frontend/src/
 │   ├── pages/       # 화면 단위. API 직접 호출 금지
@@ -28,7 +44,7 @@ kkumi/
 │   ├── hooks/       # 커스텀 훅 (useXxx)
 │   ├── types/       # API 요청·응답 타입
 │   └── utils/       # 순수 함수만 (formatKRW 등)
-└── docs/            # tradeoffs.md, troubleshooting.md
+└── docs/            # design.md, tradeoffs.md, troubleshooting.md
 ```
 - 도메인 패키지 안 구조: `XxxController`, `XxxService`, `XxxRepository`, 엔티티는 패키지 루트, DTO는 `{도메인}/dto/`
 
@@ -71,6 +87,7 @@ kkumi/
 - 금액 표시: `src/utils/format.ts`의 `formatKRW()` 사용. 컴포넌트에서 직접 포맷 금지
 - boolean 변수·props: `is`/`has` 접두사 (`isLoading`, `hasHolding`)
 - 이벤트 핸들러: `handle` 접두사 (`handleBuyClick`), props로 넘길 땐 `on` 접두사 (`onBuy`)
+- 화면 구성·색·간격·폰트·카피는 `docs/design.md`와 시안(v0.2)을 따른다. 시안에 없는 화면은 임의로 추가하지 않는다
 
 ## 절대 금지
 - 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 은주 작성 → 교정만)
@@ -79,11 +96,11 @@ kkumi/
   - `apartment/` 실거래가 배치 수집 로직
   - `frontend/` 코드 전체 (특히 `src/ws/`와 실시간 평가액 차트). 디자인 시안·명세·리뷰만 가능
   - 위 영역에서 허용: 인터페이스, DTO, TS 타입, 테스트 메서드 이름 뼈대
-- 비밀값 커밋 금지 → `.env`(로컬), GitHub Secrets(CI), EC2 `.env`(운영)
+- 비밀값 커밋 금지 → `.env`(로컬), GitHub Secrets(CI), EC2 `.env`(운영). 카카오 클라이언트 시크릿 포함
 - `main` 브랜치 직접 push 금지 → 브랜치 + PR
 - 운영(prod) 프로필에 `ddl-auto: create` / `create-drop` 금지
 - 새 기술 추가 금지: Kafka, Kubernetes, Redis, Elasticsearch, MSA, Next.js, 상태관리 라이브러리
-- MVP 범위 밖 기능 구현 금지: 빌딩, 랭킹, 친구 비교, 집 팔기, 집값 하락 표시, 모바일앱
+- MVP 범위 밖 기능 구현 금지: 빌딩, 랭킹, 친구 비교, 집 팔기, 집값 하락 표시, 네이티브 모바일앱 (모바일 웹 반응형은 MVP 안)
 - 커밋 메시지·PR·주석에 AI 작성 표시 금지 (Co-Authored-By, "Generated with" 등)
 - `System.out.println` 금지 → `@Slf4j` + `log.info()`
 - `console.log` 커밋 금지
