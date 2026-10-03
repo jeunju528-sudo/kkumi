@@ -1,4 +1,4 @@
-package com.kkumi.backend;
+package com.kkumi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

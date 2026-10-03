@@ -37,6 +37,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
 	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'com.h2database:h2' // 테스트 전용 인메모리 DB (MySQL 모드)
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
