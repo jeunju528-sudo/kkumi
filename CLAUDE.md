@@ -147,11 +147,14 @@ kkumi/
   - 프론트 `eslint.config.js`: `console`, `any`, `interface`, `export default`, `==`, 미사용 변수, 전역 상태관리 라이브러리, pages·components·api·ws·types·utils의 `@tanstack/react-query`, hooks의 쿼리 키 직접 입력, pages·components·hooks의 `fetch`/`WebSocket`, components→api·ws·pages, api·ws·types→UI 레이어, utils→React·다른 레이어
 - 규칙 추가·변경 시 이 문서 + `ArchitectureTest` / `eslint.config.js` 같이 수정
 - 코드로 못 잡는 규칙(네이밍, boolean 접두사, WebSocket cleanup 등)은 PR 리뷰에서 확인
-- CI (TODO: GitHub Actions 작업 때 추가)
-  - 훅은 `--no-verify`로 우회 가능 → PR마다 CI에서 같은 검사 재실행 필수
-  - backend: `./gradlew test` (ArchUnit 포함)
-  - frontend: `npm ci && npm run lint && npm run build`
-  - 실패하면 merge 불가 (GitHub 브랜치 보호 규칙에 필수 체크로 등록)
+- CI (GitHub Actions, `.github/workflows/ci.yml`)
+  - 훅은 `--no-verify`로 우회 가능 → PR마다 CI에서 같은 검사 재실행
+  - 트리거: `main` 대상 PR. 새 커밋 오면 이전 실행 취소
+  - backend 잡: `./gradlew test` (ArchUnit 포함, Java 21)
+  - frontend 잡: `npm ci && npm run lint && npm run build` (Node 22, `tsc -b` 포함)
+  - 실패하면 merge 불가: GitHub > Settings > Branches 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (은주가 직접 설정)
+  - 잡 이름(`backend`, `frontend`) 변경 금지. 바꾸면 필수 체크 재등록 필요
+  - 워크플로에 `paths` 필터 금지. 필수 체크가 skip되면 PR이 pending에서 안 풀림
 
 ## PR 규칙
 - 브랜치명: `{type}/{kebab-case}` (e.g. `feat/stock-buy`, `fix/holding-avg-price`)
