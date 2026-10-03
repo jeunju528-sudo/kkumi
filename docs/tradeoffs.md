@@ -29,6 +29,22 @@ A vs B / 장단점 / 선택 이유
 ### 운영 ddl-auto: update vs validate (미정)
 - 런칭 전까지 update, 런칭 직전에 결정
 
+### 규칙 강제: 문서만 vs 코드(린터·테스트·훅) → 코드
+- 문서만: 작성 쉬움 / 사람·에이전트 모두 놓침
+- 코드: 위반 시 커밋 자체가 막힘 / 설정 유지 비용, 문서와 동기화 필요
+- 선택 이유: 문서에만 있는 규칙은 잘 안 지켜짐. CLAUDE.md 규칙을 ArchUnit, ESLint로 옮기고 훅으로 커밋 전 검사
+
+### Git 훅 관리: pre-commit(Python) vs husky vs core.hooksPath → core.hooksPath
+- pre-commit: 다양한 훅 생태계 / Python 설치 필요
+- husky: 프론트에서 많이 씀 / 루트 package.json 필요, Node 의존
+- core.hooksPath: 추가 도구 없음, 셸 스크립트만 / 클론 후 설정 1회 필요
+- 선택 이유: Java + Node 모노레포라 특정 언어 도구에 묶이지 않는 게 나음. 훅은 --no-verify로 우회 가능해서 CI에서 같은 검사 한 번 더
+
+### 백엔드 아키텍처 검사: 리뷰만 vs ArchUnit → ArchUnit
+- 리뷰만: 추가 의존성 없음 / 놓치기 쉬움
+- ArchUnit: 계층 규칙을 테스트로 강제 / 테스트 의존성 1개
+- 선택 이유: 계층·엔티티 규칙은 패턴이 명확해서 테스트로 잡기 좋음
+
 ---
 
 ## 데이터 모델

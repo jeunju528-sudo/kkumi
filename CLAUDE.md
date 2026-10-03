@@ -53,6 +53,7 @@ kkumi/
 - Controller: 요청 검증(`@Valid`)과 DTO 변환만. `if`로 비즈니스 분기 금지
 - URL: `/api/{복수형 리소스}` (e.g. `POST /api/trades/buy`, `GET /api/houses`)
 - Service: 클래스에 `@Transactional(readOnly = true)`, 쓰기 메서드만 `@Transactional`
+  - `org.springframework.transaction.annotation.Transactional`만 사용 (`jakarta.transaction.Transactional` 금지)
 - 의존성 주입: 생성자 주입(`@RequiredArgsConstructor` + `private final`)만 사용
 - 엔티티
   - `@Setter` 금지 → 상태 변경은 의미 있는 메서드로 (e.g. `withdraw(amount)`, not `setCash()`)
@@ -77,7 +78,7 @@ kkumi/
 - 컴포넌트: 함수형만. 파일명 PascalCase (`StockCard.tsx`), 컴포넌트 하나당 파일 하나
 - 훅: `use` 접두사, `src/hooks/useXxx.ts`
 - export: named export만 사용 (`export function StockCard`). `export default` 금지
-- props 타입: `type StockCardProps = { ... }` 형태로 컴포넌트 위에 선언
+- props 타입: `type StockCardProps = { ... }` 형태로 컴포넌트 위에 선언. `interface` 금지 → `type`
 - 타입
   - `any` 금지 → `unknown` + 타입 가드
   - API 응답 타입은 `src/types/`에, 이름은 백엔드 DTO와 동일 (`HoldingResponse`)
@@ -87,7 +88,13 @@ kkumi/
 - 금액 표시: `src/utils/format.ts`의 `formatKRW()` 사용. 컴포넌트에서 직접 포맷 금지
 - boolean 변수·props: `is`/`has` 접두사 (`isLoading`, `hasHolding`)
 - 이벤트 핸들러: `handle` 접두사 (`handleBuyClick`), props로 넘길 땐 `on` 접두사 (`onBuy`)
+- 비교: `===` / `!==`만 사용
 - 화면 구성·색·간격·폰트·카피는 `docs/design.md`와 시안(v0.2)을 따른다. 시안에 없는 화면은 임의로 추가하지 않는다
+
+## 작성 예시
+- 코드 작성 전 아래 예시 패턴 확인 (올바른 패턴 / 금지 패턴)
+
+@docs/code-examples.md
 
 ## 절대 금지
 - 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 은주 작성 → 교정만)
@@ -105,6 +112,26 @@ kkumi/
 - `System.out.println` 금지 → `@Slf4j` + `log.info()`
 - `console.log` 커밋 금지
 
+## 자동 검사
+- 클론 후 최초 1회: `git config core.hooksPath .githooks`
+- pre-commit (`.githooks/pre-commit`)
+  - `main` 브랜치에서 커밋 차단
+  - `.env` 파일 커밋 차단 (`.env.example` 제외)
+  - `backend/` 변경 시 `./gradlew test` (ArchUnit 포함)
+  - `frontend/` 변경 시 `npm run lint` + `tsc -b`
+- commit-msg (`.githooks/commit-msg`): 접두사 형식, AI 작성 문구 검사
+- 검사 실패 시 커밋 불가. `--no-verify` 우회 금지
+- 코드로 강제되는 규칙
+  - 백엔드 `ArchitectureTest`: Controller→Repository 참조, Controller 엔티티 반환, global→도메인 참조, Service `@Transactional` 누락, `jakarta.transaction.Transactional`, 엔티티 setter, 엔티티·DTO `double`/`float`, 필드 주입, `System.out`, `java.util.logging`
+  - 프론트 `eslint.config.js`: `console`, `any`, `interface`, `export default`, `==`, 미사용 변수, 상태관리 라이브러리, pages·components·hooks의 `fetch`/`WebSocket`, components→api·ws·pages, api·ws·types→UI 레이어, utils→React·다른 레이어
+- 규칙 추가·변경 시 이 문서 + `ArchitectureTest` / `eslint.config.js` 같이 수정
+- 코드로 못 잡는 규칙(네이밍, boolean 접두사, WebSocket cleanup 등)은 PR 리뷰에서 확인
+- CI (TODO: GitHub Actions 작업 때 추가)
+  - 훅은 `--no-verify`로 우회 가능 → PR마다 CI에서 같은 검사 재실행 필수
+  - backend: `./gradlew test` (ArchUnit 포함)
+  - frontend: `npm ci && npm run lint && npm run build`
+  - 실패하면 merge 불가 (GitHub 브랜치 보호 규칙에 필수 체크로 등록)
+
 ## PR 규칙
 - 브랜치명: `{type}/{kebab-case}` (e.g. `feat/stock-buy`, `fix/holding-avg-price`)
 - 커밋 메시지: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:` 접두사 + 한국어 요약
@@ -113,6 +140,8 @@ kkumi/
 - merge는 Squash and merge만
 
 ## 테스트
+- 테스트가 기대 동작의 기준. 구현 전에 테스트 먼저 작성 → 테스트 통과하는 방향으로 구현
+- 직접 작성 영역(심장)은 은주가 테스트부터 작성. Claude는 테스트 메서드 이름 뼈대만 제안
 - 백엔드 위치: `backend/src/test/java/com/kkumi/{도메인}/`
 - 클래스명: `{대상}Test` (e.g. `TradeServiceTest`)
 - 메서드: `@DisplayName("잔액 부족하면 매수 실패")` 한국어로 작성
@@ -120,6 +149,7 @@ kkumi/
 - 실행: `cd backend && ./gradlew test` (H2 MySQL 모드, DB 없이 실행)
 - Service에 새 메서드 추가 시 성공 케이스 1개 + 실패 케이스 1개 이상 필수
 - 프론트 검증: `cd frontend && npm run lint && npm run build`
+- 경계값 필수: 규칙에 숫자 구간이 있으면 경계(1, 2, 4, 5)와 잘못된 값(음수)을 모두 테스트 (예시: `docs/code-examples.md` 테스트 항목)
 
 ## 기록
 - 결정 지점(A vs B)이 생기면 `docs/tradeoffs.md`에 추가 제안: `A vs B / 장단점 / 선택 이유`
