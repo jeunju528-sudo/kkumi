@@ -15,6 +15,14 @@
 - UI 기준: `docs/design.md` (v0.2). 화면 구현·리뷰 전에 반드시 읽을 것
 - 진행 현황: `docs/progress.md`. 세션 시작 시 먼저 확인, 작업 끝나면 갱신
 
+## 참고 문서
+작업 전 아래 문서를 반드시 확인할 것. 구조와 작성 규칙은 `docs/README.md`.
+- 기술 결정: `docs/decisions/` — 왜 이 구조인지 이유가 담겨 있음. 확정된 결정을 번복하는 제안은 하지 않고, 필요하면 은주와 먼저 논의
+- 실패 기록: `docs/failures/` — 시도했다가 포기한 방법 목록. 같은 방법을 다시 제안하지 않음
+- 용어 사전: `docs/domain/glossary.md` — 도메인 용어의 정확한 의미
+- 업무 흐름: `docs/domain/workflows.md` — 가입, 매수·매도, 추천, 집 사기 흐름
+- 코딩 규칙 상세: `docs/conventions/` — 올바른 패턴 / 금지 패턴
+
 ## 도메인 규칙 (확정)
 - 로그인: 카카오 로그인만 사용. ID/비밀번호 로그인 없음
 - 가입 흐름: 카카오 로그인 → 시드머니 선택(500만/5,000만) → 홈. 시드 선택은 가입 직후 1회
@@ -25,6 +33,7 @@
 - 내 마을(도감): 산 집을 모아 보는 화면. 집 팔기는 없음
 - 집 결제: 현금에서만 40%를 차감한다. 추천은 평가액 기준이지만 결제는 현금 기준. 현금이 모자라면 사용자가 직접 주식을 팔아 현금을 만든 뒤 결제한다 (자동 매도 없음)
 - 주식은 집을 산 뒤에도 유지된다 (포트폴리오 초기화 없음)
+- 상세 용어·흐름은 `docs/domain/`. 도메인 규칙을 바꿀 땐 여기와 `docs/domain/`을 같이 수정
 
 ## 디렉토리 구조
 ```
@@ -45,7 +54,7 @@ kkumi/
 │   ├── hooks/       # 커스텀 훅, TanStack Query (useQuery/useMutation은 여기서만)
 │   ├── types/       # API 요청·응답 타입
 │   └── utils/       # 순수 함수만 (formatKRW 등)
-└── docs/            # design.md, ui-spec.md, progress.md, tradeoffs.md, troubleshooting.md
+└── docs/            # 지식 저장소 (구조·작성 규칙은 docs/README.md)
 ```
 - 도메인 패키지 안 구조: `XxxController`, `XxxService`, `XxxRepository`, 엔티티는 패키지 루트, DTO는 `{도메인}/dto/`
 
@@ -115,7 +124,9 @@ kkumi/
 ## 작성 예시
 - 코드 작성 전 아래 예시 패턴 확인 (올바른 패턴 / 금지 패턴)
 
-@docs/code-examples.md
+@docs/conventions/backend.md
+@docs/conventions/frontend.md
+@docs/conventions/testing.md
 
 ## 절대 금지
 - 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 은주 작성 → 교정만)
@@ -176,8 +187,11 @@ kkumi/
 - 실행: `cd backend && ./gradlew test` (H2 MySQL 모드, DB 없이 실행)
 - Service에 새 메서드 추가 시 성공 케이스 1개 + 실패 케이스 1개 이상 필수
 - 프론트 검증: `cd frontend && npm run lint && npm run build`
-- 경계값 필수: 규칙에 숫자 구간이 있으면 경계(1, 2, 4, 5)와 잘못된 값(음수)을 모두 테스트 (예시: `docs/code-examples.md` 테스트 항목)
+- 경계값 필수: 규칙에 숫자 구간이 있으면 경계(1, 2, 4, 5)와 잘못된 값(음수)을 모두 테스트 (예시: `docs/conventions/testing.md`)
 
 ## 기록
-- 결정 지점(A vs B)이 생기면 `docs/tradeoffs.md`에 추가 제안: `A vs B / 장단점 / 선택 이유`
+- 결정 지점(A vs B)이 생기면 `docs/decisions/`에 ADR 추가 제안. 양식은 `docs/decisions/_template.md`, 번호는 `docs/decisions/README.md`의 "다음 번호". 목록도 같이 갱신
+- 시도했다가 포기한 방법은 `docs/failures/`에 추가 제안. 양식은 `docs/failures/_template.md`
 - 에러 해결 시 `docs/troubleshooting.md`에 추가 제안: `증상 / 원인 / 해결 / 배운 점`
+- 도메인 규칙·용어가 바뀌면 `docs/domain/`도 같이 수정
+- 문서 작성 시 `docs/README.md`의 구조와 작성 규칙(근거 없는 내용은 "기록 없음"으로 표기)을 따름

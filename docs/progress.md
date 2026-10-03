@@ -14,6 +14,9 @@
 - 규칙 자동 검사: ESLint 레이어 규칙, ArchUnit, Git 훅 (#3)
 - CI: GitHub Actions `.github/workflows/ci.yml` (main 대상 PR마다 backend `./gradlew test` + frontend `npm ci`, lint, build)
   - 남은 수동 작업: GitHub 브랜치 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (아래 "외부 대기")
+- 배포 준비 (CD 1단계): `backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`, 운영용 `docker-compose.yml` (앱 + nginx, DB는 RDS), CI `docker` 잡
+  - 남은 것: CD 워크플로 (main merge 시 EC2 자동 배포), EC2·RDS 실배포 + Hello World 확인
+- 지식 저장소 정비: `docs/`를 `decisions/`(ADR 25개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 
 - 배포 준비 (CD 1단계): `backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`, 운영용 `docker-compose.yml` (앱 + nginx, DB는 RDS), CI `docker` 잡
   - 남은 것: CD 워크플로 (main merge 시 EC2 자동 배포), EC2·RDS 실배포 + Hello World 확인
@@ -49,3 +52,4 @@
 - 노션 일정표(간트): FRTR 페이지 > "꿈이 런칭 일정 (10/2 ~ 10/24)" DB
 - Figma 시안 사본: 데스크톱 10개, 모바일 7개 (모바일 사기·팔기, 계약서, 내 마을은 Figma 무료 플랜 MCP 호출 한도로 미완). 기준은 Claude Design 시안 v0.2
 - 화면 ↔ 파일 대응표: `frontend/README.md`
+- 결정 이유·실패 기록·용어: `docs/decisions/`, `docs/failures/`, `docs/domain/` (목록은 `docs/README.md`)
