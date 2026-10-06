@@ -15,8 +15,11 @@
 - CI: GitHub Actions `.github/workflows/ci.yml` (main 대상 PR마다 backend `./gradlew test` + frontend `npm ci`, lint, build)
   - GitHub 브랜치 보호 규칙에 필수 체크 `backend`, `frontend` 등록 완료
 - 배포 준비: `backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`, 운영용 `docker-compose.yml` (앱 + nginx, DB는 RDS), CI `docker` 잡
-- CD 1단계: `.github/workflows/deploy.yml` (main push 시 backend·nginx 이미지를 빌드해 GHCR에 push, 이미지 public. `decisions/026`)
-  - 남은 것: EC2·RDS 생성, EC2 SSH 배포 단계(CD 2단계), Hello World 확인. 절차는 노션 "6. AWS + CI/CD 진행 절차"
+- CD 1단계: `.github/workflows/deploy.yml` (main push 시 backend·nginx 이미지를 빌드해 GHCR에 push, 이미지 public. `decisions/026`, PR #12). main push 시 Actions 성공 확인
+- AWS 인프라: EC2(Ubuntu, t3.small, Elastic IP 연결) + RDS MySQL(퍼블릭 접근 없음, 3306은 EC2 보안 그룹에서만 허용)
+  - EC2에서 RDS 접속 확인, Docker·Compose 설치 확인(`hello-world` 실행)
+  - EC2에 레포 clone + `.env`(DB 정보, 이미지 이름) 작성, `docker compose config` 정상 확인
+  - 남은 것: SSH 접속 방식 결정(22번 포트), CD 2단계(SSH 배포), Hello World 확인. 절차는 노션 "7. AWS + CI/CD 진행 절차"
 - 지식 저장소 정비: `docs/`를 `decisions/`(ADR 26개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 
 ### 아직 안 한 것
@@ -26,16 +29,16 @@
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
-- CD 2단계(EC2 SSH 배포), EC2 + RDS 실배포
+- CD 2단계(EC2 SSH 배포), 실서버 기동 확인
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS에 시세 재배포 약관 문의 중 → 답변 전까지 `MockPriceProvider`로 개발, 답변 오면 KIS 구현체 or 공공데이터 종가로 결정
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`)
-- AWS 계정: 준비됨. EC2·RDS는 아직 생성 전
+- AWS: EC2·RDS 생성 완료. 22번 포트(현재 개발자 IP만 허용)와 GitHub Actions SSH 접속 방식 결정 필요 → ADR 027로 기록 예정
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. CD + Hello World 배포 (10/4~10/5): (Dockerfile·compose·nginx, 이미지 push는 완료) EC2 + RDS 생성 → CD 2단계(SSH 배포). main merge 시 자동 배포
+1. CD + Hello World 배포: 22번 포트 방식 결정(ADR 027) → GitHub Secrets 등록 → deploy.yml 2단계(SSH → pull → `docker compose up -d`) → `/actuator/health` 확인
 2. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
 3. 매수·매도 (심장 ①) — 테스트 먼저
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
