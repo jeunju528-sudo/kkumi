@@ -22,4 +22,4 @@
 
 ## 결과
 `double` / `float`는 CLAUDE.md에서 금지이며 엔티티·DTO는 `ArchitectureTest`가 검사한다.
-이 결정을 번복하려면 먼저 은주와 논의 필요. 에이전트는 금액에 `double` / `float`를 쓰지 않는다.
+이 결정을 번복하려면 먼저 개발자와 논의 필요. 에이전트는 금액에 `double` / `float`를 쓰지 않는다.
