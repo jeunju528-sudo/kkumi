@@ -16,4 +16,4 @@ KIS를 검토 중이며 약관 답변이 오면 KIS 구현체 또는 공공데�
 이미 확정된 대응: `StockPriceProvider` 인터페이스로 분리(KIS / Mock)하고, 시세는 로그인 사용자에게만 노출한다.
 
 ## 결과
-최종 출처는 약관 답변 이후 은주가 결정한다. 에이전트는 시세를 `StockPriceProvider` 인터페이스로만 호출하고 KIS 클라이언트를 직접 호출하지 않는다 (CLAUDE.md).
+최종 출처는 약관 답변 이후 개발자가 결정한다. 에이전트는 시세를 `StockPriceProvider` 인터페이스로만 호출하고 KIS 클라이언트를 직접 호출하지 않는다 (CLAUDE.md).

@@ -18,4 +18,4 @@ CLAUDE.md의 규칙을 사람과 에이전트 모두 놓칠 수 있음.
 
 ## 결과
 설정 유지 비용이 들고 문서와 동기화가 필요함 (감수).
-규칙을 추가·변경할 때 CLAUDE.md와 `ArchitectureTest` / `eslint.config.js`를 같이 수정한다. 이 결정을 번복하려면 먼저 은주와 논의 필요. 에이전트는 훅을 우회(`--no-verify`)하지 않는다. 관련: 007, 008, 009.
+규칙을 추가·변경할 때 CLAUDE.md와 `ArchitectureTest` / `eslint.config.js`를 같이 수정한다. 이 결정을 번복하려면 먼저 개발자와 논의 필요. 에이전트는 훅을 우회(`--no-verify`)하지 않는다. 관련: 007, 008, 009.

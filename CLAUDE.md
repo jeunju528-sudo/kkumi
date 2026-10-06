@@ -17,7 +17,7 @@
 
 ## 참고 문서
 작업 전 아래 문서를 반드시 확인할 것. 구조와 작성 규칙은 `docs/README.md`.
-- 기술 결정: `docs/decisions/` — 왜 이 구조인지 이유가 담겨 있음. 확정된 결정을 번복하는 제안은 하지 않고, 필요하면 은주와 먼저 논의
+- 기술 결정: `docs/decisions/` — 왜 이 구조인지 이유가 담겨 있음. 확정된 결정을 번복하는 제안은 하지 않고, 필요하면 개발자와 먼저 논의
 - 실패 기록: `docs/failures/` — 시도했다가 포기한 방법 목록. 같은 방법을 다시 제안하지 않음
 - 용어 사전: `docs/domain/glossary.md` — 도메인 용어의 정확한 의미
 - 업무 흐름: `docs/domain/workflows.md` — 가입, 매수·매도, 추천, 집 사기 흐름
@@ -114,12 +114,12 @@ kkumi/
 - Claude 가능: 시안(v0.2)을 화면으로 옮기는 작업
   - pages·components의 JSX 레이아웃, `*.css`, `index.css` 색 토큰, 폰트·스프라이트 등 assets
   - 라우팅 뼈대, 페이지 상단 목업 상수, `types/`, `utils/` 포맷 함수
-- 은주 직접 (Claude는 방향 제시·리뷰만)
+- 개발자 직접 (Claude는 방향 제시·리뷰만)
   - `src/api/`, `src/hooks/`(TanStack Query), `src/ws/`
   - pages의 목업 상수 → 실제 데이터 연결, 로딩·에러 처리
   - 상태(`useState`/Context), 입력 검증, 이벤트 핸들러 로직 (매수·매도, 집 사기 등)
   - 실시간 평가액 차트 (WebSocket 구독, cleanup, 리렌더 최적화)
-- 경계가 애매하면 "화면 모양이면 Claude, 화면 동작이면 은주"
+- 경계가 애매하면 "화면 모양이면 Claude, 화면 동작이면 개발자"
 
 ## 작성 예시
 - 코드 작성 전 아래 예시 패턴 확인 (올바른 패턴 / 금지 패턴)
@@ -129,7 +129,7 @@ kkumi/
 @docs/conventions/testing.md
 
 ## 절대 금지
-- 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 은주 작성 → 교정만)
+- 아래 "직접 작성 영역"의 구현 코드 작성·수정 금지 (방향 제시 → 개발자 작성 → 교정만)
   - `trade/` 서비스의 매수·매도 잔액·보유량 계산
   - `portfolio/` 평가액 계산 로직
   - `apartment/` 실거래가 배치 수집 로직
@@ -166,7 +166,7 @@ kkumi/
   - backend 잡: `./gradlew test` (ArchUnit 포함, Java 21)
   - frontend 잡: `npm ci && npm run lint && npm run build` (Node 22, `tsc -b` 포함)
   - docker 잡: backend·nginx 이미지 빌드 + `nginx -t` (Dockerfile·nginx.conf 검증용, 필수 체크 등록은 선택)
-  - 실패하면 merge 불가: GitHub > Settings > Branches 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (은주가 직접 설정)
+  - 실패하면 merge 불가: GitHub > Settings > Branches 보호 규칙에 필수 체크 `backend`, `frontend` 등록 (개발자가 직접 설정)
   - 잡 이름(`backend`, `frontend`) 변경 금지. 바꾸면 필수 체크 재등록 필요
   - 워크플로에 `paths` 필터 금지. 필수 체크가 skip되면 PR이 pending에서 안 풀림
 
@@ -179,7 +179,7 @@ kkumi/
 
 ## 테스트
 - 테스트가 기대 동작의 기준. 구현 전에 테스트 먼저 작성 → 테스트 통과하는 방향으로 구현
-- 직접 작성 영역(심장)은 은주가 테스트부터 작성. Claude는 테스트 메서드 이름 뼈대만 제안
+- 직접 작성 영역(심장)은 개발자가 테스트부터 작성. Claude는 테스트 메서드 이름 뼈대만 제안
 - 백엔드 위치: `backend/src/test/java/com/kkumi/{도메인}/`
 - 클래스명: `{대상}Test` (e.g. `TradeServiceTest`)
 - 메서드: `@DisplayName("잔액 부족하면 매수 실패")` 한국어로 작성

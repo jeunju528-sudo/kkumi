@@ -34,7 +34,7 @@
 - 주식 시세: KIS에 시세 재배포 약관 문의 중 → 답변 전까지 `MockPriceProvider`로 개발, 답변 오면 KIS 구현체 or 공공데이터 종가로 결정
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`)
 - AWS 계정: 확인 필요 (CD 단계 전)
-- CI 머지 후 은주가 할 일: Settings > Branches > main 보호 규칙에서 "Require status checks to pass" 켜고 `backend`, `frontend` 선택 (체크가 한 번 돌아야 목록에 뜸). 첫 PR에서 Actions 실제 통과 여부도 확인
+- CI 머지 후 개발자가 할 일: Settings > Branches > main 보호 규칙에서 "Require status checks to pass" 켜고 `backend`, `frontend` 선택 (체크가 한 번 돌아야 목록에 뜸). 첫 PR에서 Actions 실제 통과 여부도 확인
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
