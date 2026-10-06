@@ -26,7 +26,7 @@
 | 017 | [실거래가 배치: 증분(upsert)](017-batch-incremental-upsert.md) | 확정 |
 | 018 | [거래 유니크 키](018-deal-unique-key.md) | 확정 |
 | 019 | [금액 타입: long, 평균 매입가만 BigDecimal](019-money-type-long.md) | 확정 |
-| 020 | [주식 시세 출처: 공공데이터 종가 + 연출 변동 (KIS 포기)](020-stock-price-source.md) | 확정 |
+| 020 | [주식 시세 출처: 서버가 만드는 가상 시세 (KIS·공공데이터 포기)](020-stock-price-source.md) | 확정 |
 | 021 | [범위: 프론트 직접 구현 우선](021-scope-frontend-first.md) | 확정 |
 | 022 | [프론트 상태 관리: TanStack Query + Context](022-frontend-state-management.md) | 확정 |
 | 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 확정 |
@@ -40,7 +40,7 @@
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
-- 장중 연출 변동 방식 (ADR 020 후속): 마감 시 종가 수렴은 정해짐. 갱신 주기, 변동폭, 사용자 간 동일 값 여부, 수렴시킬 종가의 날짜
+- 가상 시세 변동 방식 (ADR 020 후속): 갱신 주기, 변동폭(상하한), 사용자 간 동일 값 여부, 금액대 보정 방법
 - 시세 캐싱 TTL
 - WebSocket: 전체 브로드캐스트 vs 보유 종목만 푸시
 - 프론트 실시간: 메시지마다 리렌더 vs throttle

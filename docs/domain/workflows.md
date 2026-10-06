@@ -14,11 +14,11 @@
 3. 매수·매도는 한 트랜잭션에서 보유 종목(`StockHolding`)과 거래 이력(`TradeHistory`)을 함께 갱신 (ADR 011)
 
 ## 3. 평가액·손익 실시간 갱신 (심장 ② ④)
-1. 시세를 `StockPriceProvider`로 조회 (ADR 020). 실제 전일 종가 기준이고 장중 움직임은 연출용 변동이라 화면에 연출용 표기가 필요함
+1. 시세를 `StockPriceProvider`로 조회 (ADR 020). 서버가 만드는 가상 시세라 화면에 가상 시세 표기가 필요함
 2. 평가액(현금 + 주식 평가액)을 계산 (`portfolio/`)
 3. WebSocket(STOMP)으로 프론트에 푸시
 4. 프론트는 `src/ws/`에서 구독하고 `setQueryData`로 쿼리 캐시에 반영
-- 미정: 연출 변동 생성 방식, 전체 브로드캐스트 vs 보유 종목만 푸시, 메시지마다 리렌더 vs throttle (`docs/decisions/README.md` "미정")
+- 미정: 가상 시세 변동 방식, 전체 브로드캐스트 vs 보유 종목만 푸시, 메시지마다 리렌더 vs throttle (`docs/decisions/README.md` "미정")
 
 ## 4. 아파트 추천 (심장 ③)
 1. 실거래가 배치가 하루 1번 국토부 데이터를 받아 증분(upsert)으로 저장 (ADR 003, 017, 018)

@@ -80,7 +80,7 @@ kkumi/
   - boolean은 `is`/`has` 접두사 (`isCanceled`, `hasEnoughCash`)
   - 조회: 없을 수 있으면 `findXxx` → `Optional` 반환, 없으면 예외를 던질 땐 `getXxx`
 - 외부 API 키: `application.yaml`의 `external.*` + `@ConfigurationProperties`로 주입. `@Value` 남발 금지
-- 시세 조회: `StockPriceProvider` 인터페이스로만 호출. 시세 출처 클라이언트 직접 호출 금지. 증권사 Open API(KIS 등) 시세는 서비스에 사용 금지 (`docs/decisions/020`, `docs/failures/001`)
+- 시세 조회: `StockPriceProvider` 인터페이스로만 호출. 시세는 서버가 만드는 가상 시세. 외부 시세 데이터(증권사 Open API, 공공데이터 주식시세정보 등)는 서비스에 사용 금지 (`docs/decisions/020`, `docs/failures/001`, `docs/failures/002`)
 - Spring Boot 4: Jackson은 `tools.jackson.*` 패키지. 3.x 예제 코드는 import 확인 후 사용
 - 주석: 짧은 명사형 (e.g. `// 수량 0이면 행 삭제`). "~한다." 서술형 금지
 

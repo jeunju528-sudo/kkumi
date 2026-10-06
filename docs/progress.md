@@ -29,24 +29,23 @@
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
 - 카카오 로그인 (OAuth)
-- 시세 연동 (`StockPriceProvider` 구현체: 공공데이터 종가 + 연출 변동. 지금은 `MockPriceProvider`)
+- 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
 
 ### 외부 대기 · 결정 필요
-- 주식 시세: KIS 답변(2026-10-06)으로 서비스 사용 불가 확인 → 공공데이터 종가 + 연출용 장중 변동으로 결정 (`decisions/020`, `failures/001`). 개발 중에는 `MockPriceProvider` 사용
-  - 개발자 확인 필요: 공공데이터 주식시세정보의 이용허락범위·갱신 시점
-  - 정할 것: 연출 변동 방식 (`decisions/README.md` "미정")
+- 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 `MockPriceProvider` 사용
+  - 정할 것: 가상 시세 변동 방식 (`decisions/README.md` "미정"), 게임 소개 문구, KRX 유료 데이터 문의 여부
   - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
-- 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`)
+- 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
 1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
-3. 시세 제공자: 공공데이터 종가 수집 + 연출 변동 방식 결정 (ADR 추가 예정)
+3. 시세 제공자: 가상 시세 구현체 + 변동 방식 결정 (ADR 추가 예정)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
 5. 실거래가 배치 (심장 ③) → 추천 API
 6. 집 사기 → 내 마을, 변신 단계
