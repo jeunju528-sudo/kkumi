@@ -41,3 +41,24 @@ jobs:
           tags: |
             ghcr.io/jeunju528-sudo/kkumi-nginx:latest
             ghcr.io/jeunju528-sudo/kkumi-nginx:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+    steps:
+      # 스텝 하나하나는 새 터미널창을 여는 것으로 생각하면 됨, 새 창은 항상 같은 시작 폴더에서 열림 그래서 step1에서 cd로 옮겨도 step3는 모름
+      - name: 키파일 만들기
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/.privatekey
+          chmod 600 ~/.ssh/.privatekey
+      - name: 서버 믿는다고 등록
+        run: |
+          ssh-keyscan $EC2_HOST >> ~/.ssh/known_hosts
+      - name: 원격 명령 실행
+        run: |
+          ssh -i ~/.ssh/.privatekey $EC2_USER@$EC2_HOST "cd ~/kkumi && git pull && docker compose pull && docker compose up -d"
