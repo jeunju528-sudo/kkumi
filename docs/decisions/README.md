@@ -35,12 +35,13 @@
 | 026 | [이미지 저장소: GHCR(public)](026-image-registry-ghcr-public.md) | 확정 |
 | 027 | [EC2 SSH 접근: 22번 공개 + 키 인증만](027-ec2-ssh-port-open-key-only.md) | 확정 |
 | 028 | [SSH 배포 실행: 직접 ssh 명령](028-ssh-deploy-direct-ssh.md) | 확정 |
+| 029 | [가상 시세 변동 방식: 랜덤 워크 + 평균 회귀 + 시장 공통 요인](029-virtual-price-movement.md) | 확정 |
 
-다음 번호: 029
+다음 번호: 030
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
-- 가상 시세 변동 방식 (ADR 020 후속): 갱신 주기, 변동폭(상하한), 사용자 간 동일 값 여부, 금액대 보정 방법
+- 가상 시세 현재가 저장·복구 방식 (메모리 vs DB 스냅샷) (ADR 029 후속)
 - 시세 캐싱 TTL
 - WebSocket: 전체 브로드캐스트 vs 보유 종목만 푸시
 - 프론트 실시간: 메시지마다 리렌더 vs throttle
