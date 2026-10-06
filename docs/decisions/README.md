@@ -32,8 +32,9 @@
 | 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 확정 |
 | 024 | [새 기술 상한선](024-technology-ceiling.md) | 확정 |
 | 025 | [매수 동시성: 비관적 락(Member 행)](025-buy-concurrency-pessimistic-lock.md) | 확정 |
+| 026 | [이미지 저장소: GHCR(public)](026-image-registry-ghcr-public.md) | 확정 |
 
-다음 번호: 026
+다음 번호: 027
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
