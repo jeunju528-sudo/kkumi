@@ -2,7 +2,7 @@ name: deploy
 
 on:
   push:
-    branches: [main, feat/cd-deploy]
+    branches: [main]
 
 # github-token 이 갖는 권한, contents는 저장소를 읽기만 할 수 있다는 뜻, packages는 이미지창고에 이미지를 올릴 수 있다는 뜻
 permissions:
