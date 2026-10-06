@@ -9,20 +9,20 @@ import './StockSearchPage.css'
 
 // 목업 데이터
 const CASH = 4_210_000
-const INITIAL_RECENT = ['엔비디아', '삼성전자', '테슬라']
+const INITIAL_RECENT = ['쌩쌩칩스', '대박전자', '찌릿전기차']
 const STOCKS: StockResponse[] = [
-  { name: '삼성전자', code: '005930', price: 51000, changeRate: (51000 - 49950) / 49950 },
-  { name: '엔비디아', code: 'NVDA', price: 248000, changeRate: (248000 - 251270) / 251270 },
-  { name: '카카오', code: '035720', price: 40000, changeRate: (40000 - 39760) / 39760 },
-  { name: 'SK하이닉스', code: '000660', price: 187000, changeRate: (187000 - 184400) / 184400 },
-  { name: '네이버', code: '035420', price: 192000, changeRate: (192000 - 192800) / 192800 },
-  { name: '현대차', code: '005380', price: 241000, changeRate: (241000 - 238800) / 238800 },
-  { name: '테슬라', code: 'TSLA', price: 331000, changeRate: (331000 - 338500) / 338500 },
-  { name: '애플', code: 'AAPL', price: 301000, changeRate: (301000 - 300100) / 300100 },
-  { name: '마이크로소프트', code: 'MSFT', price: 689000, changeRate: (689000 - 683500) / 683500 },
-  { name: '알파벳', code: 'GOOGL', price: 247000, changeRate: (247000 - 248500) / 248500 },
+  { name: '대박전자', code: 'KK0001', price: 51000, changeRate: (51000 - 49950) / 49950 },
+  { name: '쌩쌩칩스', code: 'KK0002', price: 248000, changeRate: (248000 - 251270) / 251270 },
+  { name: '수다메신저', code: 'KK0003', price: 40000, changeRate: (40000 - 39760) / 39760 },
+  { name: '탱탱메모리', code: 'KK0004', price: 187000, changeRate: (187000 - 184400) / 184400 },
+  { name: '두리번검색', code: 'KK0005', price: 192000, changeRate: (192000 - 192800) / 192800 },
+  { name: '달려라모터스', code: 'KK0006', price: 241000, changeRate: (241000 - 238800) / 238800 },
+  { name: '찌릿전기차', code: 'KK0007', price: 331000, changeRate: (331000 - 338500) / 338500 },
+  { name: '동글이폰', code: 'KK0008', price: 301000, changeRate: (301000 - 300100) / 300100 },
+  { name: '야근소프트', code: 'KK0009', price: 689000, changeRate: (689000 - 683500) / 683500 },
+  { name: '만물연구소', code: 'KK0010', price: 247000, changeRate: (247000 - 248500) / 248500 },
 ]
-const POPULAR_CODES = ['NVDA', '005930', '000660', 'TSLA', 'AAPL']
+const POPULAR_CODES = ['KK0002', 'KK0001', 'KK0004', 'KK0007', 'KK0008']
 const POPULAR = POPULAR_CODES.map((code) => STOCKS.find((s) => s.code === code)).filter(
   (s): s is StockResponse => s !== undefined,
 )

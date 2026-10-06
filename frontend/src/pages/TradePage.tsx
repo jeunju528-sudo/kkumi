@@ -20,16 +20,16 @@ type MockStock = {
 const CASH = 4_210_000
 const TICK_INTERVAL_MS = 2000
 const STOCKS: MockStock[] = [
-  { name: '삼성전자', code: '005930', price: 51000, prevClose: 49950, quantity: 12, tickSize: 100 },
-  { name: '엔비디아', code: 'NVDA', price: 248000, prevClose: 251270, quantity: 1, tickSize: 500 },
-  { name: '카카오', code: '035720', price: 40000, prevClose: 39760, quantity: 4, tickSize: 50 },
-  { name: 'SK하이닉스', code: '000660', price: 187000, prevClose: 184400, quantity: 0, tickSize: 500 },
-  { name: '네이버', code: '035420', price: 192000, prevClose: 192800, quantity: 0, tickSize: 500 },
-  { name: '현대차', code: '005380', price: 241000, prevClose: 238800, quantity: 0, tickSize: 500 },
-  { name: '테슬라', code: 'TSLA', price: 331000, prevClose: 338500, quantity: 0, tickSize: 500 },
-  { name: '애플', code: 'AAPL', price: 301000, prevClose: 300100, quantity: 0, tickSize: 500 },
-  { name: '마이크로소프트', code: 'MSFT', price: 689000, prevClose: 683500, quantity: 0, tickSize: 1000 },
-  { name: '알파벳', code: 'GOOGL', price: 247000, prevClose: 248500, quantity: 0, tickSize: 500 },
+  { name: '대박전자', code: 'KK0001', price: 51000, prevClose: 49950, quantity: 12, tickSize: 100 },
+  { name: '쌩쌩칩스', code: 'KK0002', price: 248000, prevClose: 251270, quantity: 1, tickSize: 500 },
+  { name: '수다메신저', code: 'KK0003', price: 40000, prevClose: 39760, quantity: 4, tickSize: 50 },
+  { name: '탱탱메모리', code: 'KK0004', price: 187000, prevClose: 184400, quantity: 0, tickSize: 500 },
+  { name: '두리번검색', code: 'KK0005', price: 192000, prevClose: 192800, quantity: 0, tickSize: 500 },
+  { name: '달려라모터스', code: 'KK0006', price: 241000, prevClose: 238800, quantity: 0, tickSize: 500 },
+  { name: '찌릿전기차', code: 'KK0007', price: 331000, prevClose: 338500, quantity: 0, tickSize: 500 },
+  { name: '동글이폰', code: 'KK0008', price: 301000, prevClose: 300100, quantity: 0, tickSize: 500 },
+  { name: '야근소프트', code: 'KK0009', price: 689000, prevClose: 683500, quantity: 0, tickSize: 1000 },
+  { name: '만물연구소', code: 'KK0010', price: 247000, prevClose: 248500, quantity: 0, tickSize: 500 },
 ]
 
 // 전일 대비 등락: "▲ +2.1%" / "▼ -1.3%"

@@ -27,10 +27,10 @@ type OrderPanelProps = {
 // 목업 데이터
 const MOCK_CASH = 4210000
 const MOCK_STOCKS: OrderStock[] = [
-  { code: 'NVDA', name: '엔비디아', price: 248000, open: 251270, held: 1 },
-  { code: '005930', name: '삼성전자', price: 71200, open: 70500, held: 3 },
-  { code: '035720', name: '카카오', price: 42350, open: 43100, held: 0 },
-  { code: '000660', name: 'SK하이닉스', price: 182500, open: 179800, held: 2 },
+  { code: 'KK0002', name: '쌩쌩칩스', price: 248000, open: 251270, held: 1 },
+  { code: 'KK0001', name: '대박전자', price: 71200, open: 70500, held: 3 },
+  { code: 'KK0003', name: '수다메신저', price: 42350, open: 43100, held: 0 },
+  { code: 'KK0004', name: '탱탱메모리', price: 182500, open: 179800, held: 2 },
 ]
 const DEFAULT_STOCK = MOCK_STOCKS[0]
 
