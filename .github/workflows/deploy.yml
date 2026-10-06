@@ -1,0 +1,43 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+# github-token 이 갖는 권한, contents는 저장소를 읽기만 할 수 있다는 뜻, packages는 이미지창고에 이미지를 올릴 수 있다는 뜻
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # GITHUB_TOKEN은 워크플로가 도는 동안만 github가 주는 임시 출입증, 내가 secrets에 만들지 않아도 사용할 수 있음
+      - name: GHCR 로그인
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # sha를 붙이면 커밋마다 고유한 번호를 붙이는 거라 특정 이미지로 돌리고 싶을 때 사용할 수 있음
+      # latest는 가장 최근에 올렸다는 의미로 가장 최신 이미지에 붙음
+      - name: backend 이미지 빌드 + push
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: true
+          tags: |
+            ghcr.io/jeunju528-sudo/kkumi-backend:latest
+            ghcr.io/jeunju528-sudo/kkumi-backend:${{ github.sha }}
+
+      - name: nginx 이미지 빌드 + push
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          push: true
+          tags: |
+            ghcr.io/jeunju528-sudo/kkumi-nginx:latest
+            ghcr.io/jeunju528-sudo/kkumi-nginx:${{ github.sha }}
