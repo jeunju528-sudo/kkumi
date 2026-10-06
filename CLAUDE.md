@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 - 서비스: 꿈이 — 가짜 시드머니로 실제 종목 투자 → 번 돈으로 실거래가 기준 아파트를 사는 시뮬레이션 웹게임
-- 런칭: 2026-10-24 (날짜 고정. 일정이 밀리면 기능을 줄임)
+- 런칭 예정 일자: 2026-10-24
 - Backend: Java 21, Spring Boot 4.1, Spring Data JPA, MySQL(RDS), WebSocket(STOMP)
 - Frontend: React + TypeScript (Vite), TanStack Query, ESLint
 - 인프라: Docker Compose, GitHub Actions, AWS(EC2 + RDS)
