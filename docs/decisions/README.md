@@ -26,7 +26,7 @@
 | 017 | [실거래가 배치: 증분(upsert)](017-batch-incremental-upsert.md) | 확정 |
 | 018 | [거래 유니크 키](018-deal-unique-key.md) | 확정 |
 | 019 | [금액 타입: long, 평균 매입가만 BigDecimal](019-money-type-long.md) | 확정 |
-| 020 | [주식 시세 출처: KIS vs 키움 vs 공공데이터](020-stock-price-source.md) | 검토 중 |
+| 020 | [주식 시세 출처: 공공데이터 종가 + 연출 변동 (KIS 포기)](020-stock-price-source.md) | 확정 |
 | 021 | [범위: 프론트 직접 구현 우선](021-scope-frontend-first.md) | 확정 |
 | 022 | [프론트 상태 관리: TanStack Query + Context](022-frontend-state-management.md) | 확정 |
 | 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 확정 |
@@ -40,6 +40,7 @@
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
+- 장중 연출 변동 방식 (생성 규칙, 사용자 간 동일 값 여부, 갱신 주기) (ADR 020 후속)
 - 시세 캐싱 TTL
 - WebSocket: 전체 브로드캐스트 vs 보유 종목만 푸시
 - 프론트 실시간: 메시지마다 리렌더 vs throttle

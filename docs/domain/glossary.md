@@ -13,7 +13,7 @@
 | 거래 이력 | 매수·매도 기록. 한 테이블에서 `trade_type`으로 구분함 (ADR 012) | `TradeHistory`, `TradeType` |
 | 주식 평가액 | 보유 종목을 현재 시세로 평가한 금액 | |
 | 평가액 | 현금 + 주식 평가액. 집을 살 수 있는지 판단하는 기준 | |
-| 시세 (주식) | 종목의 현재가. `StockPriceProvider` 인터페이스로만 조회하고 로그인 사용자에게만 노출함 (ADR 020) | `StockPriceProvider` |
+| 시세 (주식) | 게임 안의 종목 현재가. 실제 전일 종가를 기준으로 하고 장중 움직임은 연출용 변동임. `StockPriceProvider` 인터페이스로만 조회하고 로그인 사용자에게만 노출함 (ADR 020) | `StockPriceProvider` |
 
 ## 아파트
 
