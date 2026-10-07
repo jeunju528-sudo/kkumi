@@ -178,14 +178,12 @@ export function HomePage() {
                   ))}
                 </div>
               </div>
-              <svg viewBox="0 0 326 120" width="100%" role="img" aria-label="최근 5일 평가액 추이 그래프, 우상향" className="k-chart">
+              <svg viewBox="0 0 326 104" width="100%" role="img" aria-label="최근 5일 평가액 추이 그래프, 우상향" className="k-chart">
                 <line x1="0" y1="100" x2="326" y2="100" stroke="#E6E8F0" strokeWidth="1.5" strokeDasharray="4 4" />
                 <polyline points="0,92 54,84 108,96 162,70 216,60 270,44 322,30" fill="none" stroke="#E5484D" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                 <circle cx="322" cy="30" r="5" fill="#E5484D" stroke="#FFFFFF" strokeWidth="2" />
-                <text x="2" y="114" fontSize="11" fill="#6B6F80" fontFamily="Noto Sans KR, sans-serif">
-                  시드머니 {formatKRW(SEED_MONEY)}
-                </text>
               </svg>
+              <div className="k-chart-base">시드머니 {formatKRW(SEED_MONEY)}</div>
               <div className="k-days">
                 <span>월</span>
                 <span>화</span>

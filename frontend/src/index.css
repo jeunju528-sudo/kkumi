@@ -35,6 +35,16 @@ body {
   font-family: 'Noto Sans KR', system-ui, sans-serif;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 a {

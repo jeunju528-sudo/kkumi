@@ -44,7 +44,7 @@
 .page-contract .contract-summary-body{margin-top:10px;font-size:14px;line-height:2}
 .page-contract .contract-summary-row{display:flex;justify-content:space-between}
 .page-contract .contract-tnum{font-variant-numeric:tabular-nums}
-.page-contract .contract-minus{color:#2563EB;font-variant-numeric:tabular-nums}
+.page-contract .contract-minus{color:var(--text);font-variant-numeric:tabular-nums}
 .page-contract .contract-summary-total{border-top:2px solid #231B3A;margin-top:4px;padding-top:4px}
 .page-contract .contract-bold{font-weight:800}
 .page-contract .contract-total-num{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
