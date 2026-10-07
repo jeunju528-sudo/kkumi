@@ -13,7 +13,7 @@
 .page-home .k-num{font-weight:800;font-size:15px;line-height:1.2;font-variant-numeric:tabular-nums}
 .page-home .k-num--cash{color:#FFC93C}
 .page-home .k-num--clock{color:#FFFFFF}
-.page-home .k-clock-lab{font-size:10px;color:#B9BCD0;line-height:1.4}
+.page-home .k-clock-lab{font-size:11px;color:#B9BCD0;line-height:1.4}
 .page-home .k-wrap{width:100%;max-width:1120px;margin:-12px auto 0;padding:24px 24px 48px;box-sizing:border-box}
 .page-home .k-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
 .page-home .k-col{display:flex;flex-direction:column;gap:16px;min-width:0}
