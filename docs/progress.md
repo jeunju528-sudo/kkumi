@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-10-06
+## 기준일: 2026-10-07
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -25,10 +25,13 @@
   - Secrets: `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`
 - Hello World: 외부에서 `/actuator/health` 가 `UP` 확인 (2026-10-06)
 - 지식 저장소 정비: `docs/`를 `decisions/`(ADR 29개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
+- 카카오 로그인 연결: Spring Security oauth2-client + `oauth2Login()` (`decisions/030`)
+  - nginx에 `/oauth2/`, `/login/oauth2/` 전달 추가, `forward-headers-strategy: framework`, compose에 `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET` 전달
+  - 로컬에서 카카오 동의 화면과 로그인 후 리다이렉트까지 확인. 실서버 확인은 아직 (EC2 `.env`에 두 값 필요)
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
-- 카카오 로그인 (OAuth)
+- 카카오 로그인 후속: 로그인 성공 처리(JWT 발급), 신규·기존 회원 구분
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
@@ -44,7 +47,7 @@
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
+1. 회원: 로그인 성공 후 JWT 발급 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
