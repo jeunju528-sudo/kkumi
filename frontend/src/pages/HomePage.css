@@ -48,6 +48,8 @@
 /* 내 평가액 */
 .page-home .k-px-head{display:flex;justify-content:space-between;align-items:center}
 .page-home .k-px-label{font-size:13px;color:#B9BCD0}
+.page-home .k-px-link{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin-top:12px;padding-top:10px;border-top:1px dashed #4A3F6B;font-size:14px;font-weight:700;color:#FFFFFF}
+.page-home .k-px-link-arrow{color:#FFC93C}
 .page-home .k-lab--gold{color:#FFC93C}
 .page-home .k-lab--sub{color:#6B6F80}
 .page-home .k-net{margin-top:4px;font-size:40px;font-weight:800;line-height:1.15;color:#FFC93C;font-variant-numeric:tabular-nums}

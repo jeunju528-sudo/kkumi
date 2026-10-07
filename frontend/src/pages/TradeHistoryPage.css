@@ -1,0 +1,80 @@
+.page-history{min-height:100vh;display:flex;flex-direction:column;background:#F7F8FC;color:#1B1B2F;font-family:'Noto Sans KR',system-ui,sans-serif}
+.page-history .k-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;height:64px;box-sizing:border-box;padding:0 24px;background:#231B3A;border-bottom:3px solid #0F0B1F}
+.page-history .k-logo{display:flex;align-items:center;gap:10px;color:#FFC93C;font-size:22px;font-weight:800}
+.page-history .k-mark{width:32px;height:32px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;box-shadow:0 2px 0 #0F0B1F;font-size:16px;font-weight:800}
+.page-history .k-links{display:flex;gap:4px;margin-left:12px}
+.page-history .k-link{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid transparent;color:#D7D9E8;font-size:15px;font-weight:700}
+.page-history .k-link svg{fill:currentColor;shape-rendering:crispEdges}
+.page-history .k-on{color:#FFC93C;border-color:#FFC93C}
+.page-history .k-grow{flex-grow:1}
+.page-history .k-chip{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;background:#2E2450;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F}
+.page-history .k-lab{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.4;color:#B9BCD0}
+.page-history .k-lab--gold{color:#FFC93C}
+.page-history .k-num{font-weight:800;font-size:15px;line-height:1.2;font-variant-numeric:tabular-nums}
+.page-history .k-num--cash{color:#FFC93C}
+.page-history .k-wrap{width:100%;max-width:880px;margin:0 auto;padding:24px 24px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px}
+.page-history .k-card{background:#FFFFFF;border:1px solid #E6E8F0;border-radius:16px;box-shadow:0 1px 2px rgba(27,27,47,.06);padding:16px}
+.page-history .k-px{background:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;padding:20px;color:#FFFFFF}
+.page-history .k-note{margin:0;text-align:center;font-size:12px;line-height:1.5;color:#6B6F80}
+.page-history .k-up{color:#D32F36}
+.page-history .k-down{color:#2563EB}
+
+/* 제목 */
+.page-history .k-head{display:flex;flex-direction:column;gap:6px}
+.page-history .k-back{font-size:14px;font-weight:700;color:#6B6F80}
+.page-history .k-title{margin:0;font-size:28px;font-weight:800;line-height:1.2}
+
+/* 실현손익 요약 (어두운 배경 위 손익색) */
+.page-history .k-px-head{display:flex;justify-content:space-between;align-items:center}
+.page-history .k-px-label{font-size:13px;color:#B9BCD0}
+.page-history .k-realized{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:6px;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.page-history .k-realized.k-up{color:#E5484D}
+.page-history .k-realized.k-down{color:#3B82F6}
+.page-history .k-realized-won{font-size:34px;font-weight:800;line-height:1.2}
+.page-history .k-realized-rate{font-size:15px;font-weight:800}
+.page-history .k-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px dashed #4A3F6B}
+.page-history .k-stat-label{font-size:12px;color:#B9BCD0}
+.page-history .k-stat-value{margin-top:2px;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* 총손익 구성 */
+.page-history .k-sum{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:13px;color:#6B6F80}
+.page-history .k-sum b{color:#1B1B2F;font-variant-numeric:tabular-nums}
+.page-history .k-sum b.k-up{color:#D32F36}
+.page-history .k-sum b.k-down{color:#2563EB}
+
+/* 탭 + 필터 */
+.page-history .k-list{padding-top:4px}
+.page-history .k-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:2px solid #E6E8F0}
+.page-history .k-tab{min-height:48px;background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:15px;font-weight:800;color:#6B6F80}
+.page-history .k-tab--on{color:#231B3A;border-bottom-color:#FFC93C}
+.page-history .k-filters{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0}
+.page-history .k-seg{display:flex;gap:6px;flex-wrap:wrap}
+.page-history .k-pill{min-height:36px;padding:0 12px;border:2px solid #231B3A;border-radius:0;font-size:13px;font-weight:800;color:#231B3A;background:#FFFFFF}
+.page-history .k-pill--on{background:#FFC93C}
+
+/* 목록 */
+.page-history .k-day{padding:14px 0 6px;font-size:13px;font-weight:800;color:#6B6F80;border-bottom:1px solid #E6E8F0}
+.page-history .k-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #E6E8F0;min-height:44px}
+.page-history .k-tick{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#231B3A;border:2px solid #0F0B1F;color:#FFC93C;font-size:17px;font-weight:800}
+.page-history .k-row-main{flex-grow:1;min-width:0}
+.page-history .k-row-name{font-size:15px;font-weight:700}
+.page-history .k-row-sub{font-size:12px;color:#6B6F80;font-variant-numeric:tabular-nums}
+.page-history .k-row-right{text-align:right;font-variant-numeric:tabular-nums}
+.page-history .k-row-amount{font-size:15px;font-weight:700}
+.page-history .k-row-profit{font-size:12px;font-weight:700}
+.page-history .k-badge{display:inline-flex;align-items:center;height:20px;padding:0 6px;margin-right:6px;font-size:11px;font-weight:800;border:2px solid #0F0B1F;vertical-align:1px;background:#FFC93C;color:#231B3A}
+.page-history .k-badge--sell{background:#231B3A;color:#FFFFFF}
+
+/* 빈 상태 */
+.page-history .k-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px 0;font-size:14px;font-weight:700;color:#6B6F80}
+.page-history .k-empty img{width:96px;height:96px;display:block}
+.page-history .k-empty-cta{min-height:44px;display:flex;align-items:center;padding:0 16px;background:#FFC93C;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F;color:#231B3A;font-weight:800}
+
+@media (max-width:899px){
+.page-history .k-wrap{padding:16px 16px 104px}
+.page-history .k-links{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;gap:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 8px 12px;background:#231B3A;border-top:3px solid #0F0B1F}
+.page-history .k-link{flex-direction:column;justify-content:center;gap:4px;min-height:60px;padding:0;border:0;font-size:11px}
+.page-history .k-top{padding:0 16px}
+.page-history .k-stats{gap:8px}
+.page-history .k-stat-value{font-size:14px}
+}

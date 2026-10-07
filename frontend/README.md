@@ -22,6 +22,7 @@ npm run dev      # http://localhost:5173
 | /trade | 3 종목 목록 | pages/TradePage.tsx |
 | /trade/search | 3-1 종목 검색 | pages/StockSearchPage.tsx |
 | /trade/:code | 3-2 사기·팔기 | pages/OrderPage.tsx |
+| /trade/history | 3-3 내 거래 | pages/TradeHistoryPage.tsx |
 | /homes | 4 부동산 | pages/HomesPage.tsx |
 | /contract/:dealId | 5 계약서 | pages/ContractPage.tsx |
 | /village | 6 내 마을 | pages/VillagePage.tsx |

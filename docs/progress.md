@@ -27,6 +27,7 @@
 - 지식 저장소 정비: `docs/`를 `decisions/`(ADR 29개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 - 시세 출처 확정 (2026-10-06): KIS·공공데이터 모두 서비스 사용 불가 → 서버가 만드는 가상 시세와 가상 종목. `decisions/020`, `029`, `failures/001`, `002` (#17)
 - 프론트 목업 종목을 가상 종목 20개로 교체 (#18). 목록은 `domain/stocks.md`
+- 3-3 내 거래 화면 추가 (2026-10-07, ADR 032): 시안 보드 + `TradeHistoryPage`(목업), 투자·홈에서 진입 링크, `TradeHistoryResponse` 타입
 - 가상 시세 초기값 확정 (2026-10-07): 변동 배율 4.0, 평균 회귀 반감기 0.5일. 시뮬레이션 근거는 `decisions/029` (#20)
 - 카카오 로그인 연결: Spring Security oauth2-client + `oauth2Login()` (`decisions/030`)
   - nginx에 `/oauth2/`, `/login/oauth2/` 전달 추가, `forward-headers-strategy: framework`, compose에 `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET` 전달
@@ -43,6 +44,7 @@
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
+- 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 매수·매도(심장 ①) 다음
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 `MockPriceProvider` 사용
