@@ -2,6 +2,9 @@
 *.env
 !.env.example
 
+# Playwright MCP 로그
+.playwright-mcp/
+
 # IDE / OS
 .idea/
 .vscode/
