@@ -184,14 +184,18 @@ export function TradeHistoryPage() {
         </section>
 
         <section className="k-card k-sum" aria-label="총손익 구성">
-          <span>총손익(시드 대비)</span>
-          <b className={toProfitClass(TOTAL_PROFIT)}>{toProfitText(TOTAL_PROFIT)}</b>
-          <span>=</span>
-          <span>실현</span>
-          <b>{formatSignedKRW(allRealized)}</b>
-          <span>+</span>
-          <span>보유 종목 평가</span>
-          <b>{formatSignedKRW(unrealized)}</b>
+          <span className="k-sum-item">
+            <span>총손익(시드 대비)</span>
+            <b className={toProfitClass(TOTAL_PROFIT)}>{toProfitText(TOTAL_PROFIT)}</b>
+          </span>
+          <span className="k-sum-item">
+            <span>= 실현</span>
+            <b>{formatSignedKRW(allRealized)}</b>
+          </span>
+          <span className="k-sum-item">
+            <span>+ 보유 종목 평가</span>
+            <b>{formatSignedKRW(unrealized)}</b>
+          </span>
         </section>
 
         <section className="k-card k-list" aria-label="거래 목록">

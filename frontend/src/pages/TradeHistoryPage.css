@@ -12,7 +12,7 @@
 .page-history .k-lab--gold{color:#FFC93C}
 .page-history .k-num{font-weight:800;font-size:15px;line-height:1.2;font-variant-numeric:tabular-nums}
 .page-history .k-num--cash{color:#FFC93C}
-.page-history .k-wrap{width:100%;max-width:880px;margin:0 auto;padding:24px 24px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px}
+.page-history .k-wrap{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px}
 .page-history .k-card{background:#FFFFFF;border:1px solid #E6E8F0;border-radius:16px;box-shadow:0 1px 2px rgba(27,27,47,.06);padding:16px}
 .page-history .k-px{background:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;padding:20px;color:#FFFFFF}
 .page-history .k-note{margin:0;text-align:center;font-size:12px;line-height:1.5;color:#6B6F80}
@@ -37,7 +37,8 @@
 .page-history .k-stat-value{margin-top:2px;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
 
 /* 총손익 구성 */
-.page-history .k-sum{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:13px;color:#6B6F80}
+.page-history .k-sum{display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:#6B6F80}
+.page-history .k-sum-item{display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap}
 .page-history .k-sum b{color:#1B1B2F;font-variant-numeric:tabular-nums}
 .page-history .k-sum b.k-up{color:#D32F36}
 .page-history .k-sum b.k-down{color:#2563EB}

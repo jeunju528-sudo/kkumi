@@ -38,7 +38,7 @@
 .page-village .village-title-lab{color:#FFFFFF;text-shadow:0 2px 0 #0F0B1F;font-size:9px}
 .page-village .village-title{margin:8px 0 0;font-size:28px;font-weight:800;color:#FFFFFF;text-shadow:0 3px 0 #0F0B1F;line-height:1.2}
 .page-village .village-hero-hud{position:absolute;left:14px;right:14px;top:14px;justify-content:space-between;align-items:flex-start}
-.page-village .village-clock-lab{font-size:10px;color:#B9BCD0;line-height:1.4}
+.page-village .village-clock-lab{font-size:11px;color:#B9BCD0;line-height:1.4}
 
 /* 마을 총 가치 */
 .page-village .village-main{margin-top:-12px}
