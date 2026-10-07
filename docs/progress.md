@@ -24,30 +24,34 @@
   - 22번 포트 공개 + 키 인증만, 배포 전용 키 분리 (`decisions/027`), 외부 액션 없이 직접 ssh 명령 (`decisions/028`)
   - Secrets: `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`
 - Hello World: 외부에서 `/actuator/health` 가 `UP` 확인 (2026-10-06)
-- 지식 저장소 정비: `docs/`를 `decisions/`(ADR 28개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
+- 지식 저장소 정비: `docs/`를 `decisions/`(ADR 29개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
 - 카카오 로그인 (OAuth)
-- 시세 연동 (`StockPriceProvider` + KIS)
+- 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
 
 ### 외부 대기 · 결정 필요
-- 주식 시세: KIS에 시세 재배포 약관 문의 중 → 답변 전까지 `MockPriceProvider`로 개발, 답변 오면 KIS 구현체 or 공공데이터 종가로 결정
-- 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`)
+- 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 `MockPriceProvider` 사용
+  - 변동 방식은 `decisions/029`로 확정, 숫자는 구현 후 플레이 테스트로 조정
+  - 정할 것: 게임 소개 문구(실제 종목 → 가상 종목), 현재가 저장·복구 방식 (`decisions/README.md` "미정")
+  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
+- 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
 1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
-3. 평가액 계산 (심장 ②) + WebSocket 푸시
-4. 실거래가 배치 (심장 ③) → 추천 API
-5. 집 사기 → 내 마을, 변신 단계
-6. 프론트 데이터 연결 (TanStack Query, ws)
-7. 10/17 게이트 체크 → 10/21~23 통합 테스트·버퍼 → 10/24 런칭
+3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
+4. 평가액 계산 (심장 ②) + WebSocket 푸시
+5. 실거래가 배치 (심장 ③) → 추천 API
+6. 집 사기 → 내 마을, 변신 단계
+7. 프론트 데이터 연결 (TanStack Query, ws)
+8. 10/17 게이트 체크 → 10/21~23 통합 테스트·버퍼 → 10/24 런칭
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
 
 ## 참고

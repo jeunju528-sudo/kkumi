@@ -27,7 +27,8 @@ docs/
 │   └── workflows.md       # 주요 업무 흐름
 │
 └── failures/              # 실패 기록 (시도했다가 포기한 방법)
-    └── _template.md           # 실제 실패가 생기면 001부터 추가
+    ├── _template.md
+    └── 001-kis-stock-price-api.md ...
 ```
 
 ## 어디에 쓰나

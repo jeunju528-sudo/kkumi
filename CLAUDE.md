@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 프로젝트 개요
-- 서비스: 꿈이 — 가짜 시드머니로 실제 종목 투자 → 번 돈으로 실거래가 기준 아파트를 사는 시뮬레이션 웹게임
+- 서비스: 꿈이 — 가짜 시드머니로 가상 종목(가상 시세)에 투자 → 번 돈으로 실거래가 기준 아파트를 사는 시뮬레이션 웹게임
 - 런칭 예정 일자: 2026-10-24
 - Backend: Java 21, Spring Boot 4.1, Spring Data JPA, MySQL(RDS), WebSocket(STOMP)
 - Frontend: React + TypeScript (Vite), TanStack Query, ESLint
@@ -80,7 +80,7 @@ kkumi/
   - boolean은 `is`/`has` 접두사 (`isCanceled`, `hasEnoughCash`)
   - 조회: 없을 수 있으면 `findXxx` → `Optional` 반환, 없으면 예외를 던질 땐 `getXxx`
 - 외부 API 키: `application.yaml`의 `external.*` + `@ConfigurationProperties`로 주입. `@Value` 남발 금지
-- 시세 조회: `StockPriceProvider` 인터페이스로만 호출. KIS 클라이언트 직접 호출 금지
+- 시세 조회: `StockPriceProvider` 인터페이스로만 호출. 시세는 서버가 만드는 가상 시세 (변동 방식 `docs/decisions/029`). 외부 시세 데이터(증권사 Open API, 공공데이터 주식시세정보 등)는 서비스에 사용 금지 (`docs/decisions/020`, `docs/failures/001`, `docs/failures/002`)
 - Spring Boot 4: Jackson은 `tools.jackson.*` 패키지. 3.x 예제 코드는 import 확인 후 사용
 - 주석: 짧은 명사형 (e.g. `// 수량 0이면 행 삭제`). "~한다." 서술형 금지
 

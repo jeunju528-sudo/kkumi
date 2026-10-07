@@ -14,7 +14,7 @@
 3. 매수·매도는 한 트랜잭션에서 보유 종목(`StockHolding`)과 거래 이력(`TradeHistory`)을 함께 갱신 (ADR 011)
 
 ## 3. 평가액·손익 실시간 갱신 (심장 ② ④)
-1. 시세를 `StockPriceProvider`로 조회 (ADR 020)
+1. 시세를 `StockPriceProvider`로 조회 (ADR 020). 서버가 만드는 가상 시세이고 모든 사용자가 같은 값을 봄 (ADR 029)
 2. 평가액(현금 + 주식 평가액)을 계산 (`portfolio/`)
 3. WebSocket(STOMP)으로 프론트에 푸시
 4. 프론트는 `src/ws/`에서 구독하고 `setQueryData`로 쿼리 캐시에 반영
