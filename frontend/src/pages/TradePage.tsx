@@ -20,16 +20,26 @@ type MockStock = {
 const CASH = 4_210_000
 const TICK_INTERVAL_MS = 2000
 const STOCKS: MockStock[] = [
-  { name: '삼성전자', code: '005930', price: 51000, prevClose: 49950, quantity: 12, tickSize: 100 },
-  { name: '엔비디아', code: 'NVDA', price: 248000, prevClose: 251270, quantity: 1, tickSize: 500 },
-  { name: '카카오', code: '035720', price: 40000, prevClose: 39760, quantity: 4, tickSize: 50 },
-  { name: 'SK하이닉스', code: '000660', price: 187000, prevClose: 184400, quantity: 0, tickSize: 500 },
-  { name: '네이버', code: '035420', price: 192000, prevClose: 192800, quantity: 0, tickSize: 500 },
-  { name: '현대차', code: '005380', price: 241000, prevClose: 238800, quantity: 0, tickSize: 500 },
-  { name: '테슬라', code: 'TSLA', price: 331000, prevClose: 338500, quantity: 0, tickSize: 500 },
-  { name: '애플', code: 'AAPL', price: 301000, prevClose: 300100, quantity: 0, tickSize: 500 },
-  { name: '마이크로소프트', code: 'MSFT', price: 689000, prevClose: 683500, quantity: 0, tickSize: 1000 },
-  { name: '알파벳', code: 'GOOGL', price: 247000, prevClose: 248500, quantity: 0, tickSize: 500 },
+  { name: '세르반반도체', code: 'KK0001', price: 51000, prevClose: 49950, quantity: 12, tickSize: 100 },
+  { name: '마르덴전자', code: 'KK0002', price: 248000, prevClose: 251270, quantity: 1, tickSize: 500 },
+  { name: '쿠르텍', code: 'KK0003', price: 40000, prevClose: 39760, quantity: 4, tickSize: 50 },
+  { name: '브론델배터리', code: 'KK0004', price: 187000, prevClose: 184400, quantity: 0, tickSize: 500 },
+  { name: '다이온모터스', code: 'KK0005', price: 192000, prevClose: 192800, quantity: 0, tickSize: 500 },
+  { name: '벨라전기차', code: 'KK0006', price: 241000, prevClose: 238800, quantity: 0, tickSize: 500 },
+  { name: '도르빈바이오', code: 'KK0007', price: 331000, prevClose: 338500, quantity: 0, tickSize: 500 },
+  { name: '소티제약', code: 'KK0008', price: 301000, prevClose: 300100, quantity: 0, tickSize: 500 },
+  { name: '아젤뷰티', code: 'KK0009', price: 689000, prevClose: 683500, quantity: 0, tickSize: 1000 },
+  { name: '카르넬게임즈', code: 'KK0010', price: 247000, prevClose: 248500, quantity: 0, tickSize: 500 },
+  { name: '트리아엔터', code: 'KK0011', price: 38200, prevClose: 37900, quantity: 0, tickSize: 50 },
+  { name: '제노텔레콤', code: 'KK0012', price: 24500, prevClose: 24650, quantity: 0, tickSize: 50 },
+  { name: '라미로보틱스', code: 'KK0013', price: 126000, prevClose: 121500, quantity: 0, tickSize: 100 },
+  { name: '아르카홀딩스', code: 'KK0014', price: 8730, prevClose: 8800, quantity: 0, tickSize: 10 },
+  { name: '유르파트너스', code: 'KK0015', price: 15400, prevClose: 15100, quantity: 0, tickSize: 10 },
+  { name: '칼리건설', code: 'KK0016', price: 31200, prevClose: 31050, quantity: 0, tickSize: 50 },
+  { name: '모르조선', code: 'KK0017', price: 87300, prevClose: 85900, quantity: 0, tickSize: 100 },
+  { name: '펠로항공', code: 'KK0018', price: 19800, prevClose: 20200, quantity: 0, tickSize: 10 },
+  { name: '시벨푸드', code: 'KK0019', price: 54800, prevClose: 54500, quantity: 0, tickSize: 100 },
+  { name: '데니마트', code: 'KK0020', price: 12950, prevClose: 12900, quantity: 0, tickSize: 10 },
 ]
 
 // 전일 대비 등락: "▲ +2.1%" / "▼ -1.3%"

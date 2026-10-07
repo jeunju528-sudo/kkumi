@@ -16,9 +16,9 @@ const NET_WORTH = 5_230_000
 const MARKET_CLOSE_LEFT = '02:14:30'
 const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
 const HOLDINGS: HoldingResponse[] = [
-  { code: '005930', name: '삼성전자', quantity: 12, avgPrice: 49950, price: 51000 },
-  { code: 'NVDA', name: '엔비디아', quantity: 1, avgPrice: 251270, price: 248000 },
-  { code: '035720', name: '카카오', quantity: 4, avgPrice: 39760, price: 40000 },
+  { code: 'KK0001', name: '세르반반도체', quantity: 12, avgPrice: 49950, price: 51000 },
+  { code: 'KK0002', name: '마르덴전자', quantity: 1, avgPrice: 251270, price: 248000 },
+  { code: 'KK0003', name: '쿠르텍', quantity: 4, avgPrice: 39760, price: 40000 },
 ]
 const CHART_PERIODS: { value: ChartPeriod; label: string }[] = [
   { value: 'DAY', label: '1일' },
