@@ -16,9 +16,9 @@ const NET_WORTH = 5_230_000
 const MARKET_CLOSE_LEFT = '02:14:30'
 const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
 const HOLDINGS: HoldingResponse[] = [
-  { code: 'KK0001', name: '대박전자', quantity: 12, avgPrice: 49950, price: 51000 },
-  { code: 'KK0002', name: '쌩쌩칩스', quantity: 1, avgPrice: 251270, price: 248000 },
-  { code: 'KK0003', name: '수다메신저', quantity: 4, avgPrice: 39760, price: 40000 },
+  { code: 'KK0001', name: '세르반반도체', quantity: 12, avgPrice: 49950, price: 51000 },
+  { code: 'KK0002', name: '마르덴전자', quantity: 1, avgPrice: 251270, price: 248000 },
+  { code: 'KK0003', name: '쿠르텍', quantity: 4, avgPrice: 39760, price: 40000 },
 ]
 const CHART_PERIODS: { value: ChartPeriod; label: string }[] = [
   { value: 'DAY', label: '1일' },

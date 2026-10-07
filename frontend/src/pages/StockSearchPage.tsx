@@ -9,18 +9,28 @@ import './StockSearchPage.css'
 
 // 목업 데이터
 const CASH = 4_210_000
-const INITIAL_RECENT = ['쌩쌩칩스', '대박전자', '찌릿전기차']
+const INITIAL_RECENT = ['마르덴전자', '세르반반도체', '도르빈바이오']
 const STOCKS: StockResponse[] = [
-  { name: '대박전자', code: 'KK0001', price: 51000, changeRate: (51000 - 49950) / 49950 },
-  { name: '쌩쌩칩스', code: 'KK0002', price: 248000, changeRate: (248000 - 251270) / 251270 },
-  { name: '수다메신저', code: 'KK0003', price: 40000, changeRate: (40000 - 39760) / 39760 },
-  { name: '탱탱메모리', code: 'KK0004', price: 187000, changeRate: (187000 - 184400) / 184400 },
-  { name: '두리번검색', code: 'KK0005', price: 192000, changeRate: (192000 - 192800) / 192800 },
-  { name: '달려라모터스', code: 'KK0006', price: 241000, changeRate: (241000 - 238800) / 238800 },
-  { name: '찌릿전기차', code: 'KK0007', price: 331000, changeRate: (331000 - 338500) / 338500 },
-  { name: '동글이폰', code: 'KK0008', price: 301000, changeRate: (301000 - 300100) / 300100 },
-  { name: '야근소프트', code: 'KK0009', price: 689000, changeRate: (689000 - 683500) / 683500 },
-  { name: '만물연구소', code: 'KK0010', price: 247000, changeRate: (247000 - 248500) / 248500 },
+  { name: '세르반반도체', code: 'KK0001', price: 51000, changeRate: (51000 - 49950) / 49950 },
+  { name: '마르덴전자', code: 'KK0002', price: 248000, changeRate: (248000 - 251270) / 251270 },
+  { name: '쿠르텍', code: 'KK0003', price: 40000, changeRate: (40000 - 39760) / 39760 },
+  { name: '브론델배터리', code: 'KK0004', price: 187000, changeRate: (187000 - 184400) / 184400 },
+  { name: '다이온모터스', code: 'KK0005', price: 192000, changeRate: (192000 - 192800) / 192800 },
+  { name: '벨라전기차', code: 'KK0006', price: 241000, changeRate: (241000 - 238800) / 238800 },
+  { name: '도르빈바이오', code: 'KK0007', price: 331000, changeRate: (331000 - 338500) / 338500 },
+  { name: '소티제약', code: 'KK0008', price: 301000, changeRate: (301000 - 300100) / 300100 },
+  { name: '아젤뷰티', code: 'KK0009', price: 689000, changeRate: (689000 - 683500) / 683500 },
+  { name: '카르넬게임즈', code: 'KK0010', price: 247000, changeRate: (247000 - 248500) / 248500 },
+  { name: '트리아엔터', code: 'KK0011', price: 38200, changeRate: (38200 - 37900) / 37900 },
+  { name: '제노텔레콤', code: 'KK0012', price: 24500, changeRate: (24500 - 24650) / 24650 },
+  { name: '라미로보틱스', code: 'KK0013', price: 126000, changeRate: (126000 - 121500) / 121500 },
+  { name: '아르카홀딩스', code: 'KK0014', price: 8730, changeRate: (8730 - 8800) / 8800 },
+  { name: '유르파트너스', code: 'KK0015', price: 15400, changeRate: (15400 - 15100) / 15100 },
+  { name: '칼리건설', code: 'KK0016', price: 31200, changeRate: (31200 - 31050) / 31050 },
+  { name: '모르조선', code: 'KK0017', price: 87300, changeRate: (87300 - 85900) / 85900 },
+  { name: '펠로항공', code: 'KK0018', price: 19800, changeRate: (19800 - 20200) / 20200 },
+  { name: '시벨푸드', code: 'KK0019', price: 54800, changeRate: (54800 - 54500) / 54500 },
+  { name: '데니마트', code: 'KK0020', price: 12950, changeRate: (12950 - 12900) / 12900 },
 ]
 const POPULAR_CODES = ['KK0002', 'KK0001', 'KK0004', 'KK0007', 'KK0008']
 const POPULAR = POPULAR_CODES.map((code) => STOCKS.find((s) => s.code === code)).filter(
