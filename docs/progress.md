@@ -31,10 +31,14 @@
 - 카카오 로그인 연결: Spring Security oauth2-client + `oauth2Login()` (`decisions/030`)
   - nginx에 `/oauth2/`, `/login/oauth2/` 전달 추가, `forward-headers-strategy: framework`, compose에 `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET` 전달
   - 로컬과 실서버(EC2)에서 카카오 로그인 후 홈 리다이렉트까지 확인 (2026-10-07)
+- JWT 토큰 생성·검증: `global/jwt/JwtProvider` (Nimbus, HS256), 정식 토큰(memberId)·임시 토큰(kakaoId, 닉네임) 구분은 payload `type` claim (`decisions/031`)
+  - `JwtProviderTest` 6개: 왕복, 만료, 위조, 토큰 종류 불일치
+  - `JWT_SECRET` 환경변수 필수 (로컬 IntelliJ·`.env`, EC2 `.env`, compose `:?`)
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
-- 카카오 로그인 후속: 로그인 성공 처리(JWT 발급), 신규·기존 회원 구분
+- 카카오 로그인 후속: 로그인 성공 처리(쿠키로 JWT 발급), 쿠키 인증 필터, 신규·기존 회원 구분, `SecurityConfig` 인증 규칙
+- JWT 만료 시간 확정 (지금은 임시값: 정식 1h, 임시 10m)
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
@@ -50,7 +54,7 @@
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. 회원: 로그인 성공 후 JWT 발급 → 시드 선택 API (`POST /api/members/seed`)
+1. 회원: 로그인 성공 핸들러(쿠키 발급) → 쿠키 인증 필터 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
