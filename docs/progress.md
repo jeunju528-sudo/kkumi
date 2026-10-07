@@ -28,10 +28,13 @@
 - 시세 출처 확정 (2026-10-06): KIS·공공데이터 모두 서비스 사용 불가 → 서버가 만드는 가상 시세와 가상 종목. `decisions/020`, `029`, `failures/001`, `002` (#17)
 - 프론트 목업 종목을 가상 종목 20개로 교체 (#18). 목록은 `domain/stocks.md`
 - 가상 시세 초기값 확정 (2026-10-07): 변동 배율 4.0, 평균 회귀 반감기 0.5일. 시뮬레이션 근거는 `decisions/029` (#20)
+- 카카오 로그인 연결: Spring Security oauth2-client + `oauth2Login()` (`decisions/030`)
+  - nginx에 `/oauth2/`, `/login/oauth2/` 전달 추가, `forward-headers-strategy: framework`, compose에 `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET` 전달
+  - 로컬에서 카카오 동의 화면과 로그인 후 리다이렉트까지 확인. 실서버 확인은 아직 (EC2 `.env`에 두 값 필요)
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
-- 카카오 로그인 (OAuth)
+- 카카오 로그인 후속: 로그인 성공 처리(JWT 발급), 신규·기존 회원 구분
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
@@ -47,7 +50,7 @@
 - 자연어 아파트 검색: 10/17까지 MVP 4개가 실서버에서 동작하면 10/18~20에 추가, 아니면 런칭 후
 
 ### 다음 할 일 (순서)
-1. 회원: 카카오 로그인 → 시드 선택 API (`POST /api/members/seed`)
+1. 회원: 로그인 성공 후 JWT 발급 → 시드 선택 API (`POST /api/members/seed`)
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시

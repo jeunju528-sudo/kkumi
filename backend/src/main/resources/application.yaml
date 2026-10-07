@@ -1,4 +1,3 @@
-# 공통 설정 (프로필별 값은 아래에서 덮어씀)
 # 비밀값은 환경변수(.env)로 주입
 spring:
   application:
@@ -12,27 +11,29 @@ spring:
         jdbc:
           time_zone: Asia/Seoul
         default_batch_fetch_size: 100
-  # 카카오 로그인 (client-id 없으면 앱이 안 떠서 일단 주석 처리)
-  # security:
-  #   oauth2:
-  #     client:
-  #       registration:
-  #         kakao:
-  #           client-id: ${KAKAO_CLIENT_ID}
-  #           client-secret: ${KAKAO_CLIENT_SECRET}
-  #           client-authentication-method: client_secret_post
-  #           authorization-grant-type: authorization_code
-  #           redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
-  #           scope: profile_nickname
-  #       provider:
-  #         kakao:
-  #           authorization-uri: https://kauth.kakao.com/oauth/authorize
-  #           token-uri: https://kauth.kakao.com/oauth/token
-  #           user-info-uri: https://kapi.kakao.com/v2/user/me
-  #           user-name-attribute: id
+
+  # 카카오 로그인
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-authentication-method: client_secret_post # 토큰 요청 때 시크릿을 본문에 담아 보내기 위해 사용
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+            scope: profile_nickname # 카카오에서 닉네임 받아옴
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id # 회원 id를 식별자로 사용
 
 server:
   port: 8080
+  forward-headers-strategy: framework # nginx 가 보낸 X-Forwarded-Proto 를 읽게 해줌
 
 management:
   endpoints:
