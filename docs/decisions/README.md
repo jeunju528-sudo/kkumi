@@ -36,8 +36,9 @@
 | 027 | [EC2 SSH 접근: 22번 공개 + 키 인증만](027-ec2-ssh-port-open-key-only.md) | 확정 |
 | 028 | [SSH 배포 실행: 직접 ssh 명령](028-ssh-deploy-direct-ssh.md) | 확정 |
 | 029 | [가상 시세 변동 방식: 랜덤 워크 + 평균 회귀 + 시장 공통 요인](029-virtual-price-movement.md) | 확정 |
+| 030 | [카카오 로그인: oauth2-client 사용](030-kakao-login-oauth2-client.md) | 확정 |
 
-다음 번호: 030
+다음 번호: 031
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
