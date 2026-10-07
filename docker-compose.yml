@@ -18,6 +18,7 @@ services:
       KIS_APP_SECRET: ${KIS_APP_SECRET:-}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:?KAKAO_CLIENT_ID 필요 (.env 확인)} # :? 값이 비어있으면 error로 멈추는 문법
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?KAKAO_CLIENT_SECRET 필요 (.env 확인)}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 필요 (.env 확인, 32자 이상)}
     # 호스트에 노출 X, nginx만 접근
     expose:
       - "8080"

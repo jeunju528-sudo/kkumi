@@ -45,7 +45,7 @@ class ArchitectureTest {
 		.should().dependOnClassesThat().resideInAnyPackage(
 			"com.kkumi.member..", "com.kkumi.stock..", "com.kkumi.trade..",
 			"com.kkumi.portfolio..", "com.kkumi.apartment..", "com.kkumi.house..")
-		.because("global은 config, error, 공통 응답만");
+		.because("global은 config, error, jwt, 공통 응답만");
 
 	// 서비스
 	@ArchTest
