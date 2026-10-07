@@ -37,8 +37,9 @@
 | 028 | [SSH 배포 실행: 직접 ssh 명령](028-ssh-deploy-direct-ssh.md) | 확정 |
 | 029 | [가상 시세 변동 방식: 랜덤 워크 + 평균 회귀 + 시장 공통 요인](029-virtual-price-movement.md) | 확정 |
 | 030 | [카카오 로그인: oauth2-client 사용](030-kakao-login-oauth2-client.md) | 확정 |
+| 031 | [인증 방식: JWT를 HttpOnly 쿠키로 전달](031-auth-jwt-http-only-cookie.md) | 확정 |
 
-다음 번호: 031
+다음 번호: 032
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.

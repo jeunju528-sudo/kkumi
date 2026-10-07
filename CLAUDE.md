@@ -45,7 +45,7 @@ kkumi/
 │   ├── portfolio/   # 평가액, WebSocket 푸시
 │   ├── apartment/   # 실거래가, 배치, 추천
 │   ├── house/       # 집 사기, 컬렉션, 변신 단계
-│   └── global/      # config, error, 공통 응답만. 도메인 로직 금지
+│   └── global/      # config, error, jwt, 공통 응답만. 도메인 로직 금지
 ├── frontend/src/
 │   ├── pages/       # 화면 단위. API 직접 호출 금지
 │   ├── components/  # 재사용 UI. 상태는 props로만 받음
