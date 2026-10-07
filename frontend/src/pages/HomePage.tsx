@@ -137,6 +137,10 @@ export function HomePage() {
                 </div>
                 <div className="k-profit-cap">시드머니 대비</div>
               </div>
+              <Link to="/trade/history" className="k-px-link">
+                <span>실현손익 · 거래내역 보기</span>
+                <span className="k-px-link-arrow">&gt;</span>
+              </Link>
             </section>
 
             <section className="k-quest" aria-label="오늘의 목표">

@@ -38,6 +38,7 @@
 | 029 | [가상 시세 변동 방식: 랜덤 워크 + 평균 회귀 + 시장 공통 요인](029-virtual-price-movement.md) | 확정 |
 | 030 | [카카오 로그인: oauth2-client 사용](030-kakao-login-oauth2-client.md) | 확정 |
 | 031 | [인증 방식: JWT를 HttpOnly 쿠키로 전달](031-auth-jwt-http-only-cookie.md) | 확정 |
+| 032 | [거래내역 화면: 별도 화면 (증권사 앱 형태)](032-trade-history-screen.md) | 확정 |
 
 다음 번호: 032
 

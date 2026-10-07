@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage'
 import { TradePage } from './pages/TradePage'
 import { StockSearchPage } from './pages/StockSearchPage'
 import { OrderPage } from './pages/OrderPage'
+import { TradeHistoryPage } from './pages/TradeHistoryPage'
 import { HomesPage } from './pages/HomesPage'
 import { ContractPage } from './pages/ContractPage'
 import { VillagePage } from './pages/VillagePage'
@@ -22,6 +23,7 @@ export function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/trade" element={<TradePage />} />
         <Route path="/trade/search" element={<StockSearchPage />} />
+        <Route path="/trade/history" element={<TradeHistoryPage />} />
         <Route path="/trade/:code" element={<OrderPage />} />
         <Route path="/homes" element={<HomesPage />} />
         <Route path="/contract/:dealId" element={<ContractPage />} />

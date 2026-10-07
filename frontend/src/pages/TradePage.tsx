@@ -165,6 +165,10 @@ export function TradePage() {
               </div>
               <div className="k-stock-value">{formatKRW(stockValue)}</div>
               <div className="k-px-sub">살 수 있는 돈 {formatKRW(CASH)}</div>
+              <Link to="/trade/history" className="k-px-link">
+                <span>내 거래 · 실현손익</span>
+                <span className="k-px-link-arrow">&gt;</span>
+              </Link>
             </section>
             <section className="k-card k-cheer">
               <div className="k-avatar">

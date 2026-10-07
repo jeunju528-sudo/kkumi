@@ -18,6 +18,7 @@ CLAUDE.md "디렉토리 구조"를 따른다: pages(화면) / components(재사�
 | /trade | TradeList | 3 · 종목 목록 |
 | /trade/search | StockSearch | 3-1 · 종목 검색 |
 | /trade/:code | Order | 3-2 · 사기·팔기 |
+| /trade/history | TradeHistory | 3-3 · 내 거래 |
 | /homes | Homes | 4 · 부동산 |
 | /contract/:dealId | Contract | 5 · 계약서 |
 | /village | Village | 6 · 내 마을 |
@@ -59,7 +60,7 @@ SeedPick
 Home
   PixelTownScene
   HudChips            # CASH, 장 마감 시계
-  ValuationCard       # 내 평가액(롤링), 손익
+  ValuationCard       # 내 평가액(롤링), 손익, 내 거래 링크(→/trade/history)
   GoalPanel           # 첫 집 목표 + 진행 바
   ValuationChart
   HoldingList > HoldingRow*
@@ -67,9 +68,12 @@ Home
 
 ### TradeList / StockSearch / Order
 ```
-TradeList    : SearchBar(→/trade/search), Tabs(내 종목|전체), StockRow*
+TradeList    : SearchBar(→/trade/search), Tabs(내 종목|전체), StockRow*, 내 거래 링크(→/trade/history)
 StockSearch  : SearchInput, RecentSearches, PopularStocks, ResultList, EmptyState
 Order        : SideToggle(담기|팔기), QuantityStepper, BuyableInfo, TotalRow, SubmitButton
+TradeHistory : RealizedSummary(실현손익, 매수·매도 금액, 건수), ProfitBreakdown(총손익 = 실현 + 평가),
+               Tabs(거래내역|종목별 손익), PeriodFilter(1주|1달|3달|전체), KindFilter(전체|매수|매도),
+               DayGroup > TradeRow*, StockProfitRow*, EmptyState
 ```
 
 ### Homes

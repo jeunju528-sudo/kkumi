@@ -66,3 +66,14 @@ export type BuyHouseResponse = {
   tier: Tier
   isTierUp: boolean
 }
+
+export type TradeHistoryResponse = {
+  id: number
+  code: string
+  name: string
+  tradeType: TradeType
+  price: number // 체결가
+  quantity: number
+  realizedProfit: number | null // 매도만 값 있음
+  tradedAt: string // ISO 8601
+}
