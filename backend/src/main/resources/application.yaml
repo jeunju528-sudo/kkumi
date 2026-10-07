@@ -49,7 +49,7 @@ management:
 # 만료 시간은 임시값. 개발자가 결정 후 수정
 jwt:
   secret: ${JWT_SECRET}
-  access-expiration: 1h
+  access-expiration: 3h
   signup-expiration: 10m
 
 # 외부 API 키
