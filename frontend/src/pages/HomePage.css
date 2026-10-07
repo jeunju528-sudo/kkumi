@@ -75,6 +75,7 @@
 .page-home .k-tab span{display:block;padding:6px 12px;border-radius:999px;color:#6B6F80;font-size:12px;font-weight:700}
 .page-home .k-tab--on span{background:#231B3A;color:#FFFFFF}
 .page-home .k-chart{display:block;margin-top:4px}
+.page-home .k-chart-base{margin-top:2px;font-size:12px;color:#6B6F80}
 .page-home .k-days{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:#6B6F80}
 
 /* 보유 종목 */
