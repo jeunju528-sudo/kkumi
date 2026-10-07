@@ -24,7 +24,8 @@ docs/
 │
 ├── domain/                # 비즈니스 도메인 지식
 │   ├── glossary.md        # 용어 사전
-│   └── workflows.md       # 주요 업무 흐름
+│   ├── workflows.md       # 주요 업무 흐름
+│   └── stocks.md          # 가상 종목 목록
 │
 └── failures/              # 실패 기록 (시도했다가 포기한 방법)
     ├── _template.md
