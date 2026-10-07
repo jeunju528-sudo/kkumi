@@ -30,7 +30,7 @@
 - 가상 시세 초기값 확정 (2026-10-07): 변동 배율 4.0, 평균 회귀 반감기 0.5일. 시뮬레이션 근거는 `decisions/029` (#20)
 - 카카오 로그인 연결: Spring Security oauth2-client + `oauth2Login()` (`decisions/030`)
   - nginx에 `/oauth2/`, `/login/oauth2/` 전달 추가, `forward-headers-strategy: framework`, compose에 `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET` 전달
-  - 로컬에서 카카오 동의 화면과 로그인 후 리다이렉트까지 확인. 실서버 확인은 아직 (EC2 `.env`에 두 값 필요)
+  - 로컬과 실서버(EC2)에서 카카오 로그인 후 홈 리다이렉트까지 확인 (2026-10-07)
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
