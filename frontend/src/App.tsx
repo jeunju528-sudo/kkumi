@@ -8,7 +8,7 @@ import { TradePage } from './pages/TradePage'
 import { StockSearchPage } from './pages/StockSearchPage'
 import { OrderPage } from './pages/OrderPage'
 import { TradeHistoryPage } from './pages/TradeHistoryPage'
-import { HomesPage } from './pages/HomesPage'
+import { ApartmentsPage } from './pages/ApartmentsPage'
 import { ContractPage } from './pages/ContractPage'
 import { VillagePage } from './pages/VillagePage'
 
@@ -25,7 +25,7 @@ export function App() {
         <Route path="/trade/search" element={<StockSearchPage />} />
         <Route path="/trade/history" element={<TradeHistoryPage />} />
         <Route path="/trade/:code" element={<OrderPage />} />
-        <Route path="/homes" element={<HomesPage />} />
+        <Route path="/apartments" element={<ApartmentsPage />} />
         <Route path="/contract/:dealId" element={<ContractPage />} />
         <Route path="/village" element={<VillagePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

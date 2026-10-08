@@ -5,7 +5,7 @@ import type { AptRecommendResponse } from '../types/api'
 import { Sprite } from '../components/Sprite'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
-import './HomesPage.css'
+import './ApartmentsPage.css'
 
 // 화면 전용 목업 집 (가격은 만원 단위, roof: 썸네일 지붕색)
 type HomeMock = Pick<AptRecommendResponse, 'dealId' | 'complexName' | 'region' | 'area'> & {
@@ -16,7 +16,7 @@ type HomeMock = Pick<AptRecommendResponse, 'dealId' | 'complexName' | 'region' |
 // 목업 데이터 (W: 평가액, C: 현금)
 const MOCK_TOTAL_ASSET = 5230000
 const MOCK_CASH = 4210000
-const MOCK_HOMES: HomeMock[] = [
+const MOCK_APARTMENTS: HomeMock[] = [
   { dealId: 101, complexName: '태백 [단지명]', region: '강원 태백시', area: 39, priceManwon: 1800, roof: '#D64545' },
   { dealId: 102, complexName: '군산 [단지명]', region: '전북 군산시', area: 45, priceManwon: 2400, roof: '#3E9B3E' },
   { dealId: 103, complexName: '영주 [단지명]', region: '경북 영주시', area: 49, priceManwon: 3200, roof: '#E58A2B' },
@@ -29,7 +29,7 @@ const MOCK_HOMES: HomeMock[] = [
 const MAX_PRICE_MANWON = Math.floor(MOCK_TOTAL_ASSET / 0.4 / 10000)
 
 // 시안 헤더 (집 찾기 탭 활성)
-function HomesHeader() {
+function ApartmentsHeader() {
   return (
     <header className="k-top">
       <Link to="/home" className="k-logo">
@@ -49,7 +49,7 @@ function HomesHeader() {
           </svg>
           <span>투자</span>
         </Link>
-        <Link to="/homes" className="k-link k-on" aria-current="page">
+        <Link to="/apartments" className="k-link k-on" aria-current="page">
           <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true">
             <path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v3h-1zM6 2h1v3h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM7 7h1v1h-1z" />
           </svg>
@@ -74,12 +74,12 @@ function HomesHeader() {
   )
 }
 
-export function HomesPage() {
+export function ApartmentsPage() {
   const [query, setQuery] = useState('')
   const [isOnlyOk, setIsOnlyOk] = useState(false)
 
   const q = query.trim()
-  const rows = MOCK_HOMES.map((home, index) => {
+  const rows = MOCK_APARTMENTS.map((home, index) => {
     const ownWon = home.priceManwon * 10000 * 0.4
     const hasEnoughCash = ownWon <= MOCK_CASH
     const isNeedSell = !hasEnoughCash && ownWon <= MOCK_TOTAL_ASSET
@@ -95,8 +95,8 @@ export function HomesPage() {
   const handleOnlyOkToggle = () => setIsOnlyOk((prev) => !prev)
 
   return (
-    <div className="page-homes">
-      <HomesHeader />
+    <div className="page-apartments">
+      <ApartmentsHeader />
       <main className="k-wrap">
         <h1 className="k-title">동네 부동산</h1>
         <p className="k-desc">전국 진짜 아파트를 검색해서 가짜로 계약해요. 국토부 실거래가 기준이에요.</p>

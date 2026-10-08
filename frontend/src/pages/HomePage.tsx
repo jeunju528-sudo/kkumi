@@ -78,7 +78,7 @@ export function HomePage() {
             <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 5h2v3h-2zM3 3h2v5h-2zM6 1h2v7h-2z" /></svg>
             <span>투자</span>
           </Link>
-          <Link to="/homes" className="k-link">
+          <Link to="/apartments" className="k-link">
             <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v3h-1zM6 2h1v3h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM7 7h1v1h-1z" /></svg>
             <span>집 찾기</span>
           </Link>
@@ -236,7 +236,7 @@ export function HomePage() {
               </div>
             </section>
 
-            <Link to="/homes" className="k-btn">집 보러 가기</Link>
+            <Link to="/apartments" className="k-btn">집 보러 가기</Link>
           </div>
         </div>
         <p className="k-note">※ 샘플 데이터예요. 전부 가짜 돈이라 잃을 게 없어요.</p>

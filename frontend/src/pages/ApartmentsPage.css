@@ -1,4 +1,4 @@
-.page-homes {
+.page-apartments {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -6,10 +6,10 @@
   color: #1b1b2f;
   font-family: 'Noto Sans KR', system-ui, sans-serif;
 }
-.page-homes input {
+.page-apartments input {
   font-family: inherit;
 }
-.page-homes .k-top {
+.page-apartments .k-top {
   position: sticky;
   top: 0;
   z-index: 20;
@@ -22,7 +22,7 @@
   background: #231b3a;
   border-bottom: 3px solid #0f0b1f;
 }
-.page-homes .k-logo {
+.page-apartments .k-logo {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -30,7 +30,7 @@
   font-size: 22px;
   font-weight: 800;
 }
-.page-homes .k-mark {
+.page-apartments .k-mark {
   width: 32px;
   height: 32px;
   box-sizing: border-box;
@@ -44,12 +44,12 @@
   font-size: 16px;
   font-weight: 800;
 }
-.page-homes .k-links {
+.page-apartments .k-links {
   display: flex;
   gap: 4px;
   margin-left: 12px;
 }
-.page-homes .k-link {
+.page-apartments .k-link {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -61,18 +61,18 @@
   font-size: 15px;
   font-weight: 700;
 }
-.page-homes .k-link svg {
+.page-apartments .k-link svg {
   fill: currentColor;
   shape-rendering: crispEdges;
 }
-.page-homes .k-on {
+.page-apartments .k-on {
   color: #ffc93c;
   border-color: #ffc93c;
 }
-.page-homes .k-grow {
+.page-apartments .k-grow {
   flex-grow: 1;
 }
-.page-homes .k-chip {
+.page-apartments .k-chip {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -81,46 +81,46 @@
   border: 2px solid #0f0b1f;
   box-shadow: 0 3px 0 #0f0b1f;
 }
-.page-homes .k-top .k-chip {
+.page-apartments .k-top .k-chip {
   background: #2e2450;
 }
-.page-homes .k-lab {
+.page-apartments .k-lab {
   font-family: 'Press Start 2P', monospace;
   font-size: 8px;
   line-height: 1.4;
   color: #b9bcd0;
 }
-.page-homes .k-num {
+.page-apartments .k-num {
   font-weight: 800;
   font-size: 15px;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
-.page-homes .k-cash {
+.page-apartments .k-cash {
   color: #ffc93c;
 }
-.page-homes .k-wrap {
+.page-apartments .k-wrap {
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
   padding: 24px 24px 48px;
   box-sizing: border-box;
 }
-.page-homes .k-card {
+.page-apartments .k-card {
   background: #ffffff;
   border: 1px solid #e6e8f0;
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(27, 27, 47, 0.06);
   padding: 16px;
 }
-.page-homes .k-px {
+.page-apartments .k-px {
   background: #231b3a;
   border: 3px solid #0f0b1f;
   box-shadow: 0 4px 0 #0f0b1f;
   padding: 16px;
   color: #ffffff;
 }
-.page-homes .k-btn {
+.page-apartments .k-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,37 +135,37 @@
   font-size: 15px;
   font-weight: 800;
 }
-.page-homes .k-btn:active {
+.page-apartments .k-btn:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #0f0b1f;
 }
-.page-homes .k-btn--sell {
+.page-apartments .k-btn--sell {
   background: #fff3b0;
 }
-.page-homes .k-btn--off {
+.page-apartments .k-btn--off {
   background: #e6e8f0;
   color: #6b6f80;
   border-color: #8d90a8;
   box-shadow: none;
   cursor: default;
 }
-.page-homes .k-btn--off:active {
+.page-apartments .k-btn--off:active {
   transform: none;
   box-shadow: none;
 }
-.page-homes .k-note {
+.page-apartments .k-note {
   margin: 0;
   text-align: center;
   font-size: 12px;
   line-height: 1.5;
   color: #6b6f80;
 }
-.page-homes .k-list {
+.page-apartments .k-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
-.page-homes .k-top2 {
+.page-apartments .k-top2 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
@@ -173,13 +173,13 @@
 }
 
 /* 제목 */
-.page-homes .k-title {
+.page-apartments .k-title {
   margin: 0;
   font-size: 28px;
   font-weight: 800;
   line-height: 1.2;
 }
-.page-homes .k-desc {
+.page-apartments .k-desc {
   margin: 4px 0 16px;
   font-size: 14px;
   color: #6b6f80;
@@ -187,24 +187,24 @@
 }
 
 /* 픽셀 안내 패널 */
-.page-homes .k-px-head {
+.page-apartments .k-px-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.page-homes .k-px-label {
+.page-apartments .k-px-label {
   font-size: 13px;
   color: #b9bcd0;
 }
-.page-homes .k-px-head .k-lab {
+.page-apartments .k-px-head .k-lab {
   color: #ffc93c;
 }
-.page-homes .k-px-body {
+.page-apartments .k-px-body {
   margin-top: 6px;
   font-size: 14px;
   line-height: 1.5;
 }
-.page-homes .k-max {
+.page-apartments .k-max {
   margin-top: 4px;
   font-size: 28px;
   font-weight: 800;
@@ -214,22 +214,22 @@
 }
 
 /* 검색 */
-.page-homes .k-search {
+.page-apartments .k-search {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
 }
-.page-homes .k-search-label {
+.page-apartments .k-search-label {
   font-size: 14px;
   font-weight: 800;
 }
-.page-homes .k-search-row {
+.page-apartments .k-search-row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
-.page-homes .k-input {
+.page-apartments .k-input {
   flex: 1 1 200px;
   min-width: 0;
   min-height: 48px;
@@ -241,7 +241,7 @@
   color: #1b1b2f;
   font-size: 16px;
 }
-.page-homes .k-filter {
+.page-apartments .k-filter {
   min-height: 48px;
   padding: 0 16px;
   border: 2px solid #231b3a;
@@ -251,22 +251,22 @@
   font-size: 14px;
   font-weight: 800;
 }
-.page-homes .k-count {
+.page-apartments .k-count {
   font-size: 13px;
   color: #6b6f80;
 }
 
 /* 집 카드 */
-.page-homes .k-home {
+.page-apartments .k-home {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.page-homes .k-home-top {
+.page-apartments .k-home-top {
   display: flex;
   gap: 12px;
 }
-.page-homes .k-thumb {
+.page-apartments .k-thumb {
   position: relative;
   width: 80px;
   height: 72px;
@@ -278,7 +278,7 @@
   border: 2px solid #0f0b1f;
   overflow: hidden;
 }
-.page-homes .k-thumb-grass {
+.page-apartments .k-thumb-grass {
   position: absolute;
   left: 0;
   right: 0;
@@ -286,25 +286,25 @@
   height: 8px;
   background: #6cc24a;
 }
-.page-homes .k-thumb-apt {
+.page-apartments .k-thumb-apt {
   position: relative;
   margin-bottom: 4px;
 }
-.page-homes .k-home-info {
+.page-apartments .k-home-info {
   min-width: 0;
   flex-grow: 1;
 }
-.page-homes .k-home-name-row {
+.page-apartments .k-home-name-row {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-.page-homes .k-home-name {
+.page-apartments .k-home-name {
   font-size: 16px;
   font-weight: 800;
 }
-.page-homes .k-badge {
+.page-apartments .k-badge {
   padding: 2px 8px;
   background: #ffc93c;
   border: 2px solid #0f0b1f;
@@ -312,18 +312,18 @@
   font-weight: 800;
   color: #231b3a;
 }
-.page-homes .k-home-meta {
+.page-apartments .k-home-meta {
   margin-top: 2px;
   font-size: 13px;
   color: #6b6f80;
 }
-.page-homes .k-home-price {
+.page-apartments .k-home-price {
   margin-top: 6px;
   font-size: 22px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
-.page-homes .k-split {
+.page-apartments .k-split {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -331,29 +331,29 @@
   border-top: 1px dashed #c8ccda;
   font-size: 13px;
 }
-.page-homes .k-split-row {
+.page-apartments .k-split-row {
   display: flex;
   justify-content: space-between;
 }
-.page-homes .k-split-label {
+.page-apartments .k-split-label {
   color: #6b6f80;
 }
-.page-homes .k-split-own {
+.page-apartments .k-split-own {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
-.page-homes .k-split-loan {
+.page-apartments .k-split-loan {
   font-variant-numeric: tabular-nums;
 }
 
 /* 빈 상태 */
-.page-homes .k-empty {
+.page-apartments .k-empty {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-top: 16px;
 }
-.page-homes .k-avatar {
+.page-apartments .k-avatar {
   width: 96px;
   height: 96px;
   flex-shrink: 0;
@@ -363,35 +363,35 @@
   background: #bde3ff;
   border: 2px solid #0f0b1f;
 }
-.page-homes .k-avatar img {
+.page-apartments .k-avatar img {
   width: 96px;
   height: 96px;
   display: block;
 }
-.page-homes .k-empty-title {
+.page-apartments .k-empty-title {
   font-size: 16px;
   font-weight: 800;
   line-height: 1.4;
 }
-.page-homes .k-empty-sub {
+.page-apartments .k-empty-sub {
   margin-top: 4px;
   font-size: 13px;
   color: #6b6f80;
   line-height: 1.5;
 }
-.page-homes .k-foot {
+.page-apartments .k-foot {
   margin-top: 24px;
 }
 
 @media (max-width: 899px) {
-  .page-homes .k-list,
-  .page-homes .k-top2 {
+  .page-apartments .k-list,
+  .page-apartments .k-top2 {
     grid-template-columns: minmax(0, 1fr);
   }
-  .page-homes .k-wrap {
+  .page-apartments .k-wrap {
     padding: 16px 16px 104px;
   }
-  .page-homes .k-links {
+  .page-apartments .k-links {
     position: fixed;
     left: 0;
     right: 0;
@@ -405,7 +405,7 @@
     background: #231b3a;
     border-top: 3px solid #0f0b1f;
   }
-  .page-homes .k-link {
+  .page-apartments .k-link {
     flex-direction: column;
     justify-content: center;
     gap: 4px;
@@ -414,7 +414,7 @@
     border: 0;
     font-size: 11px;
   }
-  .page-homes .k-top {
+  .page-apartments .k-top {
     padding: 0 16px;
   }
 }

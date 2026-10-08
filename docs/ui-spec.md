@@ -19,7 +19,7 @@ CLAUDE.md "디렉토리 구조"를 따른다: pages(화면) / components(재사�
 | /trade/search | StockSearch | 3-1 · 종목 검색 |
 | /trade/:code | Order | 3-2 · 사기·팔기 |
 | /trade/history | TradeHistory | 3-3 · 내 거래 |
-| /homes | Homes | 4 · 부동산 |
+| /apartments | Apartments | 4 · 부동산 |
 | /contract/:dealId | Contract | 5 · 계약서 |
 | /village | Village | 6 · 내 마을 |
 | (모달/섹션) | Tiers | ★ 변신 4단계 |
@@ -76,9 +76,9 @@ TradeHistory : RealizedSummary(실현손익, 매수·매도 금액, 건수), Pro
                DayGroup > TradeRow*, StockProfitRow*, EmptyState
 ```
 
-### Homes
+### Apartments
 ```
-Homes
+Apartments
   AffordBanner        # "내 평가액으로 살 수 있는 집"
   LoanNotice
   FilterBar           # 검색 + "살 수 있는 집만"
