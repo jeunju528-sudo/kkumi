@@ -39,8 +39,9 @@
 | 030 | [카카오 로그인: oauth2-client 사용](030-kakao-login-oauth2-client.md) | 확정 |
 | 031 | [인증 방식: JWT를 HttpOnly 쿠키로 전달](031-auth-jwt-http-only-cookie.md) | 확정 |
 | 032 | [거래내역 화면: 별도 화면 (증권사 앱 형태)](032-trade-history-screen.md) | 확정 |
+| 033 | [인증 쿠키 구성: 쿠키 2개 분리, Path 제한](033-auth-cookie-composition.md) | 확정 |
 
-다음 번호: 032
+다음 번호: 034
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
