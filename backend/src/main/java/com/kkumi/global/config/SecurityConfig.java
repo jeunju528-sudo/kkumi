@@ -1,11 +1,14 @@
 package com.kkumi.global.config;
 
+import com.kkumi.global.jwt.JwtProvider;
+import com.kkumi.global.security.CookieAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * 임시 보안 설정 (개발·배포 테스트용으로 전체 허용)
@@ -32,15 +35,17 @@ public class SecurityConfig {
      * 사용자 로그인 -> 핸들러가 JWT 만듦 -> 브라우저에 set-cookie
      * -> 브라우저가 요청마다 cookie 같이 보내줌 -> 서버에서 jwt꺼내서 인증
      * */
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationSuccessHandler loginSuccessHandler)
+                                                   AuthenticationSuccessHandler loginSuccessHandler,
+                                                   JwtProvider jwtProvider)
             throws Exception {
 
 		http
 			.csrf(AbstractHttpConfigurer::disable)
-            .oauth2Login(oauth -> oauth.successHandler(loginSuccessHandler)
-            )
+            .oauth2Login(oauth -> oauth.successHandler(loginSuccessHandler))
+            .addFilterBefore(new CookieAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/actuator/health/**").permitAll()
 				.anyRequest().permitAll());

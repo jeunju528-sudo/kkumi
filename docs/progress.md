@@ -39,10 +39,13 @@
 - 로그인 성공 핸들러 (2026-10-12, `decisions/033`): `member/LoginSuccessHandler`, `global/jwt/AuthCookie`, `MemberService.findMemberIdByKakaoId`(테스트 2개)
   - 신규 회원은 `signupToken` 쿠키(Path `/api/members/seed`) 발급 후 `/seed`, 기존 회원은 `accessToken` 쿠키 발급 후 `/home`
   - 로컬에서 신규 회원 분기 확인(쿠키 속성 HttpOnly·Lax·10분). 기존 회원 분기는 회원 가입 API가 생긴 뒤 확인
+- 쿠키 인증 필터 (2026-10-13, `decisions/034`): `global/security/CookieAuthenticationFilter`가 `accessToken` 쿠키로 memberId를 `SecurityContextHolder`에 등록, `SecurityConfig`에 `addFilterBefore`로 등록
+  - 쿠키 없음·잘못된 토큰·만료·signupToken은 인증 없이 통과. `CookieAuthenticationFilterTest` 6개
+  - 인증 규칙이 아직 `permitAll`이라 실제 요청에서는 차단 효과 없음
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
-- 카카오 로그인 후속: 쿠키 인증 필터, `SecurityConfig` 인증 규칙, 기존 회원 로그인 분기(`/home`) 실제 확인
+- 카카오 로그인 후속: `SecurityConfig` 인증 규칙, 기존 회원 로그인 분기(`/home`) 실제 확인
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
@@ -59,7 +62,7 @@
 - 자연어 아파트 검색: 일정 재조정(2026-10-07)으로 게이트가 10/19로 밀려 넣을 기간이 없음. 10/20은 MVP 마무리·버퍼로 사용하고 런칭 후로 이동
 
 ### 다음 할 일 (순서)
-1. 회원: 쿠키 인증 필터 → 시드 선택 API (`POST /api/members/seed`) → `SecurityConfig` 인증 규칙
+1. 회원: 시드 선택 API (`POST /api/members/seed`) → `SecurityConfig` 인증 규칙
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
