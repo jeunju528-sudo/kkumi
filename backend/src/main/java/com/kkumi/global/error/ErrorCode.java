@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
 	// 토큰 위조·만료·종류 불일치
-	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다");
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
+    ALREADY_JOINED(HttpStatus.CONFLICT, "이미 가입한 회원입니다");
 
 	private final HttpStatus status;
 	private final String message;
