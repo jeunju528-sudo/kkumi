@@ -1,8 +1,12 @@
 package com.kkumi.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import com.kkumi.global.error.BusinessException;
+import com.kkumi.global.error.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,4 +60,34 @@ class MemberServiceTest {
 		// then
 		assertThat(result).isEmpty();
 	}
+
+    @Test
+    @DisplayName("이미 가입한 카카오 ID면 ALREADY_JOINED 예외")
+    void join_alreadyJoined() {
+        // given
+        given(memberRepository.existsByKakaoId("abcd")).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> memberService.join("abcd", "꿈이", SeedMoney.SMALL))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")              // 예외 객체의 errorCode 필드 꺼내기
+                .isEqualTo(ErrorCode.ALREADY_JOINED);
+    }
+
+    @Test
+    @DisplayName("가입하지 않은 카카오 ID면 가입 후 회원 ID 반환")
+    void join_success() {
+        // given
+        given(memberRepository.existsByKakaoId("abcd")).willReturn(false);
+
+        Member saved = Member.join("abcd", "꿈이", SeedMoney.SMALL);
+        ReflectionTestUtils.setField(saved, "id", 1L);              // DB가 id를 채운 척
+        given(memberRepository.save(any(Member.class))).willReturn(saved);
+
+        // when
+        long memberId = memberService.join("abcd", "꿈이", SeedMoney.SMALL);
+
+        // then
+        assertThat(memberId).isEqualTo(1L);
+    }
 }

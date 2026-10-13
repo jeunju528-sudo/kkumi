@@ -12,6 +12,6 @@ public enum ErrorCode {
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     ALREADY_JOINED(HttpStatus.CONFLICT, "이미 가입한 회원입니다");
 
-	private final HttpStatus status;
+    private final HttpStatus status;
 	private final String message;
 }
