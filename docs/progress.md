@@ -24,6 +24,9 @@
   - 22번 포트 공개 + 키 인증만, 배포 전용 키 분리 (`decisions/027`), 외부 액션 없이 직접 ssh 명령 (`decisions/028`)
   - Secrets: `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`
 - Hello World: 외부에서 `/actuator/health` 가 `UP` 확인 (2026-10-06)
+- `SecurityConfig` 인증 규칙 (2026-10-13): 공개 경로(`/oauth2/**`, `/login/oauth2/**`, `/api/members/seed`, `/actuator/health/**`, `/error`) 외 `authenticated()`. 미인증은 `HttpStatusEntryPoint`로 401 (oauth2Login 기본값 302 대신)
+  - 로컬 curl 확인: 막힌 경로 401, 쿠키 없는 시드 선택 400(`/error` 공개로 401에 안 덮임), health 200, 로그인 시작 302 → kauth
+  - `/ws`는 WebSocket 만들 때 결정
 - 테스트 범위 조정 (2026-10-13, `decisions/036`): 돈 계산(심장 ①②③)·도메인 규칙만 자동 테스트, 단순 Service·Controller는 화면 연결 때 수동 확인
 - 지식 저장소 정비: `docs/`를 `decisions/`(ADR 29개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 - 시세 출처 확정 (2026-10-06): KIS·공공데이터 모두 서비스 사용 불가 → 서버가 만드는 가상 시세와 가상 종목. `decisions/020`, `029`, `failures/001`, `002` (#17)
@@ -42,7 +45,7 @@
   - 로컬에서 신규 회원 분기 확인(쿠키 속성 HttpOnly·Lax·10분). 기존 회원 분기는 회원 가입 API가 생긴 뒤 확인
 - 쿠키 인증 필터 (2026-10-13, `decisions/034`): `global/security/CookieAuthenticationFilter`가 `accessToken` 쿠키로 memberId를 `SecurityContextHolder`에 등록, `SecurityConfig`에 `addFilterBefore`로 등록
   - 쿠키 없음·잘못된 토큰·만료·signupToken은 인증 없이 통과. `CookieAuthenticationFilterTest` 6개
-  - 인증 규칙이 아직 `permitAll`이라 실제 요청에서는 차단 효과 없음
+  - 인증 규칙은 `SecurityConfig`에서 적용 (아래)
 - 시드 선택 API (2026-10-13): `POST /api/members/seed`. `MemberController`가 `signupToken` 쿠키에서 kakaoId·닉네임을 꺼내 `MemberService.join`으로 가입, `accessToken` 쿠키 발급 + `signupToken` 쿠키 삭제(`AuthCookie.expireSignupCookie`)
   - 이미 가입한 kakaoId는 `ALREADY_JOINED`(409)
   - `MemberServiceTest`에 `join` 성공·중복(`ALREADY_JOINED`) 테스트 2개 (2026-10-13). 409 응답·쿠키는 시드 선택 화면 연결 때 수동 확인 (`decisions/035`, `036`)
@@ -53,7 +56,7 @@
 
 ### 아직 안 한 것
 - 회원 외 도메인의 Service·Controller·DTO
-- 카카오 로그인 후속: `SecurityConfig` 인증 규칙, 기존 회원 로그인 분기(`/home`) 실제 확인
+- 카카오 로그인 후속: 기존 회원 로그인 분기(`/home`) 실제 확인
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
@@ -70,7 +73,7 @@
 - 자연어 아파트 검색: 일정 재조정(2026-10-07)으로 게이트가 10/19로 밀려 넣을 기간이 없음. 10/20은 MVP 마무리·버퍼로 사용하고 런칭 후로 이동
 
 ### 다음 할 일 (순서)
-1. 회원: `SecurityConfig` 인증 규칙 → 시드 선택 화면 연결(가입 → 쿠키 → 홈, 재제출 409 수동 확인)
+1. 회원: 시드 선택 화면 연결(가입 → 쿠키 → 홈, 재제출 409 수동 확인)
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
