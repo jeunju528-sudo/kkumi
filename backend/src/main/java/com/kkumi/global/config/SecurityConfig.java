@@ -80,4 +80,6 @@ public class SecurityConfig {
 * 5. /error가 permitAll이 아니면 → 인증 없음 → EntryPoint → 401
    → 원래 원인(400, 쿠키 없음)이 401에 덮여서 사라짐
 *
+* /api/trades는 실제로 없는 API인데 404가 아니라 401인 이유
+* 인증 검사는 필터에서 DispatcherServlet보다 먼저 일어나서, 없는 주소인지 판단하기 전에 401로 끝남
 * */
