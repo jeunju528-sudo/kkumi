@@ -4,16 +4,14 @@ import com.kkumi.global.jwt.JwtProvider;
 import com.kkumi.global.security.CookieAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * 임시 보안 설정 (개발·배포 테스트용으로 전체 허용)
- * TODO: 카카오 로그인 붙이면 인증 필요한 경로 막기
- */
 @Configuration
 public class SecurityConfig {
     /*
@@ -41,16 +39,24 @@ public class SecurityConfig {
                                                    AuthenticationSuccessHandler loginSuccessHandler,
                                                    JwtProvider jwtProvider)
             throws Exception {
-
-		http
+        // oauth2를 켜두면 인증 안 된 요청이 막혔을 때 Spring의 기본 동작은 로그인 페이지로 302 리다이렉트됨
+        // 프론트에서 401(누군지 모름) 을 받으면 로그인 페이지로 분기처리를 해주기 위해 401로 에러코드 보냄
+        http
 			.csrf(AbstractHttpConfigurer::disable)
             .oauth2Login(oauth -> oauth.successHandler(loginSuccessHandler))
             .addFilterBefore(new CookieAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/actuator/health/**").permitAll()
-				.anyRequest().permitAll());
-		return http.build();
-	}
+				.requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/login/oauth2/**").permitAll()
+                .requestMatchers("/api/members/seed").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()
+                .requestMatchers("/error").permitAll()
+				.anyRequest().authenticated())
+            // AuthenticationEntryPoint: 인증 안 된 요청이 막혔을 때 "어떻게 응답할지" 정하는 곳
+            .exceptionHandling(e -> e
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+        return http.build();
+    }
 }
 
 /*
@@ -64,3 +70,14 @@ public class SecurityConfig {
                 &code_challenge= : 스프링이 자동으로 붙이는 PKCE 문자열
                 &code_challenge_method= : 스프링이 자동으로 붙이는 PKCE 문자열
  */
+
+/*
+* /error 도 permitAll 로 열어둔 이유
+* 1. POST /api/members/seed (쿠키 없음)
+* 2. Controller의 @CookieValue가 쿠키를 못 찾음 → 400 에러로 결정
+* 3. Tomcat이 에러 화면을 만들려고 /error로 내부 forward
+* 4. forward도 Security 필터 체인을 다시 통과함
+* 5. /error가 permitAll이 아니면 → 인증 없음 → EntryPoint → 401
+   → 원래 원인(400, 쿠키 없음)이 401에 덮여서 사라짐
+*
+* */
