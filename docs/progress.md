@@ -42,6 +42,9 @@
 - 쿠키 인증 필터 (2026-10-13, `decisions/034`): `global/security/CookieAuthenticationFilter`가 `accessToken` 쿠키로 memberId를 `SecurityContextHolder`에 등록, `SecurityConfig`에 `addFilterBefore`로 등록
   - 쿠키 없음·잘못된 토큰·만료·signupToken은 인증 없이 통과. `CookieAuthenticationFilterTest` 6개
   - 인증 규칙이 아직 `permitAll`이라 실제 요청에서는 차단 효과 없음
+- 시드 선택 API (2026-10-13): `POST /api/members/seed`. `MemberController`가 `signupToken` 쿠키에서 kakaoId·닉네임을 꺼내 `MemberService.join`으로 가입, `accessToken` 쿠키 발급 + `signupToken` 쿠키 삭제(`AuthCookie.expireSignupCookie`)
+  - 이미 가입한 kakaoId는 `ALREADY_JOINED`(409). 예외 → HTTP 응답 변환이 아직 없어 지금은 500으로 나감
+  - 테스트는 아직 없음. 컴파일만 확인
 
 ### 아직 안 한 것
 - 백엔드 Service·Controller·DTO 전부 (Controller/Service 없음)
@@ -62,7 +65,7 @@
 - 자연어 아파트 검색: 일정 재조정(2026-10-07)으로 게이트가 10/19로 밀려 넣을 기간이 없음. 10/20은 MVP 마무리·버퍼로 사용하고 런칭 후로 이동
 
 ### 다음 할 일 (순서)
-1. 회원: 시드 선택 API (`POST /api/members/seed`) → `SecurityConfig` 인증 규칙
+1. 회원: 예외 → HTTP 응답 변환(`@RestControllerAdvice`) → 시드 선택 API 테스트 → `SecurityConfig` 인증 규칙 → 시드 선택 화면 연결
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시

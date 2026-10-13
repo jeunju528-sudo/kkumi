@@ -39,4 +39,8 @@ public class AuthCookie {
 			.maxAge(maxAge)
 			.build();
 	}
+
+    public ResponseCookie expireSignupCookie() {
+        return build(SIGNUP_NAME, "", SIGNUP_PATH, Duration.ZERO);
+    }
 }
