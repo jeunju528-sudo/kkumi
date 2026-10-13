@@ -44,7 +44,7 @@
   - 인증 규칙이 아직 `permitAll`이라 실제 요청에서는 차단 효과 없음
 - 시드 선택 API (2026-10-13): `POST /api/members/seed`. `MemberController`가 `signupToken` 쿠키에서 kakaoId·닉네임을 꺼내 `MemberService.join`으로 가입, `accessToken` 쿠키 발급 + `signupToken` 쿠키 삭제(`AuthCookie.expireSignupCookie`)
   - 이미 가입한 kakaoId는 `ALREADY_JOINED`(409)
-  - 테스트는 아직 없음. 컴파일만 확인
+  - `MemberServiceTest`에 `join` 성공·중복(`ALREADY_JOINED`) 테스트 2개 (2026-10-13). Controller 테스트(409 응답, 쿠키)는 아직
 - 예외 → HTTP 응답 변환 (2026-10-13): `global/error/GlobalExceptionHandler`(`@RestControllerAdvice`)가 `BusinessException`을 `ErrorCode.status` + `ErrorResponse`(`code`, `message`)로 변환
   - `code`는 enum 이름(`ALREADY_JOINED` 등). 상태 코드는 HTTP 응답에만 두고 바디에는 넣지 않음
   - 필터에서 던진 예외는 `DispatcherServlet` 앞이라 대상 아님
@@ -69,7 +69,7 @@
 - 자연어 아파트 검색: 일정 재조정(2026-10-07)으로 게이트가 10/19로 밀려 넣을 기간이 없음. 10/20은 MVP 마무리·버퍼로 사용하고 런칭 후로 이동
 
 ### 다음 할 일 (순서)
-1. 회원: 시드 선택 API 테스트(가입 성공·중복 409·쿠키 삭제) + ADR 035 → `SecurityConfig` 인증 규칙 → 시드 선택 화면 연결
+1. 회원: 시드 선택 Controller 테스트(MockMvc: 가입 성공 쿠키, 중복 409) + ADR 035 → `SecurityConfig` 인증 규칙 → 시드 선택 화면 연결
 2. 매수·매도 (심장 ①) — 테스트 먼저
 3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
 4. 평가액 계산 (심장 ②) + WebSocket 푸시
