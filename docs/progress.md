@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-10-13
+## 기준일: 2026-10-14
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -53,6 +53,7 @@
   - `code`는 enum 이름(`ALREADY_JOINED` 등). 상태 코드는 HTTP 응답에만 두고 바디에는 넣지 않음
   - 필터에서 던진 예외는 `DispatcherServlet` 앞이라 대상 아님
   - 409 응답 확인은 시드 선택 API 테스트(MockMvc)에서
+- 개발 프록시 (2026-10-14): `vite.config.ts`에서 `/api`, `/oauth2`, `/login/oauth2` → 8080, `changeOrigin: false`로 Host 유지. curl로 redirect_uri 5173 확인. 카카오 Redirect URI에 5173 주소 추가
 
 ### 아직 안 한 것
 - 회원 외 도메인의 Service·Controller·DTO

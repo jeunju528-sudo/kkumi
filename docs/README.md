@@ -10,7 +10,7 @@ docs/
 ├── README.md              # 이 문서 (구조, 작성 규칙, 양식)
 ├── progress.md            # 진행 현황 (세션 시작 시 먼저 확인)
 ├── design.md, ui-spec.md  # UI 기준 (화면 구현 전 확인)
-├── troubleshooting.md     # 해결한 에러 기록 (면접용)
+├── troubleshooting.md     # 해결한 에러 기록
 │
 ├── decisions/             # 기술 결정 기록 (ADR)
 │   ├── README.md          # 목록, 다음 번호, 미정 항목
