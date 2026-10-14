@@ -15,6 +15,7 @@
 .page-seed .k-opt-amount{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums}
 .page-seed .k-opt-desc{font-size:14px;font-weight:700}
 .page-seed .k-cta{display:flex;align-items:center;justify-content:center;min-height:60px;padding:0;background:#FFC93C;border:3px solid #0F0B1F;border-radius:0;box-shadow:0 4px 0 #0F0B1F;font-size:18px;font-weight:800;color:#231B3A}
+.page-seed .k-cta:disabled{opacity:.6;cursor:wait;box-shadow:none;transform:translateY(4px)}
 .page-seed .k-note{margin:0;text-align:center;font-size:12px;line-height:1.5;color:#FFFFFF}
 
 @keyframes seed-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}

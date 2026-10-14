@@ -3,7 +3,7 @@ import { Sprite } from '../components/Sprite'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './WelcomePage.css'
 
-// 1 시작 화면. 카카오 OAuth 연동 전까지 시드 선택으로 바로 이동
+// 1 시작 화면. 카카오 버튼 → 백엔드 로그인 시작 (/oauth2/authorization/kakao)
 export function WelcomePage() {
   return (
     <div className="page-welcome">
@@ -34,9 +34,11 @@ export function WelcomePage() {
             <span className="k-gift-value">가짜 시드머니</span>
           </div>
           <div className="k-actions">
-            <Link to="/seed" className="k-btn k-kakao">
+            {/* Link는 react-router의 화면 전환이기 때문에 서버에 요청을 보내지 않고 브라우저 내 화면만 바꿈
+                브라우저가 실제로 페이지를 이동하려면 <a href> 로 작성해야함 */}
+            <a href="/oauth2/authorization/kakao" className="k-btn k-kakao">
               카카오로 시작하기
-            </Link>
+            </a>
           </div>
         </div>
 
