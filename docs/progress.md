@@ -42,7 +42,7 @@
   - 만료 시간: 정식 3시간, 임시 10분
 - 로그인 성공 핸들러 (2026-10-12, `decisions/033`): `member/LoginSuccessHandler`, `global/jwt/AuthCookie`, `MemberService.findMemberIdByKakaoId`(테스트 2개)
   - 신규 회원은 `signupToken` 쿠키(Path `/api/members/seed`) 발급 후 `/seed`, 기존 회원은 `accessToken` 쿠키 발급 후 `/home`
-  - 로컬에서 신규 회원 분기 확인(쿠키 속성 HttpOnly·Lax·10분). 기존 회원 분기는 회원 가입 API가 생긴 뒤 확인
+  - 로컬에서 신규 회원 분기 확인(쿠키 속성 HttpOnly·Lax·10분). 기존 회원 분기(`accessToken` 삭제 후 재로그인 → 바로 `/home`) 확인 (2026-10-14)
 - 쿠키 인증 필터 (2026-10-13, `decisions/034`): `global/security/CookieAuthenticationFilter`가 `accessToken` 쿠키로 memberId를 `SecurityContextHolder`에 등록, `SecurityConfig`에 `addFilterBefore`로 등록
   - 쿠키 없음·잘못된 토큰·만료·signupToken은 인증 없이 통과. `CookieAuthenticationFilterTest` 6개
   - 인증 규칙은 `SecurityConfig`에서 적용 (아래)
@@ -56,14 +56,17 @@
 - 개발 프록시 (2026-10-14): `vite.config.ts`에서 `/api`, `/oauth2`, `/login/oauth2` → 8080, `changeOrigin: false`로 Host 유지. curl로 redirect_uri 5173 확인. 카카오 Redirect URI에 5173 주소 추가
 - TanStack Query 준비 (2026-10-14): `@tanstack/react-query` 설치, `main.tsx`에서 `QueryClient`(컴포넌트 밖 1회 생성) + `QueryClientProvider`로 앱 감쌈. 옵션은 기본값
 - 작성 방식 변경 (2026-10-14): 프론트 동작은 Claude가 대화창에 소스 제시 → 개발자 직접 입력 → 검토. 심장은 기존대로 (CLAUDE.md "절대 금지"·"프론트 분담")
+- 시드 선택 화면 연결 (2026-10-14): `api/apiError.ts`(실패 응답 → `ApiError{status, code}`, 타입 가드), `api/memberApi.ts`(`selectSeed`), `hooks/useSelectSeedMutation.ts`, `SeedPickPage`(`mutate`, 요청 중 버튼 잠금), `WelcomePage` 카카오 버튼 → `/oauth2/authorization/kakao`
+  - 실패 처리: 성공·`ALREADY_JOINED` → `/home`, 400·401(signupToken 없음·만료) → `/`, 그 외 → 안내 문구
+  - 브라우저 수동 확인: 신규 로그인 → `/seed` → 가입 200 → `accessToken` 발급·`signupToken` 삭제 → `/home`, DB `member` 행(initial_cash·cash 500만) 확인, 같은 signupToken 재제출 curl → 409 `ALREADY_JOINED` (`decisions/035`, `036`)
 
 ### 아직 안 한 것
 - 회원 외 도메인의 Service·Controller·DTO
-- 카카오 로그인 후속: 기존 회원 로그인 분기(`/home`) 실제 확인
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: `src/api`·`src/hooks`·`src/ws` 비어 있음
+- 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
+- 화면 가드(`docs/ui-spec.md`): 회원 조회 API(`/api/members/me`) + `useMemberQuery` 만든 뒤 적용. 그 전까지 보호는 서버 API(SecurityConfig, signupToken)가 담당
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 매수·매도(심장 ①) 다음
 
 ### 외부 대기 · 결정 필요
@@ -76,14 +79,13 @@
 - 자연어 아파트 검색: 일정 재조정(2026-10-07)으로 게이트가 10/19로 밀려 넣을 기간이 없음. 10/20은 MVP 마무리·버퍼로 사용하고 런칭 후로 이동
 
 ### 다음 할 일 (순서)
-1. 회원: 시드 선택 화면 연결(가입 → 쿠키 → 홈, 재제출 409 수동 확인)
-2. 매수·매도 (심장 ①) — 테스트 먼저
-3. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
-4. 평가액 계산 (심장 ②) + WebSocket 푸시
-5. 실거래가 배치 (심장 ③) → 추천 API
-6. 집 사기 → 내 마을, 변신 단계
-7. 프론트 데이터 연결 (TanStack Query, ws)
-8. 10/19 게이트 체크 → 10/20 MVP 마무리·버퍼 → 10/21~23 통합 테스트 → 10/24 런칭
+1. 매수·매도 (심장 ①) — 테스트 먼저
+2. 시세 제공자: 가상 시세 구현체 (ADR 029 기준)
+3. 평가액 계산 (심장 ②) + WebSocket 푸시
+4. 실거래가 배치 (심장 ③) → 추천 API
+5. 집 사기 → 내 마을, 변신 단계
+6. 프론트 데이터 연결 (회원 조회·화면 가드, 나머지 화면, ws)
+7. 10/19 게이트 체크 → 10/20 MVP 마무리·버퍼 → 10/21~23 통합 테스트 → 10/24 런칭
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
 
 ## 참고

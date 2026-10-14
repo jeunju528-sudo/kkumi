@@ -37,3 +37,9 @@
 - 원인: Vite는 프록시 값이 문자열(단축형)이면 내부에서 `{ target, changeOrigin: true }`로 바꿔 씀(`node_modules/vite/dist/node/chunks/node.js`의 `proxyMiddleware`). `changeOrigin: true`는 백엔드로 보내는 요청의 Host를 target(`localhost:8080`)으로 바꾸고, Spring Security는 `{baseUrl}`을 요청의 Host로 만들기 때문에 redirect_uri가 8080이 됨. 옵션 문서의 기본값(false)은 객체로 쓸 때 이야기라 단축형에는 해당되지 않음
 - 해결: 프록시 값을 객체로 바꾸고 `changeOrigin: false`를 명시. 수정 후 같은 curl로 redirect_uri가 5173인지 확인
 - 배운 점: 라이브러리 단축 문법에는 숨은 기본값이 있을 수 있으니, 문서의 기본값을 믿기보다 실제 응답 헤더로 검증할 것. `node_modules`를 직접 고치는 것은 해결이 아님(`npm ci`마다 덮어써지고 CI·다른 PC에는 반영되지 않음). 설정은 레포에 커밋되는 파일(`vite.config.ts`)에서 바꿀 것
+
+## [2026-10-14] 로컬 MySQL 조회 시 한글 닉네임이 ???로 표시
+- 증상: 가입 후 `docker exec -it kkumi-mysql mysql ...`로 `member`를 조회하니 `nickname`이 `???`
+- 원인: 저장은 정상. 컨테이너 안 mysql 클라이언트가 utf8mb4가 아닌 문자셋으로 접속해 한글을 표시하지 못함 (JDBC URL `characterEncoding=UTF-8`, 서버 `utf8mb4`라 저장 경로는 정상)
+- 해결: `--default-character-set=utf8mb4` 옵션으로 접속하니 한글 정상 표시
+- 배운 점: 화면에 깨져 보일 때 저장이 깨졌는지 표시만 깨졌는지 먼저 구분. `HEX()`·`LENGTH()`로 실제 바이트를 확인하는 방법도 있음

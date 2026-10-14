@@ -1,6 +1,8 @@
-// 백엔드 DTO와 이름 맞춤. 필드는 API 확정 후 갱신
+// 백엔드 DTO와 이름을 맞춰둔 타입 설명서
+// 타입은 컴파일 시점 검사용이라 브라우저로 가는 js에는 생기지 않음
 // 금액은 모두 원 단위 정수 (백엔드 long)
 
+// backend의 enum SeedMoney {SMALL, LARGE} 와 맞춘 것 MEDIUM 같은거 들어가면 에러남
 export type SeedMoney = 'SMALL' | 'LARGE' // 500만 / 5,000만
 export type Tier = 'GEOLBAENGI' | 'SEOMIN' | 'JOKBU' | 'GAPBU' // 걸뱅이 / 서민 / 졸부 / 갑부
 export type TradeType = 'BUY' | 'SELL'
@@ -15,8 +17,17 @@ export type MemberResponse = {
   houseCount: number
 }
 
+// backend record SeedRequest(SeedMoney seedMoney)
+// 요청 바디 모양 : JSON.stringify 하면 {"seedMoney":"SMALL"} 로 요청됨
 export type SelectSeedRequest = {
   seedMoney: SeedMoney
+}
+
+// 실패 응답 body, code는 백엔드 ErrorCode의 enum 이름
+// ≈ record ErrorResponse(String code, String message)
+export type ErrorResponse = {
+  code: string
+  message: string
 }
 
 export type StockResponse = {
