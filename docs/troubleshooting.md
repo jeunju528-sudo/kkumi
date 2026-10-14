@@ -31,3 +31,9 @@
 - 원인: `src/test/resources/application.yaml`이 main `application.yaml`을 대체해서 로드됨. 테스트 설정에 카카오 registration이 없어 `oauth2Login()`이 필요로 하는 클라이언트 등록 정보 빈이 만들어지지 않음. 로컬 앱은 main yaml을 읽어서 문제가 없었음
 - 해결: 테스트 yaml에 카카오 registration과 provider를 더미 값(`test`)으로 추가. CI에 환경변수를 넣는 방법은 테스트 설정에 값을 받을 항목이 없어서 효과가 없음
 - 배운 점: main 설정을 바꾸면 테스트 설정(`src/test/resources`)도 같이 확인할 것. 로컬 실행 성공과 테스트 컨텍스트 로딩 성공은 서로 다른 설정을 읽음. 에러 원인 체인은 가장 아래 `Caused by`부터 읽기
+
+## [2026-10-14] 개발 프록시 뒤에서 카카오 redirect_uri가 8080으로 만들어짐
+- 증상: `vite.config.ts`에 `'/oauth2': 'http://localhost:8080'` 형태로 프록시를 걸고 `curl -D - http://localhost:5173/oauth2/authorization/kakao` 확인. 302는 백엔드에서 왔는데 Location의 `redirect_uri`가 `http://localhost:8080/login/oauth2/code/kakao`
+- 원인: Vite는 프록시 값이 문자열(단축형)이면 내부에서 `{ target, changeOrigin: true }`로 바꿔 씀(`node_modules/vite/dist/node/chunks/node.js`의 `proxyMiddleware`). `changeOrigin: true`는 백엔드로 보내는 요청의 Host를 target(`localhost:8080`)으로 바꾸고, Spring Security는 `{baseUrl}`을 요청의 Host로 만들기 때문에 redirect_uri가 8080이 됨. 옵션 문서의 기본값(false)은 객체로 쓸 때 이야기라 단축형에는 해당되지 않음
+- 해결: 프록시 값을 객체로 바꾸고 `changeOrigin: false`를 명시. 수정 후 같은 curl로 redirect_uri가 5173인지 확인
+- 배운 점: 라이브러리 단축 문법에는 숨은 기본값이 있을 수 있으니, 문서의 기본값을 믿기보다 실제 응답 헤더로 검증할 것. `node_modules`를 직접 고치는 것은 해결이 아님(`npm ci`마다 덮어써지고 CI·다른 PC에는 반영되지 않음). 설정은 레포에 커밋되는 파일(`vite.config.ts`)에서 바꿀 것
