@@ -54,6 +54,8 @@
   - 필터에서 던진 예외는 `DispatcherServlet` 앞이라 대상 아님
   - 409 응답 확인은 시드 선택 API 테스트(MockMvc)에서
 - 개발 프록시 (2026-10-14): `vite.config.ts`에서 `/api`, `/oauth2`, `/login/oauth2` → 8080, `changeOrigin: false`로 Host 유지. curl로 redirect_uri 5173 확인. 카카오 Redirect URI에 5173 주소 추가
+- TanStack Query 준비 (2026-10-14): `@tanstack/react-query` 설치, `main.tsx`에서 `QueryClient`(컴포넌트 밖 1회 생성) + `QueryClientProvider`로 앱 감쌈. 옵션은 기본값
+- 작성 방식 변경 (2026-10-14): 프론트 동작은 Claude가 대화창에 소스 제시 → 개발자 직접 입력 → 검토. 심장은 기존대로 (CLAUDE.md "절대 금지"·"프론트 분담")
 
 ### 아직 안 한 것
 - 회원 외 도메인의 Service·Controller·DTO
@@ -61,7 +63,7 @@
 - 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: TanStack Query 미설치, `src/api`·`src/hooks`·`src/ws` 비어 있음
+- 프론트 데이터 연결: `src/api`·`src/hooks`·`src/ws` 비어 있음
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 매수·매도(심장 ①) 다음
 
 ### 외부 대기 · 결정 필요
