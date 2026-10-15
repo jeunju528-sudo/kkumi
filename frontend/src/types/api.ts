@@ -54,10 +54,15 @@ export type PortfolioResponse = {
   holdings: HoldingResponse[]
 }
 
-export type TradeRequest = {
+// POST /api/trades/buy, /api/trades/sell (엔드포인트 분리)
+export type BuyStockRequest = {
   code: string
-  type: TradeType
-  quantity: number
+  quantity: number // 1주 이상
+}
+
+export type SellStockRequest = {
+  code: string
+  quantity: number // 1주 이상
 }
 
 export type AptRecommendResponse = {
