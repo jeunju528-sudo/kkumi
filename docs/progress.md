@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-10-15
+## 기준일: 2026-10-25
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -59,6 +59,10 @@
 - 시드 선택 화면 연결 (2026-10-14): `api/apiError.ts`(실패 응답 → `ApiError{status, code}`, 타입 가드), `api/memberApi.ts`(`selectSeed`), `hooks/useSelectSeedMutation.ts`, `SeedPickPage`(`mutate`, 요청 중 버튼 잠금), `WelcomePage` 카카오 버튼 → `/oauth2/authorization/kakao`
   - 실패 처리: 성공·`ALREADY_JOINED` → `/home`, 400·401(signupToken 없음·만료) → `/`, 그 외 → 안내 문구
   - 브라우저 수동 확인: 신규 로그인 → `/seed` → 가입 200 → `accessToken` 발급·`signupToken` 삭제 → `/home`, DB `member` 행(initial_cash·cash 500만) 확인, 같은 signupToken 재제출 curl → 409 `ALREADY_JOINED` (`decisions/035`, `036`)
+- 매수·매도 (심장 ①) 1부 (2026-10-15, `feat/stock-buy-sell` 브랜치, PR 전): `Member.withdraw`·`deposit`, `StockHolding` 매수·매도 계산, `MemberTest`·`StockHoldingTest`, `BuyStockRequest`·`SellStockRequest`
+  - 전량 매도 시 보유 행 삭제, 거래 수량 1 이상 (`decisions/037`)
+  - `TradeServiceTest`는 메서드 이름 뼈대 6개만(`@Disabled("작성 전")`)
+- 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원 외 도메인의 Service·Controller·DTO
@@ -67,7 +71,7 @@
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
 - 화면 가드(`docs/ui-spec.md`): 회원 조회 API(`/api/members/me`) + `useMemberQuery` 만든 뒤 적용. 그 전까지 보호는 서버 API(SecurityConfig, signupToken)가 담당
-- 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 10/19, 화면은 이미 있음(목업 → 연결)
+- 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 `MockPriceProvider` 사용
@@ -76,26 +80,28 @@
   - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
-- 자연어 아파트 검색: 런칭 10/29 조정(2026-10-15, `decisions/038`)으로 다시 조건부 포함. 10/27 게이트 통과 시 10/28에 추가 (`decisions/023` 필터 JSON)
+- 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
 
 ### 다음 할 일 (순서)
-1. 10/15~16 매수·매도 (심장 ①) 2부: `TradeService`(Member 비관적 락, `decisions/025`) + 매수·매도 API, `TradeServiceTest`
-2. 10/17 시세 제공자: 가상 시세 구현체 (ADR 029 기준) + 종목 조회 API
-3. 10/18 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드, 종목·매매 화면 연결
-4. 10/19 종목·매매 화면 연결 마무리 + 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
-5. 10/20 평가액 계산 (심장 ②) + 홈 화면 연결
-6. 10/21 WebSocket 평가액 푸시
-7. 10/22 실시간 평가액 차트 (심장 ④) + 손익 그래프
-8. 10/23~24 실거래가 배치 (심장 ③), 10/24 오후 도메인·HTTPS (Secure 쿠키 켜기)
-9. 10/25 추천 API + 아파트 화면 연결
-10. 10/26~27 집 사기(계약서) → 내 마을, 변신 단계 → 10/27 게이트 체크
-11. 10/28 자연어 아파트 검색(게이트 통과 시) + 통합 테스트·버그 수정
-12. 10/29 캡처 화면 다듬기 + README + 최종 점검 → 런칭
-- 버퍼 없음. 10/19 중간 점검에서 밀렸으면 그때 일정 다시 논의 (`decisions/038`)
+1. 10/26~27 매수·매도 (심장 ①) 2부: `TradeService`(Member 비관적 락, `decisions/025`) + 매수·매도 API, `TradeServiceTest` 6개
+   - 로컬에 `MemberRepository.findByIdForUpdate`(`@Lock(PESSIMISTIC_WRITE)` + `@Query`) 작성됨, 커밋 전. `TradeService`와 같은 커밋으로
+2. 10/28~29 시세 제공자: 가상 시세 구현체 (ADR 029 기준) + 종목 조회 API
+3. 10/30 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드
+4. 10/30~31 종목·매매 화면 연결
+5. 11/1 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
+6. 11/2 평가액 계산 (심장 ②) + 홈 화면 연결
+7. 11/3 WebSocket 평가액 푸시
+8. 11/4~5 실시간 평가액 차트 (심장 ④) + 손익 그래프
+9. 11/6~7 실거래가 배치 (심장 ③), 11/7 오후 도메인·HTTPS (Secure 쿠키 켜기)
+10. 11/8~9 추천 API + 아파트 화면 연결
+11. 11/10~11 집 사기(계약서) → 내 마을, 변신 단계 → 11/11 게이트 체크
+12. 11/12~13 통합 테스트·버그 수정 (13일은 버퍼 겸용), 11/13 자연어 아파트 검색(게이트 통과 시)
+13. 11/14 캡처 화면 다듬기 + README + 최종 점검 → 런칭
+- 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 중간 점검에서 밀렸으면 그때 일정 다시 논의 (`decisions/039`)
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
 
 ## 참고
-- 노션 일정표(간트): FRTR 페이지 > "6. 개발 일정" DB (10/15 재조정 반영)
+- 노션 일정표(간트): FRTR 페이지 > "6. 개발 일정" DB (10/25 재조정 반영)
 - Figma 시안 사본: 데스크톱 10개, 모바일 7개 (모바일 사기·팔기, 계약서, 내 마을은 Figma 무료 플랜 MCP 호출 한도로 미완). 기준은 Claude Design 시안 v0.2
 - 화면 ↔ 파일 대응표: `frontend/README.md`
 - 결정 이유·실패 기록·용어: `docs/decisions/`, `docs/failures/`, `docs/domain/` (목록은 `docs/README.md`)
