@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-10-25
+## 기준일: 2026-10-26
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -62,11 +62,18 @@
 - 매수·매도 (심장 ①) 1부 (2026-10-15, `feat/stock-buy-sell` 브랜치, PR 전): `Member.withdraw`·`deposit`, `StockHolding` 매수·매도 계산, `MemberTest`·`StockHoldingTest`, `BuyStockRequest`·`SellStockRequest`
   - 전량 매도 시 보유 행 삭제, 거래 수량 1 이상 (`decisions/037`)
   - `TradeServiceTest`는 메서드 이름 뼈대 6개만(`@Disabled("작성 전")`)
+- 매수·매도 (심장 ①) 2부 (2026-10-26, `feat/stock-buy-sell`, PR 전)
+  - `TradeController`: `POST /api/trades/buy`, `/sell`. `@Valid @RequestBody` + `@AuthenticationPrincipal Long memberId`(쿠키 필터의 principal). 응답 바디 없음(화면은 성공 후 쿼리 invalidate)
+  - `TradeService`: 회원 비관적 락(`MemberRepository.findByIdForUpdate`, `decisions/025`) → 종목 → 보유 → 현재가 → 금액(`Math.multiplyExact`) → 현금 차감·입금 → 보유 갱신(매수: 있으면 `buy`, 없으면 `create` + save / 매도: 수량 0이면 delete, `decisions/037`) → 이력 save
+  - 매수 순서: 현금 차감 먼저, 보유 갱신 나중. 매도 순서: 보유 차감 먼저(INSUFFICIENT_HOLDING 검사), 입금 나중. 입금액은 현재가 × 수량(실현손익은 이력에만)
+  - 추가: `TradeHistory.ofBuy`·`ofSell`(거래 종류·시각은 팩토리 안에서), `StockHoldingRepository.findByMemberAndStock`, `ErrorCode.MEMBER_NOT_FOUND`·`STOCK_NOT_FOUND`(404). 보유 없는 종목 매도는 INSUFFICIENT_HOLDING(400)
+  - `TradeServiceTest` 6개 통과 (Mockito): 매수 성공(현금·수량·평균 매입가·이력), 현금 부족(상태 그대로, 이력 never), 매도 성공(현금·수량, 실현손익은 ArgumentCaptor), 전량 매도 delete, 보유 없음, 락 조회(findByIdForUpdate times(2), findById never). 전체 50개 통과
+  - 임시 시세 `stock/FixedPriceProvider`(모든 종목 10,000원, `@Component`): 구현체가 없어 `contextLoads`가 StockPriceProvider 빈 없음으로 실패해서 추가. 가상 시세 구현 때 이 파일 삭제(같은 타입 빈 2개면 기동 실패)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
-- 회원 외 도메인의 Service·Controller·DTO
-- 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 `MockPriceProvider`)
+- 회원·매매 외 도메인의 Service·Controller·DTO
+- 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 임시 `FixedPriceProvider` 고정가 10,000원)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
@@ -74,7 +81,7 @@
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
 
 ### 외부 대기 · 결정 필요
-- 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 `MockPriceProvider` 사용
+- 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 임시 `FixedPriceProvider`(고정가) 사용
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
   - 정할 것: 현재가 저장·복구 방식, 종목별 유형 배치와 시작가 (`decisions/README.md` "미정", `domain/stocks.md`), `Stock.market`(KOSPI/KOSDAQ) 유지 여부
   - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
@@ -83,8 +90,10 @@
 - 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
 
 ### 다음 할 일 (순서)
-1. 10/26~27 매수·매도 (심장 ①) 2부: `TradeService`(Member 비관적 락, `decisions/025`) + 매수·매도 API, `TradeServiceTest` 6개
-   - 로컬에 `MemberRepository.findByIdForUpdate`(`@Lock(PESSIMISTIC_WRITE)` + `@Query`) 작성됨, 커밋 전. `TradeService`와 같은 커밋으로
+1. 10/27 매수·매도 (심장 ①) 마무리: 구현·테스트는 10/26 끝 (`feat/stock-buy-sell`)
+   - 로컬 서버에서 매수·매도 API 수동 확인: 로그인 쿠키로 호출, 현금 부족 400, 없는 종목 404, 보유 없음 400
+   - 쿼리 로그에서 회원 조회가 `for update`로 나가는지 확인 (Mock 테스트로는 확인 불가)
+   - PR 올리기 → Squash and merge
 2. 10/28~29 시세 제공자: 가상 시세 구현체 (ADR 029 기준) + 종목 조회 API
 3. 10/30 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드
 4. 10/30~31 종목·매매 화면 연결
