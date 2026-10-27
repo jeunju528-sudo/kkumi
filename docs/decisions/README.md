@@ -48,8 +48,9 @@
 | 039 | [일정 재조정: 런칭 11/14, 범위 유지](039-schedule-launch-1114.md) | 확정 |
 | 040 | [가상 시세 현재가: 메모리 + 1분 주기 DB 저장](040-virtual-price-snapshot.md) | 확정 |
 | 041 | [가상 종목 카탈로그: 유형 배치, 시작가, 호가 단위, market 삭제](041-virtual-stock-catalog.md) | 확정 |
+| 042 | [가상 시세 내부 가격: 반올림 전 값은 double, 밖으로는 long](042-virtual-price-internal-double.md) | 확정 |
 
-다음 번호: 042
+다음 번호: 043
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.

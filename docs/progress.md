@@ -72,17 +72,24 @@
   - 로컬 수동 확인 (2026-10-27): 브라우저 콘솔 fetch(로그인 쿠키)로 매수·매도·전량 매도 200(보유 행 삭제), 현금 부족 400 `INSUFFICIENT_CASH`, 없는 종목 404 `STOCK_NOT_FOUND`, 보유 없음 400 `INSUFFICIENT_HOLDING`, 수량 0 400(`@Min`), 쿠키 없음 401. DB 현금 원복, 이력은 성공 3건만(실패 요청은 롤백). 쿼리 로그에서 회원 조회 `for update of m1_0` 확인
   - 확인용 종목 2개(KK0001·KK0002)는 로컬 DB에 SQL로 직접 넣었다가 카탈로그 작업 때 정리 (10/27)
   - 실서버 (10/27): 카카오 로그인 → 시드 선택 → 홈 확인, 수량 0 매수 400 응답에 `trace` 없음(로컬 `trace`는 devtools 영향)
-- 가상 종목 카탈로그 (2026-10-27, 시세 PR 1/3, `feat/virtual-stock-catalog`): `decisions/040`, `041`
+- 가상 종목 카탈로그 (2026-10-27, 시세 PR 1/3, PR #39 merge, 실서버 20개 등록 확인): `decisions/040`, `041`
   - `StockType`(STABLE, ROLLER_COASTER, JACKPOT), `Stock.type`·`basePrice`(시작가 = 평균 회귀 기준가), `Stock.of(code, name, type, basePrice)`
   - `Market` enum·`Stock.market` 삭제. `ddl-auto: update`가 컬럼을 지우지 않아 로컬·RDS에서 `ALTER TABLE stock DROP COLUMN market` 직접 실행
   - `StockDataInitializer`(`ApplicationRunner`): 서버 시작 시 20개 중 DB에 없는 코드만 등록. 로컬 확인: 첫 실행 20개 추가, 재시작 0개 추가
   - 테스트의 `Stock.of` 호출 17곳 시그니처만 변경 (계산·검증 그대로)
   - 메모: MySQL에서 `type` 컬럼이 `varchar`가 아니라 `enum('JACKPOT','ROLLER_COASTER','STABLE')`로 생성됨. 나중에 enum 상수를 추가하면 `ddl-auto: update`가 컬럼을 바꾸지 않으므로 직접 ALTER 필요
+- 가상 시세 엔진 (2026-10-27, 시세 PR 2/3, `feat/virtual-price-engine`): `decisions/042`(엔진 내부 반올림 전 가격은 `double`, 밖으로는 `long`)
+  - `stock/PriceRules`: 호가 단위(가격대별 표), 호가 반올림, 상한가(+30% 내림)·하한가(-30% 올림). `PriceRulesTest` 23개(가격대 경계, 1원 미만 예외, 반올림, 상·하한)
+  - `stock/VirtualPriceProvider`(`StockPriceProvider` 구현체): 종목별 상태 `PriceState` record를 `ConcurrentHashMap`에 보관, `@Scheduled(fixedRate = 5000)`로 전 종목 갱신, `ApplicationReadyEvent`에서 DB 시작가로 메모리 채움
+  - 변동 공식(ADR 029 초기값 상수): 랜덤(√0.3 시장 + √0.7 종목, 5초 변동성 = 하루 변동성 ÷ √17,280) + 평균 회귀(반감기 0.5일) + 한방형 급등락(하루 0.3회, 15~40%) → `exp` → ±30% 자르기 → 호가 반올림
+  - `global/config/SchedulingConfig`(`@EnableScheduling`), `FixedPriceProvider` 삭제
+  - 이번 PR 범위 밖: 오늘 시작가(`dayOpenPrice`)는 시작가와 같은 값으로 고정, 날짜 갱신·DB 저장·복구·상수 yaml 이동은 PR 3. 엔진 결과 분포는 자동 테스트 없음(랜덤, 플레이 테스트로 확인)
+  - 로컬 확인: 로그 `가상 시세 시작: 20개 종목`, KK0001을 10초 간격 6회 매수 시 체결가 51,600 → 51,800 → 51,900 → 51,800 → 52,000 → 52,200 (100원 호가 단위로 변동)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 시세 연동: PR 2 가상 시세 엔진(메모리 현재가, 5초 갱신, `FixedPriceProvider` 삭제), PR 3 현재가 저장·복구(`decisions/040`) + 종목 조회 API. 지금은 임시 `FixedPriceProvider` 고정가 10,000원
+- 시세 PR 3: 현재가·오늘 시작가 1분 주기 DB 저장과 재시작 복구(`decisions/040`), 날짜(KST) 바뀌면 오늘 시작가 갱신, 변동 상수 `application.yaml` + `@ConfigurationProperties`, 종목 조회 API(`GET /api/stocks`)
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
@@ -97,6 +104,7 @@
   - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
+- 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27)
 - 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
 - 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인
 - 운영 메모
@@ -105,7 +113,7 @@
 
 ### 다음 할 일 (순서)
 1. (10/27 완료) 매수·매도 (심장 ①): PR #38 merge, 실서버 확인
-2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(10/27) → PR 2 가상 시세 엔진(ADR 029) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API
+2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(#39, 10/27 완료) → PR 2 가상 시세 엔진(10/27 로컬 확인) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API
 3. 10/30 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드
 4. 10/30~31 종목·매매 화면 연결
 5. 11/1 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
