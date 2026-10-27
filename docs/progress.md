@@ -62,7 +62,7 @@
 - 매수·매도 (심장 ①) 1부 (2026-10-15, `feat/stock-buy-sell` 브랜치, PR 전): `Member.withdraw`·`deposit`, `StockHolding` 매수·매도 계산, `MemberTest`·`StockHoldingTest`, `BuyStockRequest`·`SellStockRequest`
   - 전량 매도 시 보유 행 삭제, 거래 수량 1 이상 (`decisions/037`)
   - `TradeServiceTest`는 메서드 이름 뼈대 6개만(`@Disabled("작성 전")`)
-- 매수·매도 (심장 ①) 2부 (2026-10-26~27, `feat/stock-buy-sell`)
+- 매수·매도 (심장 ①) 2부 (2026-10-26~27, PR #38 merge, 실서버 배포·확인 10/27)
   - `TradeController`: `POST /api/trades/buy`, `/sell`. `@Valid @RequestBody` + `@AuthenticationPrincipal Long memberId`(쿠키 필터의 principal). 응답 바디 없음(화면은 성공 후 쿼리 invalidate)
   - `TradeService`: 회원 비관적 락(`MemberRepository.findByIdForUpdate`, `decisions/025`) → 종목 → 보유 → 현재가 → 금액(`Math.multiplyExact`) → 현금 차감·입금 → 보유 갱신(매수: 있으면 `buy`, 없으면 `create` + save / 매도: 수량 0이면 delete, `decisions/037`) → 이력 save
   - 매수 순서: 현금 차감 먼저, 보유 갱신 나중. 매도 순서: 보유 차감 먼저(INSUFFICIENT_HOLDING 검사), 입금 나중. 입금액은 현재가 × 수량(실현손익은 이력에만)
@@ -70,12 +70,19 @@
   - `TradeServiceTest` 6개 통과 (Mockito): 매수 성공(현금·수량·평균 매입가·이력), 현금 부족(상태 그대로, 이력 never), 매도 성공(현금·수량, 실현손익은 ArgumentCaptor), 전량 매도 delete, 보유 없음, 락 조회(findByIdForUpdate times(2), findById never). 전체 50개 통과
   - 임시 시세 `stock/FixedPriceProvider`(모든 종목 10,000원, `@Component`): 구현체가 없어 `contextLoads`가 StockPriceProvider 빈 없음으로 실패해서 추가. 가상 시세 구현 때 이 파일 삭제(같은 타입 빈 2개면 기동 실패)
   - 로컬 수동 확인 (2026-10-27): 브라우저 콘솔 fetch(로그인 쿠키)로 매수·매도·전량 매도 200(보유 행 삭제), 현금 부족 400 `INSUFFICIENT_CASH`, 없는 종목 404 `STOCK_NOT_FOUND`, 보유 없음 400 `INSUFFICIENT_HOLDING`, 수량 0 400(`@Min`), 쿠키 없음 401. DB 현금 원복, 이력은 성공 3건만(실패 요청은 롤백). 쿼리 로그에서 회원 조회 `for update of m1_0` 확인
-  - 확인용 종목 2개(KK0001·KK0002, 이름 TEST1·TEST2)는 로컬 DB에 SQL로 직접 넣음. 10/28 종목 데이터 작업 때 정리
+  - 확인용 종목 2개(KK0001·KK0002)는 로컬 DB에 SQL로 직접 넣었다가 카탈로그 작업 때 정리 (10/27)
+  - 실서버 (10/27): 카카오 로그인 → 시드 선택 → 홈 확인, 수량 0 매수 400 응답에 `trace` 없음(로컬 `trace`는 devtools 영향)
+- 가상 종목 카탈로그 (2026-10-27, 시세 PR 1/3, `feat/virtual-stock-catalog`): `decisions/040`, `041`
+  - `StockType`(STABLE, ROLLER_COASTER, JACKPOT), `Stock.type`·`basePrice`(시작가 = 평균 회귀 기준가), `Stock.of(code, name, type, basePrice)`
+  - `Market` enum·`Stock.market` 삭제. `ddl-auto: update`가 컬럼을 지우지 않아 로컬·RDS에서 `ALTER TABLE stock DROP COLUMN market` 직접 실행
+  - `StockDataInitializer`(`ApplicationRunner`): 서버 시작 시 20개 중 DB에 없는 코드만 등록. 로컬 확인: 첫 실행 20개 추가, 재시작 0개 추가
+  - 테스트의 `Stock.of` 호출 17곳 시그니처만 변경 (계산·검증 그대로)
+  - 메모: MySQL에서 `type` 컬럼이 `varchar`가 아니라 `enum('JACKPOT','ROLLER_COASTER','STABLE')`로 생성됨. 나중에 enum 상수를 추가하면 `ddl-auto: update`가 컬럼을 바꾸지 않으므로 직접 ALTER 필요
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 시세 연동 (`StockPriceProvider` 구현체: 가상 시세. 지금은 임시 `FixedPriceProvider` 고정가 10,000원)
+- 시세 연동: PR 2 가상 시세 엔진(메모리 현재가, 5초 갱신, `FixedPriceProvider` 삭제), PR 3 현재가 저장·복구(`decisions/040`) + 종목 조회 API. 지금은 임시 `FixedPriceProvider` 고정가 10,000원
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
 - 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
@@ -86,18 +93,19 @@
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`). 개발 중에는 임시 `FixedPriceProvider`(고정가) 사용
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
-  - 정할 것: 현재가 저장·복구 방식, 종목별 유형 배치와 시작가 (`decisions/README.md` "미정", `domain/stocks.md`), `Stock.market`(KOSPI/KOSDAQ) 유지 여부
+  - 현재가 저장·복구(`decisions/040`), 종목 유형 배치·시작가·호가 단위·`market` 삭제(`decisions/041`) 확정 (2026-10-27)
   - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
 - 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
-- 에러 응답 확인 2건 (2026-10-27 로컬에서 발견)
-  - 400 응답 바디에 `trace`(스택트레이스) 포함. 원인 추정은 devtools(`developmentOnly`, 배포 jar 제외). merge 후 실서버에서 수량 0 매수 요청으로 `trace` 없는지 확인
-  - 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급. 원인 기록 없음, 런칭 전 확인
+- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인
+- 운영 메모
+  - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
+  - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
 
 ### 다음 할 일 (순서)
-1. (10/27 완료) 매수·매도 (심장 ①): 수동 확인 끝, PR → Squash and merge. merge 후 실서버에서 `trace` 확인
-2. 10/28~29 시세 제공자: 가상 시세 구현체 (ADR 029 기준) + 종목 조회 API, 로컬 DB 확인용 종목 2개 정리
+1. (10/27 완료) 매수·매도 (심장 ①): PR #38 merge, 실서버 확인
+2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(10/27) → PR 2 가상 시세 엔진(ADR 029) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API
 3. 10/30 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드
 4. 10/30~31 종목·매매 화면 연결
 5. 11/1 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
