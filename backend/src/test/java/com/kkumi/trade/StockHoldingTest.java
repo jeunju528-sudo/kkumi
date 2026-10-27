@@ -4,8 +4,8 @@ import com.kkumi.global.error.BusinessException;
 import com.kkumi.global.error.ErrorCode;
 import com.kkumi.member.Member;
 import com.kkumi.member.SeedMoney;
-import com.kkumi.stock.Market;
 import com.kkumi.stock.Stock;
+import com.kkumi.stock.StockType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,7 +22,7 @@ class StockHoldingTest {
     void buy_first() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
 
         // when
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 50000);
@@ -37,7 +37,7 @@ class StockHoldingTest {
     void buy_additional_weightedAverage() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // when
@@ -53,7 +53,7 @@ class StockHoldingTest {
     void buy_avgPrice_roundHalfUp() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 31, 1000);
 
         // when : (31,000 + 1,001) ÷ 32 = 1000.03125 5번째 자리가 5라서 0313이 되어야함
@@ -68,7 +68,7 @@ class StockHoldingTest {
     void sell_decreaseQuantity_keepAvgPrice() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // when
@@ -84,7 +84,7 @@ class StockHoldingTest {
     void sell_realizedProfit_positive() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // when
@@ -99,7 +99,7 @@ class StockHoldingTest {
     void sell_realizedProfit_negative() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // when
@@ -114,7 +114,7 @@ class StockHoldingTest {
     void sell_realizedProfit_roundHalfUp() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 1, 1000);
         stockHolding.buy(1, 1001);
 
@@ -130,7 +130,7 @@ class StockHoldingTest {
     void sell_all() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // when
@@ -145,7 +145,7 @@ class StockHoldingTest {
     void sell_moreThanHolding() {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // then
@@ -162,7 +162,7 @@ class StockHoldingTest {
     void buy_invalidQuantity(int quantity) {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
 
         // then
         assertThatThrownBy(() -> StockHolding.create(member, stock, quantity, 50000))
@@ -177,7 +177,7 @@ class StockHoldingTest {
     void sell_invalidQuantity(int quantity) {
         // given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding stockHolding = StockHolding.create(member, stock, 10, 1000);
 
         // then

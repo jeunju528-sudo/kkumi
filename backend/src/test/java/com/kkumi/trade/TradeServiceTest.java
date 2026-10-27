@@ -6,10 +6,10 @@ import com.kkumi.member.Member;
 import com.kkumi.member.MemberRepository;
 import com.kkumi.member.MemberService;
 import com.kkumi.member.SeedMoney;
-import com.kkumi.stock.Market;
 import com.kkumi.stock.Stock;
 import com.kkumi.stock.StockPriceProvider;
 import com.kkumi.stock.StockRepository;
+import com.kkumi.stock.StockType;
 import com.kkumi.trade.dto.BuyStockRequest;
 import com.kkumi.trade.dto.SellStockRequest;
 import org.junit.jupiter.api.Disabled;
@@ -61,7 +61,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding holding = StockHolding.create(member, stock, 10, 10000L);
         BuyStockRequest request = new BuyStockRequest(stock.getCode(), 10);
 
@@ -88,7 +88,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding holding = StockHolding.create(member, stock, 10, 10000L);
         BuyStockRequest request = new BuyStockRequest(stock.getCode(), 1000);
 
@@ -116,7 +116,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding holding = StockHolding.create(member, stock, 10, 10000L);
         SellStockRequest request = new SellStockRequest(stock.getCode(), 5);
 
@@ -151,7 +151,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding holding = StockHolding.create(member, stock, 10, 10000L);
         SellStockRequest request = new SellStockRequest(stock.getCode(), 10);
 
@@ -173,7 +173,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         SellStockRequest request = new SellStockRequest("KK0001", 10);
 
         given(memberRepository.findByIdForUpdate(1L)).willReturn(Optional.of(member));
@@ -198,7 +198,7 @@ class TradeServiceTest {
 		// given
         Member member = Member.join("abcd", "꿈이", SeedMoney.SMALL);
         ReflectionTestUtils.setField(member, "id", 1L);
-        Stock stock = Stock.of("KK0001", "세르반반도체", Market.KOSPI);
+        Stock stock = Stock.of("KK0001", "세르반반도체", StockType.ROLLER_COASTER, 51_000L);
         StockHolding holding = StockHolding.create(member, stock, 10, 10000L);
         BuyStockRequest buyRequest = new BuyStockRequest(stock.getCode(), 10);
         SellStockRequest sellRequest = new SellStockRequest("KK0001", 10);
