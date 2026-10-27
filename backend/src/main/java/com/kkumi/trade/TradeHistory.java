@@ -2,22 +2,12 @@ package com.kkumi.trade;
 
 import com.kkumi.member.Member;
 import com.kkumi.stock.Stock;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 /**
  * 매수·매도 이력 (insert only, 수정 X)
@@ -58,5 +48,22 @@ public class TradeHistory {
 	@Column(nullable = false)
 	private LocalDateTime tradedAt;
 
-	// TODO: 매수용/매도용 생성 메서드
+    // 팩토리 전용 생성자, 거래 시각은 생성 시점
+    private TradeHistory(Member member, Stock stock, TradeType tradeType, long price, int quantity, Long realizedProfit){
+        this.member = member;
+        this.stock = stock;
+        this.tradeType = tradeType;
+        this.price = price;
+        this.quantity = quantity;
+        this.realizedProfit = realizedProfit;
+        this.tradedAt = LocalDateTime.now();
+    }
+
+    public static TradeHistory ofBuy(Member member, Stock stock, long price, int quantity){
+        return new TradeHistory(member, stock, TradeType.BUY, price, quantity, null);
+    }
+
+    public static TradeHistory ofSell(Member member, Stock stock, long price, int quantity, long realizedProfit){
+        return new TradeHistory(member, stock, TradeType.SELL, price, quantity, realizedProfit);
+    }
 }

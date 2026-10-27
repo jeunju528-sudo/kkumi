@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 - 서비스: 꿈이 — 가짜 시드머니로 가상 종목(가상 시세)에 투자 → 번 돈으로 실거래가 기준 아파트를 사는 시뮬레이션 웹게임
-- 런칭 예정 일자: 2026-10-24
+- 런칭 예정 일자: 2026-11-14 (2026-10-25 조정, `docs/decisions/039`)
 - Backend: Java 21, Spring Boot 4.1, Spring Data JPA, MySQL(RDS), WebSocket(STOMP)
 - Frontend: React + TypeScript (Vite), TanStack Query, ESLint
 - 인프라: Docker Compose, GitHub Actions, AWS(EC2 + RDS)
@@ -183,8 +183,8 @@ kkumi/
   - 필수: 심장 ①②③(매수·매도 잔액·보유량, 평가액, 실거래가 배치), 도메인 규칙(변신 단계 경계, 추천 조건 평가액 ≥ 집값×40%, 집 결제 현금 40% 차감)
   - 생략: 단순 조회·저장 Service, Controller(MockMvc), DTO 변환, 설정. 기존 테스트는 유지
   - 기준: 틀려도 화면에서 바로 보이면 수동 확인, 틀린 것이 숫자 속에 숨으면 자동 테스트
-- 필수 대상은 구현 전에 테스트 먼저 작성 → 테스트 통과하는 방향으로 구현
-- 직접 작성 영역(심장)은 개발자가 테스트부터 작성. Claude는 테스트 메서드 이름 뼈대만 제안
+- 필수 대상은 구현과 같은 PR에서 테스트 작성. 순서는 자유 (테스트 먼저 / 메서드 먼저)
+- 직접 작성 영역(심장)은 개발자가 구현·테스트 모두 작성. Claude는 테스트 메서드 이름 뼈대만 제안
 - 백엔드 위치: `backend/src/test/java/com/kkumi/{도메인}/`
 - 클래스명: `{대상}Test` (e.g. `TradeServiceTest`)
 - 메서드: `@DisplayName("잔액 부족하면 매수 실패")` 한국어로 작성
