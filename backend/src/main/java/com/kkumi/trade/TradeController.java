@@ -3,7 +3,6 @@ package com.kkumi.trade;
 import com.kkumi.trade.dto.BuyStockRequest;
 import com.kkumi.trade.dto.SellStockRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
