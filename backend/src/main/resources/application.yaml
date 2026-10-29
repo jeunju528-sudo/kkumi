@@ -56,6 +56,20 @@ auth:
   cookie:
     secure: false
 
+# 가상 시세 변동 설정
+virtual-price:
+  tick-interval: 5s # 갱신 주기 5초. 하루에 갱신하는 횟수 60초 * 60분 * 24시간 = 86400초 / 5초 = 17280번 갱신됨
+  market-weight: 0.3 # 주식 가격에서 시장 분위기의 몫, 모든 주식에게 동일 적용
+  half-life-days: 0.5 # 반감기 0.5일(12시간)
+  jackpot:
+    events-per-day: 0.3 # JACKPOT 종목은 급등락이 3일에 1번씩 일어나도록 설정(하루에 0.3회)
+    min-size: 0.15 # 급등락 최소 크기는 15%
+    max-size: 0.40 # 급등락 최대 크기는 40%
+  daily-volatility: # 유형별 하루의 변동성
+    STABLE: 0.08
+    ROLLER_COASTER: 0.32
+    JACKPOT: 0.12
+
 # 외부 API 키
 external:
   molit:

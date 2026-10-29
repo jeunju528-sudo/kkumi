@@ -5,4 +5,7 @@ public interface StockPriceProvider {
 
 	// 종목 코드의 현재가 (원)
 	long getCurrentPrice(String code);
+
+	// 현재가와 오늘 시작가를 같은 시점 값으로 (등락률 계산용)
+	PriceSnapshot getSnapshot(String code);
 }
