@@ -1,5 +1,9 @@
-import type { SelectSeedRequest } from '../types/api' // type을 가져올 때는 import type 으로 작성
+import type { MemberResponse, SelectSeedRequest } from '../types/api' // type을 가져올 때는 import type 으로 작성
 import { toApiError } from './apiError'
+
+// export default 는 파일 하나당 하나만 있어야됨
+// export 는 개수 제한 없음
+// .tsx 화면 파일에서는 컴포넌트가 하나만 있어야함
 
 // 성공 응답은 body가 없기 때문에 반환타입이 void
 // Promise<void> 는 끝나긴 하는데 돌려줄 결과는 없다는 뜻
@@ -16,4 +20,13 @@ export async function selectSeed(request: SelectSeedRequest): Promise<void> {
     // 실패응답 : ApiError로 변환해서 돌려줌
     throw await toApiError(res)
   }
+}
+
+// 로그인 한 회원 정보, 실패하면 ApiError로 던짐 
+export async function getMyInfo(): Promise<MemberResponse> {
+  const res = await fetch('/api/members/me')
+  if(!res.ok){
+    throw await toApiError(res)
+  }
+  return res.json() as Promise<MemberResponse>
 }
