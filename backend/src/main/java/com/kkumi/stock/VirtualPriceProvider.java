@@ -5,12 +5,14 @@ import com.kkumi.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +43,9 @@ public class VirtualPriceProvider implements StockPriceProvider {
     private final VirtualPriceProperties properties;
 
     private final StockRepository stockRepository;
+
+    private final StockPriceSnapshotService snapshotService;
+
     private final Random random = new Random();
     private final Map<String, PriceState> states = new ConcurrentHashMap<>();
 
@@ -102,13 +107,32 @@ public class VirtualPriceProvider implements StockPriceProvider {
     // 날짜(KST 기준)가 바뀌면 오늘 시작가를 지금 가격으로 변경
     private void rollOverDayIfNeeded() {
         LocalDate now = LocalDate.now(KST);
-        if(now.equals(today)){
+        if (now.equals(today)) {
             return;
         }
         states.replaceAll((code, state) -> new PriceState(
                 state.type(), state.basePrice(), state.price(), state.rawPrice(), state.price()));
         today = now;
         log.info("오늘 시작가 갱신: {}", now);
+    }
+
+
+    // 1분마다 메모리 시세를 DB에 저장
+    // 기동 직후에 바로 저장하지 않고 1분 뒤에 저장
+    @Scheduled(fixedRate = 60_000L, initialDelay = 60_000)
+    public void saveSnapshot() {
+        LocalDate date = today;
+        Map<String, PriceSnapshot> snapshots = new HashMap<>();
+        states.forEach((code, state) ->
+                snapshots.put(code, new PriceSnapshot(state.price(), state.dayOpenPrice(), date)));
+        snapshotService.savePrices(snapshots);
+        log.info("시세 저장: {}개 종목", snapshots.size());
+    }
+
+    // 서버 종료 직전 마지막 저장(배포 재시작 때 손실 방지)
+    @EventListener(ContextClosedEvent.class)
+    public void saveOnShutdown() {
+        saveSnapshot();
     }
 
     @Override
