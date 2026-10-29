@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.kkumi.global.error.BusinessException;
 import com.kkumi.global.error.ErrorCode;
+import com.kkumi.member.dto.MemberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,4 +36,11 @@ public class MemberService {
         Member member = memberRepository.save(Member.join(kakaoId, nickname, seedMoney));
         return member.getId();
     }
+
+	// 로그인한 회원 정보 (없으면 MEMBER_NOT_FOUND)
+	public MemberResponse getMyInfo(Long memberId) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+		return MemberResponse.from(member);
+	}
 }
