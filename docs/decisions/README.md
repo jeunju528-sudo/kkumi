@@ -49,8 +49,9 @@
 | 040 | [가상 시세 현재가: 메모리 + 1분 주기 DB 저장](040-virtual-price-snapshot.md) | 확정 |
 | 041 | [가상 종목 카탈로그: 유형 배치, 시작가, 호가 단위, market 삭제](041-virtual-stock-catalog.md) | 확정 |
 | 042 | [가상 시세 내부 가격: 반올림 전 값은 double, 밖으로는 long](042-virtual-price-internal-double.md) | 확정 |
+| 043 | [화면 가드: 회원 조회 실패면 시작 화면](043-screen-guard-member-me.md) | 확정 |
 
-다음 번호: 043
+다음 번호: 044
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
