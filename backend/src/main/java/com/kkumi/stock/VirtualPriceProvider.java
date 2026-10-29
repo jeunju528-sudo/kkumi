@@ -9,6 +9,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,22 +44,44 @@ public class VirtualPriceProvider implements StockPriceProvider {
     private final Random random = new Random();
     private final Map<String, PriceState> states = new ConcurrentHashMap<>();
 
+    // ZoneId : 세계 시간 중에 어느 지역을 콕 찝을 때 사용
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+    // 오늘 시작가의 날짜 (기동 쓰레드가 쓰고 스케쥴러 스레드가 읽음)
+    private volatile LocalDate today;
+
     // 서버준비가 완전히 다 끝났을 때(ApplicationRunner 도 다 돌은 후에)
     // 스프링이 보내는 신호를 받음
     @EventListener(ApplicationReadyEvent.class)
     public void loadStocks() {
+        today = LocalDate.now(KST);
+        int restored = 0;
         for (Stock stock : stockRepository.findAll()) {
-            long base = stock.getBasePrice();
-            states.put(stock.getCode(), new PriceState(stock.getType(), base, base, base, base));
+            states.put(stock.getCode(), restore(stock));
+            if (stock.getCurrentPrice() != null) {
+                restored++;
+            }
         }
         log.info("가상 시세 시작: {}개 종목 ", states.size());
+        log.info("저장 시세 복구: {}개 종목, 기준일 {}", restored, today);
+    }
+
+    // DB 저장본으로 상태 복구
+    private PriceState restore(Stock stock) {
+        long base = stock.getBasePrice();
+        if (stock.getCurrentPrice() == null) {
+            return new PriceState(stock.getType(), base, base, base, base);
+        }
+        long current = stock.getCurrentPrice();
+        long dayOpen = today.equals(stock.getPriceDate()) ? stock.getDayOpenPrice() : current;
+        return new PriceState(stock.getType(), base, dayOpen, current, current);
     }
 
     @Scheduled(fixedRateString = "${virtual-price.tick-interval}")
     // 모든 종목에 대해서 한 번만 tick 함수를 실행해서 나온 값이라
     // 모든 종목이 같은 장 분위기를 씀
     public void tick() {
-
+        rollOverDayIfNeeded();
         // nextGaussian() : Random이 주는 랜덤 숫자 뽑기 중 하나로 
         // 정규분포(종모양)에서 숫자를 뽑음. 평균은 0, 표준편차는 1
         // 작은 랜덤 요인이 많이 합쳐지면 종 모양이 되기 때문에 게임이나 주가 모델에서 가장 기본으로 쓰는 가정
@@ -73,6 +97,18 @@ public class VirtualPriceProvider implements StockPriceProvider {
         */
         // states의 code의 state값을 next(state, market) 값으로 바꿔라
         states.replaceAll((code, state) -> next(state, market));
+    }
+
+    // 날짜(KST 기준)가 바뀌면 오늘 시작가를 지금 가격으로 변경
+    private void rollOverDayIfNeeded() {
+        LocalDate now = LocalDate.now(KST);
+        if(now.equals(today)){
+            return;
+        }
+        states.replaceAll((code, state) -> new PriceState(
+                state.type(), state.basePrice(), state.price(), state.rawPrice(), state.price()));
+        today = now;
+        log.info("오늘 시작가 갱신: {}", now);
     }
 
     @Override
