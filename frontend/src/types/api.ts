@@ -11,10 +11,7 @@ export type Affordability = 'OK' | 'NEED_SELL' | 'SHORT'
 export type MemberResponse = {
   id: number
   nickname: string
-  hasSelectedSeed: boolean
   cash: number
-  tier: Tier
-  houseCount: number
 }
 
 // backend record SeedRequest(SeedMoney seedMoney)

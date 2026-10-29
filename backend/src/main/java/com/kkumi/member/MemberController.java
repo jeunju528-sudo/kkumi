@@ -3,13 +3,15 @@ package com.kkumi.member;
 import com.kkumi.global.jwt.AuthCookie;
 import com.kkumi.global.jwt.JwtProvider;
 import com.kkumi.global.jwt.SignupClaims;
+import com.kkumi.member.dto.MemberResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.micrometer.observation.autoconfigure.ObservationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,12 @@ public class MemberController {
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
     private final AuthCookie authCookie;
+
+    // 로그인한 회원 정보 (쿠키 필터가 넣은 memberId)
+    @GetMapping("/me")
+    public MemberResponse getMyInfo(@AuthenticationPrincipal Long memberId) {
+        return memberService.getMyInfo(memberId);
+    }
 
     // 시드머니 선택 → 가입 → 정식 토큰 쿠키 발급
     @PostMapping("/seed")
