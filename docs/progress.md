@@ -95,18 +95,21 @@
   - 로컬 확인 (10/29): 저장본 없을 때 `저장 시세 복구: 0개`, KK0001 어제 저장본 → `1개`, 1분 뒤 `[scheduling-1] 시세 저장: 20개 종목` + DB 값 채워짐, 재시작 → `20개` 복구. `jcmd`로 스케줄러 스레드 1개 확인. `GET /api/stocks` 20개 코드순, `changeRate` 숫자(예: KK0001 50,100원 -0.0176)
   - 실서버 (10/29): 로그 `저장 시세 복구: 0개 종목`(첫 배포라 저장본 없음), RDS `stock`에 컬럼 3개 null 허용으로 추가 확인
   - 못 확인한 것: 자정 날짜 갱신(실서버 다음 날 로그 `오늘 시작가 갱신`), 종료 직전 저장(로컬 IntelliJ 정지에서 종료 로그 미확인 → 실서버 배포 때 `docker compose logs backend`), 쿠키 없는 `GET /api/stocks` 401(기존 `SecurityConfig` 규칙 적용 대상). 종료 직전 저장은 PR #41을 처음 배포할 때 내려간 서버가 PR 2 코드라 다음 배포 때 확인
-- 회원 조회 API (2026-10-29, `feat/member-me-api`): `GET /api/members/me` → `MemberResponse{id, nickname, cash}`(`MemberService.getMyInfo`, 없으면 `MEMBER_NOT_FOUND` 404). `decisions/043`
+- 회원 조회 API (2026-10-29, PR #42 merge 10/29): `GET /api/members/me` → `MemberResponse{id, nickname, cash}`(`MemberService.getMyInfo`, 없으면 `MEMBER_NOT_FOUND` 404). `decisions/043`
   - 화면 가드 규칙 변경: 회원 조회 실패면 `/`. 시드 미선택 상태는 회원 행이 없고 `signupToken`(Path `/api/members/seed`)이 `/me`에 실리지 않아 구분하지 않음. `types/api.ts` `MemberResponse`에서 `hasSelectedSeed` 삭제, `tier`·`houseCount`는 집 사기 작업 때 추가. `docs/ui-spec.md` 가드 줄 교체
   - `MemberController`의 안 쓰는 import(`ObservationProperties`) 삭제
   - 로컬 확인 (10/29): 로그인 상태 200 `{id, nickname, cash}`, 쿠키 없음 401. 프론트 `eslint`, `tsc -b` 통과
+- 화면 가드 (2026-10-29, `feat/member-guard`): `decisions/043`
+  - `hooks/queryKeys.ts`(`member: () => ['member', 'me'] as const`), `api/memberApi.getMyInfo`, `hooks/useMemberQuery`(`retry: false`, 401 재시도 대기 방지), `pages/MemberGuard`(로딩 null, 실패 `/` replace, 성공 `Outlet`)
+  - `App.tsx`: `/`, `/seed`를 뺀 9개 라우트를 path 없는 `<Route element={<MemberGuard />}>`로 감쌈
+  - 로컬 확인 (10/29): 로그인 상태 `/home` 직접 접속 → 홈, `me` 200 1번 / 시크릿 창 `/home` → `/`, `me` 401 1번(재시도 없음) / `/`, `/seed`는 시크릿 창에서 열림 / `npm run lint`, `npm run build` 통과
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등)
-- 화면 가드(`decisions/043`): `useMemberQuery` + 가드 컴포넌트(레이아웃 라우트)로 `/`, `/seed` 외 화면 감싸기. 그 전까지 보호는 서버 API(SecurityConfig, signupToken)가 담당
+- 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등), 매수·매도 후 회원 쿼리 invalidate 포함
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
 - `@Valid` 실패 응답 형식: `GlobalExceptionHandler`가 `BusinessException`만 처리해서 Spring 기본 바디(`timestamp`, `status`, `error` 등)로 나감. `{code, message}`로 맞출지는 종목·매매 화면 연결(10/30~31) 때 결정
 
@@ -127,7 +130,7 @@
 ### 다음 할 일 (순서)
 1. (10/27 완료) 매수·매도 (심장 ①): PR #38 merge, 실서버 확인
 2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(#39, 10/27 완료) → PR 2 가상 시세 엔진(#40, 10/27 완료) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API(#41, 10/29 완료)
-3. 10/30 회원 조회 API(`/api/members/me`, 10/29 완료) + `useMemberQuery` + 화면 가드
+3. (10/29 완료) 회원 조회 API(`/api/members/me`, #42) + `useMemberQuery` + 화면 가드
 4. 10/30~31 종목·매매 화면 연결
 5. 11/1 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
 6. 11/2 평가액 계산 (심장 ②) + 홈 화면 연결
