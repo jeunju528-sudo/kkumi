@@ -86,14 +86,15 @@
   - 이번 PR 범위 밖: 오늘 시작가(`dayOpenPrice`)는 시작가와 같은 값으로 고정, 날짜 갱신·DB 저장·복구·상수 yaml 이동은 PR 3. 엔진 결과 분포는 자동 테스트 없음(랜덤, 플레이 테스트로 확인)
   - 로컬 확인: 로그 `가상 시세 시작: 20개 종목`, KK0001을 10초 간격 6회 매수 시 체결가 51,600 → 51,800 → 51,900 → 51,800 → 52,000 → 52,200 (100원 호가 단위로 변동)
   - 실서버 (10/27): 로그 `가상 시세 시작: 20개 종목`, KK0001 체결가 50,100~50,400 100원 단위로 변동
-- 시세 저장·복구·종목 조회 API (2026-10-28~29, 시세 PR 3/3, `feat/price-snapshot-stock-api`): `decisions/040`(보강)
+- 시세 저장·복구·종목 조회 API (2026-10-28~29, 시세 PR 3/3, PR #41 merge, 실서버 배포 10/29): `decisions/040`(보강)
   - `Stock`에 `currentPrice`·`dayOpenPrice`(`Long`, null = 저장 전)·`priceDate` 컬럼, `updatePrice`. `ddl-auto: update`로 nullable 컬럼 3개 추가 확인(`DESC stock`)
   - 변동 상수 → `application.yaml` `virtual-price.*` + `VirtualPriceProperties` record. 갱신 주기는 `fixedRateString`, 하루 갱신 횟수는 `ticksPerDay()`로 계산. 테스트 yaml에도 같은 블록
   - 재시작 복구: 저장본이 있으면 그 값에서 시작(없으면 `basePrice`), 저장 날짜가 오늘(KST)이 아니면 저장된 현재가를 오늘 시작가로. `tick` 첫 단계에서 날짜가 바뀌면 전 종목 오늘 시작가 = 현재가
   - 1분 저장: `saveSnapshot` → `StockPriceSnapshotService.savePrices`(변경 감지 UPDATE). Service로 뗀 이유는 `StockService → StockPriceProvider`와의 순환 참조 방지. 종료 직전 저장(`ContextClosedEvent`)
   - `GET /api/stocks`: 코드순 + `getSnapshot`(현재가·오늘 시작가를 한 record에서) → `StockResponse{code, name, price, changeRate}`. `changeRate`는 `BigDecimal` 소수 4자리 HALF_UP, 오늘 시작가 대비
   - 로컬 확인 (10/29): 저장본 없을 때 `저장 시세 복구: 0개`, KK0001 어제 저장본 → `1개`, 1분 뒤 `[scheduling-1] 시세 저장: 20개 종목` + DB 값 채워짐, 재시작 → `20개` 복구. `jcmd`로 스케줄러 스레드 1개 확인. `GET /api/stocks` 20개 코드순, `changeRate` 숫자(예: KK0001 50,100원 -0.0176)
-  - 못 확인한 것: 자정 날짜 갱신(실서버 다음 날 로그 `오늘 시작가 갱신`), 종료 직전 저장(로컬 IntelliJ 정지에서 종료 로그 미확인 → 실서버 배포 때 `docker compose logs backend`), 쿠키 없는 `GET /api/stocks` 401(기존 `SecurityConfig` 규칙 적용 대상)
+  - 실서버 (10/29): 로그 `저장 시세 복구: 0개 종목`(첫 배포라 저장본 없음), RDS `stock`에 컬럼 3개 null 허용으로 추가 확인
+  - 못 확인한 것: 자정 날짜 갱신(실서버 다음 날 로그 `오늘 시작가 갱신`), 종료 직전 저장(로컬 IntelliJ 정지에서 종료 로그 미확인 → 실서버 배포 때 `docker compose logs backend`), 쿠키 없는 `GET /api/stocks` 401(기존 `SecurityConfig` 규칙 적용 대상). 종료 직전 저장은 PR #41을 처음 배포할 때 내려간 서버가 PR 2 코드라 다음 배포 때 확인
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
@@ -121,7 +122,7 @@
 
 ### 다음 할 일 (순서)
 1. (10/27 완료) 매수·매도 (심장 ①): PR #38 merge, 실서버 확인
-2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(#39, 10/27 완료) → PR 2 가상 시세 엔진(#40, 10/27 완료) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API(10/29 로컬 확인)
+2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(#39, 10/27 완료) → PR 2 가상 시세 엔진(#40, 10/27 완료) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API(#41, 10/29 완료)
 3. 10/30 회원 조회 API(`/api/members/me`) + `useMemberQuery` + 화면 가드
 4. 10/30~31 종목·매매 화면 연결
 5. 11/1 거래내역 조회 API·내 거래 화면 연결 → 중간 점검 (매수·매도 실서버 화면 동작)
