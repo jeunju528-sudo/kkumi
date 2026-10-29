@@ -144,6 +144,16 @@ public class VirtualPriceProvider implements StockPriceProvider {
         return state.price();
     }
 
+    @Override
+    public PriceSnapshot getSnapshot(String code) {
+        // 메모리에서 시세 읽어옴
+        PriceState state = states.get(code);
+        if (state == null) {
+            throw new BusinessException(ErrorCode.STOCK_NOT_FOUND);
+        }
+        return new PriceSnapshot(state.price(), state.dayOpenPrice(), today);
+    }
+
     // 종목 하나의 5초 뒤 상태를 만드는 메서드
     private PriceState next(PriceState state, double market) {
         // 1. 랜덤 흔들림 만들기
