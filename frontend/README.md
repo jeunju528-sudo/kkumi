@@ -28,10 +28,13 @@ npm run dev      # http://localhost:5173
 | /village | 6 내 마을 | pages/VillagePage.tsx |
 | /tiers | ★ 변신 4단계 | pages/TiersPage.tsx |
 
+가드: `/`, `/seed`를 뺀 라우트는 `pages/MemberGuard.tsx`(레이아웃 라우트)로 감싼다. 회원 조회(`useMemberQuery`)가 실패하면 `/` (docs/decisions/043)
+
 ## 현재 상태
 
-- 모든 화면은 페이지 상단의 목업 상수로 그려진다. API·WebSocket 연동 전
+- 시드 선택(가입)과 화면 가드는 API 연결 완료. 나머지 화면은 페이지 상단의 목업 상수로 그려진다. WebSocket 연동 전
 - 공용: components/PixelDefs.tsx(픽셀 스프라이트 심볼), components/Sprite.tsx, utils/format.ts, types/api.ts
+- 데이터: api/apiError.ts·memberApi.ts, hooks/queryKeys.ts(쿼리 키는 여기서만)·useMemberQuery.ts·useSelectSeedMutation.ts
 - 스타일: 페이지별 CSS, 페이지 루트 클래스(.page-xxx)로 범위 제한. 색 토큰은 index.css
 - 폰트: Noto Sans KR·Press Start 2P(Google Fonts), Galmuri11 Bold(OFL, assets/fonts)
 - 브레이크포인트 900px (미만은 모바일 레이아웃 + 하단 탭 바)
