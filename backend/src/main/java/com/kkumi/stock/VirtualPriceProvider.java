@@ -18,19 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class VirtualPriceProvider implements StockPriceProvider {
 
-    // 하루에 갱신하는 횟수 60초 * 60분 * 24시간 = 86400초 / 5초 = 17280
-    private static final double TICKS_PER_DAY = 17_280;
-    // 주식 가격에서 시장 분위기의 몫, 모든 주식에게 동일 적용
-    private static final double MARKET_WEIGHT = 0.3;
-    // 반감기 0.5일(12시간) 
-    private static final double HALF_LIFE_DAYS = 0.5;
-    // JACKPOT 종목은 급등락이 3일에 1번씩 일어나도록 설정(하루에 0.3회)
-    private static final double JACKPOT_EVENTS_PER_DAY = 0.3;
-    // 급등락 최소 크기는 15%
-    private static final double JACKPOT_MIN_SIZE = 0.15;
-    // 급등락 최대 크기는 40%
-    private static final double JACKPOT_MAX_SIZE = 0.40;
-
     // 종목 하나의 상태
     /*
      * basePrice : 주식의 상장가 => 값 안바뀜
@@ -49,6 +36,8 @@ public class VirtualPriceProvider implements StockPriceProvider {
         // 정수 / 정수는 0이 나올 수 있기 때문에 계산에 쓰는 값은 double로 세팅하는 것
     }
 
+    private final VirtualPriceProperties properties;
+
     private final StockRepository stockRepository;
     private final Random random = new Random();
     private final Map<String, PriceState> states = new ConcurrentHashMap<>();
@@ -64,7 +53,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
         log.info("가상 시세 시작: {}개 종목 ", states.size());
     }
 
-    @Scheduled(fixedRate = 5_000)
+    @Scheduled(fixedRateString = "${virtual-price.tick-interval}")
     // 모든 종목에 대해서 한 번만 tick 함수를 실행해서 나온 값이라
     // 모든 종목이 같은 장 분위기를 씀
     public void tick() {
@@ -100,11 +89,11 @@ public class VirtualPriceProvider implements StockPriceProvider {
         // 1. 랜덤 흔들림 만들기
         // 타입별 하루 변동성 / √(하루 갱신 횟수) = 5초에 보통 움직이는 크기
         // 랜덤 변화는 서로 상쇄돼서 횟수가 아니라 √횟수로 나눔
-        double tickVolatility = dailyVolatility(state.type()) / Math.sqrt(TICKS_PER_DAY);
+        double tickVolatility = properties.volatilityOf(state.type()) / Math.sqrt(properties.ticksPerDay());
         // √0.3 * 시장 분위기 랜덤 + √0.7 * 종목 고유 랜덤
         // 제곱근을 곱해야 섞어도 하루 변동성이 정한 값 그대로 유지됨
-        double shock = Math.sqrt(MARKET_WEIGHT) * market
-                + Math.sqrt(1 - MARKET_WEIGHT) * random.nextGaussian();
+        double shock = Math.sqrt(properties.marketWeight()) * market
+                + Math.sqrt(1 - properties.marketWeight()) * random.nextGaussian();
         // 이번 5초에 변화될 총량
         double randomReturn = tickVolatility * shock;
 
@@ -119,7 +108,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
         // Math.log(2) : 매번 차이의 f% 씩 줄일 때 8640번 뒤에 딱 절반이 되는 f를 구하는 공식
         // log(2) / 8640
         // log(2) = X2 여서 거꾸로 쓰면 /2 가 됨
-        double pullPerTick = Math.log(2) / HALF_LIFE_DAYS / TICKS_PER_DAY;
+        double pullPerTick = Math.log(2) / properties.halfLifeDays() / properties.ticksPerDay();
 
         // 이번 5초에 되돌릴양 = -되돌리는 비율 * 지금의 차이(현재금액/시작가) %
         // 260000 / 248000 = +4.8% -> log 값 0.0473 정도
@@ -140,15 +129,6 @@ public class VirtualPriceProvider implements StockPriceProvider {
         return new PriceState(state.type(), state.basePrice(), state.dayOpenPrice(), raw, PriceRules.roundToTick(raw));
     }
 
-    // 유형별 하루의 변동성
-    private double dailyVolatility(StockType type) {
-        return switch (type) {
-            case STABLE -> 0.08;
-            case ROLLER_COASTER -> 0.32;
-            case JACKPOT -> 0.12;
-        };
-    }
-
     // 5초 안에 급등락이 일어나면 그 크기를, 아니면 0을 돌려주는 함수
     private double jackpotJump(StockType type) {
         // 잭팟 타입아니면 급등락 X
@@ -161,7 +141,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
         // nextDouble은 0~1까지 숫자가 나오는 균등분포라서
         // 0.0000174보다 작게 나올 확률도 0.0000174 임
         // 그니까 대부분의 경우는 0이 나옴(꽝~)
-        if (random.nextDouble() >= JACKPOT_EVENTS_PER_DAY / TICKS_PER_DAY) {
+        if (random.nextDouble() >= properties.jackpot().eventsPerDay() / properties.ticksPerDay()) {
             return 0;
         }
         // 15~40% 사이에서 균등하게 뽑음
@@ -172,7 +152,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
         // +0.15 해서 맞추기: 0.15 ---------- 0.40
         // 0.15[0.15 + 0 * 0.25] ~ 0.40[0.15 + 1 * 0.25]
         // 이 사이의 어떠한 값이 나오게 되어있음
-        double size = JACKPOT_MIN_SIZE + random.nextDouble() * (JACKPOT_MAX_SIZE - JACKPOT_MIN_SIZE);
+        double size = properties.jackpot().minSize() + random.nextDouble() * (properties.jackpot().maxSize() - properties.jackpot().minSize());
         // 0 또는 1 동전던기지로 오를지 내릴지를 고름
         double direction = random.nextBoolean() ? 1 : -1;
         // +40% 하고서 -40% 하는 것 -> (실제) * 1.4 * 0.6 = 0.84 즉 -16%가 됨
