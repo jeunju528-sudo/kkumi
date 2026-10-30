@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-10-29
+## 기준일: 2026-10-30
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -94,15 +94,18 @@
   - `GET /api/stocks`: 코드순 + `getSnapshot`(현재가·오늘 시작가를 한 record에서) → `StockResponse{code, name, price, changeRate}`. `changeRate`는 `BigDecimal` 소수 4자리 HALF_UP, 오늘 시작가 대비
   - 로컬 확인 (10/29): 저장본 없을 때 `저장 시세 복구: 0개`, KK0001 어제 저장본 → `1개`, 1분 뒤 `[scheduling-1] 시세 저장: 20개 종목` + DB 값 채워짐, 재시작 → `20개` 복구. `jcmd`로 스케줄러 스레드 1개 확인. `GET /api/stocks` 20개 코드순, `changeRate` 숫자(예: KK0001 50,100원 -0.0176)
   - 실서버 (10/29): 로그 `저장 시세 복구: 0개 종목`(첫 배포라 저장본 없음), RDS `stock`에 컬럼 3개 null 허용으로 추가 확인
-  - 못 확인한 것: 자정 날짜 갱신(실서버 다음 날 로그 `오늘 시작가 갱신`), 종료 직전 저장(로컬 IntelliJ 정지에서 종료 로그 미확인 → 실서버 배포 때 `docker compose logs backend`), 쿠키 없는 `GET /api/stocks` 401(기존 `SecurityConfig` 규칙 적용 대상). 종료 직전 저장은 PR #41을 처음 배포할 때 내려간 서버가 PR 2 코드라 다음 배포 때 확인
+  - 실서버 (10/30): 자정 `[scheduling-1] 오늘 시작가 갱신: 2026-10-30`(00:00:03). `docker compose restart backend` 때 `[SpringApplicationShutdownHook] 시세 저장: 20개 종목`(종료 직전 저장) → `[main] 저장 시세 복구: 20개 종목, 기준일 2026-10-30`. 재시작 공백 약 17초
+  - 기동 직후 `오늘 시작가 갱신` 오탐 (10/29 16:01 실서버 로그): `today`가 null인 채 첫 `tick`이 `loadStocks`(ApplicationReadyEvent)보다 먼저 돌아 날짜 변경으로 판단. 그 시점엔 종목 상태가 비어 있어 값 변화 없음. `today`를 선언 때 `LocalDate.now(KST)`로 초기화 (`fix/price-today-init`, `troubleshooting.md`)
+  - 못 확인한 것: 쿠키 없는 `GET /api/stocks` 401 (기존 `SecurityConfig` 규칙 적용 대상)
 - 회원 조회 API (2026-10-29, PR #42 merge 10/29): `GET /api/members/me` → `MemberResponse{id, nickname, cash}`(`MemberService.getMyInfo`, 없으면 `MEMBER_NOT_FOUND` 404). `decisions/043`
   - 화면 가드 규칙 변경: 회원 조회 실패면 `/`. 시드 미선택 상태는 회원 행이 없고 `signupToken`(Path `/api/members/seed`)이 `/me`에 실리지 않아 구분하지 않음. `types/api.ts` `MemberResponse`에서 `hasSelectedSeed` 삭제, `tier`·`houseCount`는 집 사기 작업 때 추가. `docs/ui-spec.md` 가드 줄 교체
   - `MemberController`의 안 쓰는 import(`ObservationProperties`) 삭제
   - 로컬 확인 (10/29): 로그인 상태 200 `{id, nickname, cash}`, 쿠키 없음 401. 프론트 `eslint`, `tsc -b` 통과
-- 화면 가드 (2026-10-29, `feat/member-guard`): `decisions/043`
+- 화면 가드 (2026-10-29, PR #43 merge 10/29): `decisions/043`
   - `hooks/queryKeys.ts`(`member: () => ['member', 'me'] as const`), `api/memberApi.getMyInfo`, `hooks/useMemberQuery`(`retry: false`, 401 재시도 대기 방지), `pages/MemberGuard`(로딩 null, 실패 `/` replace, 성공 `Outlet`)
   - `App.tsx`: `/`, `/seed`를 뺀 9개 라우트를 path 없는 `<Route element={<MemberGuard />}>`로 감쌈
   - 로컬 확인 (10/29): 로그인 상태 `/home` 직접 접속 → 홈, `me` 200 1번 / 시크릿 창 `/home` → `/`, `me` 401 1번(재시도 없음) / `/`, `/seed`는 시크릿 창에서 열림 / `npm run lint`, `npm run build` 통과
+  - 실서버 (10/29): 시크릿 창 `/home` → `/` 이동 확인
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
