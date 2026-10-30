@@ -109,13 +109,20 @@
 - 보유 종목 조회 API (2026-10-30, `feat/holding-query-api`): `GET /api/holdings` → `HoldingResponse{code, name, quantity, avgPrice, price}`(price는 메모리 현재가, avgPrice만 `BigDecimal`)
   - `trade/HoldingService`(읽기 전용, `TradeService`와 분리), `HoldingController`, `StockHoldingRepository.findAllByMemberIdWithStock`(`join fetch h.stock`으로 N+1 방지, `member.id` 조건이라 회원 조회 없음, 코드순)
   - 로컬 확인 (10/30): 로그인 상태 KK0001 12주 1건(`avgPrice` 51550, `price` 55500). 보유 없으면 `[]`
+- 종목 목록·검색 화면 연결 (2026-10-30, `feat/trade-page-connect`, 종목·매매 연결 PR A/B 중 A)
+  - `api/stockApi.getStocks`, `api/holdingApi.getHoldings`, `queryKeys.stocks`(`['stocks']`)·`holdings`(`['holdings', 'me']`), `hooks/useStocksQuery`(`refetchInterval` 5초, 서버 시세 갱신 주기와 같음. WebSocket 전까지 폴링), `hooks/useHoldingsQuery`(폴링 없음, 매매 성공 후 invalidate 예정)
+  - `TradePage`: 목업 상수·가짜 시세 `useEffect` 삭제. 현금은 `useMemberQuery`, 종목은 `useStocksQuery`, 보유 수량은 보유 목록을 코드 → 수량 `Map`으로 붙임. 등락률은 서버 `changeRate`(오늘 시작가 대비). "내 종목 평가액"은 수량 × 현재가 화면 합계로 임시 계산(11/2 포트폴리오 API로 교체)
+  - `StockSearchPage`: 같은 `['stocks']` 캐시 사용(목록에서 들어오면 요청 없이 표시). "지금 인기"는 고정 코드 5개(순위 API 없음, 랭킹 MVP 밖), 최근 검색은 빈 상태로 시작(저장은 추후)
+  - 종목 목록 데스크톱은 목록 영역만 스크롤(`max-height` 560px, 탭 고정), 모바일은 페이지 스크롤. 안내 문구 "샘플" → "가상"
+  - 로컬 확인 (10/30): 상단 현금, 내 종목 KK0001 12주, 전체 20개, `stocks` 요청 5초 간격 + 가격·등락률 갱신. `eslint`, `tsc -b` 통과
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: 시드 선택 외 화면은 목업 상수 (홈의 현금·평가액 등), 매수·매도 후 회원 쿼리 invalidate 포함
+- 프론트 데이터 연결: 시드 선택·종목 목록·검색 외 화면은 목업 상수 (홈의 현금·평가액 등). 다음은 사기·팔기(PR B, 매수·매도 후 회원·보유 쿼리 invalidate 포함)
+- 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
 - `@Valid` 실패 응답 형식: `GlobalExceptionHandler`가 `BusinessException`만 처리해서 Spring 기본 바디(`timestamp`, `status`, `error` 등)로 나감. `{code, message}`로 맞출지는 종목·매매 화면 연결(10/30~31) 때 결정
 
