@@ -53,7 +53,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     // 오늘 시작가의 날짜 (기동 쓰레드가 쓰고 스케쥴러 스레드가 읽음)
-    private volatile LocalDate today;
+    private volatile LocalDate today = LocalDate.now(KST);
 
     // 서버준비가 완전히 다 끝났을 때(ApplicationRunner 도 다 돌은 후에)
     // 스프링이 보내는 신호를 받음

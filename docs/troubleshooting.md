@@ -43,3 +43,9 @@
 - 원인: 저장은 정상. 컨테이너 안 mysql 클라이언트가 utf8mb4가 아닌 문자셋으로 접속해 한글을 표시하지 못함 (JDBC URL `characterEncoding=UTF-8`, 서버 `utf8mb4`라 저장 경로는 정상)
 - 해결: `--default-character-set=utf8mb4` 옵션으로 접속하니 한글 정상 표시
 - 배운 점: 화면에 깨져 보일 때 저장이 깨졌는지 표시만 깨졌는지 먼저 구분. `HEX()`·`LENGTH()`로 실제 바이트를 확인하는 방법도 있음
+
+## [2026-10-29] 시세 엔진 기동 직후 `오늘 시작가 갱신` 로그가 날짜 변경 없이 찍힘
+- 증상: 실서버 배포 직후 로그에 `[scheduling-1] 오늘 시작가 갱신: 2026-10-29`가 찍힘. 날짜가 바뀐 시점이 아니라 서버가 막 뜬 시점(16:01)
+- 원인: `VirtualPriceProvider.today` 필드가 선언 때 null이고 `loadStocks`(`ApplicationReadyEvent`)에서만 채워짐. `@Scheduled` 첫 `tick`은 스케줄러 스레드에서 따로 돌아서 `loadStocks`보다 먼저 실행될 수 있음. 이때 `now.equals(null)`이 false라 날짜가 바뀐 것으로 판단. 그 시점엔 종목 상태(`states`)가 비어 있어 값 변화는 없음
+- 해결: `today`를 선언 때 `LocalDate.now(KST)`로 초기화. 객체가 만들어질 때부터 값이 있어 실행 순서와 상관없이 첫 `tick`의 비교가 맞게 됨 (`fix/price-today-init`)
+- 배운 점: `@Scheduled`와 이벤트 리스너는 서로 다른 스레드라 실행 순서가 보장되지 않음. 다른 스레드가 읽는 필드는 "아직 안 채워진 상태"에서도 안전한 초기값을 두기. `volatile`은 값이 보이는 것만 보장하고 순서는 보장하지 않음
