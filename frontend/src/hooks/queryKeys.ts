@@ -9,6 +9,12 @@ export const queryKeys = {
     // as const안쓰면 string[] 타입이고 문자열이 몇 개 든 배열, 나중에 바뀔 수도 있음 이라는 뜻이 됨
     member: () => ['member', 'me'] as const,
     // () => [배열] : 이 객체 속성을 부르면 배열을 돌려준다는 뜻이 됨
+    stocks: () => ['stocks'] as const,
+    // 쿼리 키는 앞에서부터 큰 분류 -> 작은 분류 순으로 쓰는 것이 관례(폴더 경로 같은것)
+    // stocks 는 누가봐도 똑같아서 작은 분류로 나눌게 없지만
+    // holdings 는 내 보유종목을 보는거라서 holdings 중에 me 내것이라는 뜻을 붙인 것
+    // 그리고 앞 부분으로 한 번에 무효화 처리가 가능함, invalidateQueries({queryKey: ['stocks']})
+    holdings: () => ['holdings', 'me'] as const,
 }
 
 /**

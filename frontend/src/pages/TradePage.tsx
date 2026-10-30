@@ -1,74 +1,33 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Sprite } from '../components/Sprite'
-import { formatKRW, formatNumber } from '../utils/format'
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { Sprite } from "../components/Sprite" // 픽셀 그림 하나를 그려주는 컴포넌트
+import { formatKRW, formatNumber } from "../utils/format"
+import { useMemberQuery } from "../hooks/useMemberQuery"
+import { useStocksQuery } from "../hooks/useStocksQuery"
+import { useHoldingsQuery } from "../hooks/useHoldingsQuery"
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './TradePage.css'
 
 type StockTab = 'MINE' | 'ALL'
 
-type MockStock = {
-  name: string
-  code: string
-  price: number
-  prevClose: number
-  quantity: number
-  tickSize: number
-}
-
-// 목업 데이터
-const CASH = 4_210_000
-const TICK_INTERVAL_MS = 2000
-const STOCKS: MockStock[] = [
-  { name: '세르반반도체', code: 'KK0001', price: 51000, prevClose: 49950, quantity: 12, tickSize: 100 },
-  { name: '마르덴전자', code: 'KK0002', price: 248000, prevClose: 251270, quantity: 1, tickSize: 500 },
-  { name: '쿠르텍', code: 'KK0003', price: 40000, prevClose: 39760, quantity: 4, tickSize: 50 },
-  { name: '브론델배터리', code: 'KK0004', price: 187000, prevClose: 184400, quantity: 0, tickSize: 500 },
-  { name: '다이온모터스', code: 'KK0005', price: 192000, prevClose: 192800, quantity: 0, tickSize: 500 },
-  { name: '벨라전기차', code: 'KK0006', price: 241000, prevClose: 238800, quantity: 0, tickSize: 500 },
-  { name: '도르빈바이오', code: 'KK0007', price: 331000, prevClose: 338500, quantity: 0, tickSize: 500 },
-  { name: '소티제약', code: 'KK0008', price: 301000, prevClose: 300100, quantity: 0, tickSize: 500 },
-  { name: '아젤뷰티', code: 'KK0009', price: 689000, prevClose: 683500, quantity: 0, tickSize: 1000 },
-  { name: '카르넬게임즈', code: 'KK0010', price: 247000, prevClose: 248500, quantity: 0, tickSize: 500 },
-  { name: '트리아엔터', code: 'KK0011', price: 38200, prevClose: 37900, quantity: 0, tickSize: 50 },
-  { name: '제노텔레콤', code: 'KK0012', price: 24500, prevClose: 24650, quantity: 0, tickSize: 50 },
-  { name: '라미로보틱스', code: 'KK0013', price: 126000, prevClose: 121500, quantity: 0, tickSize: 100 },
-  { name: '아르카홀딩스', code: 'KK0014', price: 8730, prevClose: 8800, quantity: 0, tickSize: 10 },
-  { name: '유르파트너스', code: 'KK0015', price: 15400, prevClose: 15100, quantity: 0, tickSize: 10 },
-  { name: '칼리건설', code: 'KK0016', price: 31200, prevClose: 31050, quantity: 0, tickSize: 50 },
-  { name: '모르조선', code: 'KK0017', price: 87300, prevClose: 85900, quantity: 0, tickSize: 100 },
-  { name: '펠로항공', code: 'KK0018', price: 19800, prevClose: 20200, quantity: 0, tickSize: 10 },
-  { name: '시벨푸드', code: 'KK0019', price: 54800, prevClose: 54500, quantity: 0, tickSize: 100 },
-  { name: '데니마트', code: 'KK0020', price: 12950, prevClose: 12900, quantity: 0, tickSize: 10 },
-]
-
-// 전일 대비 등락: "▲ +2.1%" / "▼ -1.3%"
-function toChangeText(price: number, prevClose: number): string {
-  const diff = price - prevClose
-  const pct = ((diff / prevClose) * 100).toFixed(1)
-  return diff >= 0 ? `▲ +${pct}%` : `▼ ${pct}%`
+function toChangeText(changeRate: number): string {
+  const pct = (changeRate * 100).toFixed(1)
+  return changeRate >= 0 ? `▲ +${pct}%` : `▼ ${pct}%`
 }
 
 export function TradePage() {
   const [tab, setTab] = useState<StockTab>('MINE')
-  const [prices, setPrices] = useState<number[]>(() => STOCKS.map((s) => s.price))
+  const { data: member } = useMemberQuery()
+  const { data: stocks = [], isPending, isError } = useStocksQuery()
+  const { data: holdings = [] } = useHoldingsQuery()
 
-  // 샘플 시세 흔들기
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPrices((prev) =>
-        prev.map((p, i) => {
-          const tick = STOCKS[i].tickSize
-          return Math.max(tick * 20, p + Math.round((Math.random() - 0.47) * 4) * tick)
-        }),
-      )
-    }, TICK_INTERVAL_MS)
-    return () => clearInterval(timer)
-  }, [])
+  const cash = member?.cash ?? 0
+  const quantityByCode = new Map(holdings.map((h) => [h.code, h.quantity]))
+  const allRows = stocks.map((s) => ({ ...s, quantity: quantityByCode.get(s.code) ?? 0 }))
 
   const isMineTab = tab === 'MINE'
-  const stockValue = STOCKS.reduce((sum, s, i) => sum + prices[i] * s.quantity, 0)
-  const rows = STOCKS.map((s, i) => ({ ...s, price: prices[i] })).filter((s) => !isMineTab || s.quantity > 0)
+  const rows = isMineTab ? allRows.filter((s) => s.quantity > 0) : allRows
+  const stockValue = allRows.reduce((sum, s) => sum + s.price * s.quantity, 0)
 
   const handleMineClick = () => setTab('MINE')
   const handleAllClick = () => setTab('ALL')
@@ -103,7 +62,7 @@ export function TradePage() {
           <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
           <div>
             <div className="k-lab">CASH</div>
-            <div className="k-num k-num--cash">{formatNumber(CASH)}</div>
+            <div className="k-num k-num--cash">{formatNumber(cash)}</div>
           </div>
         </div>
       </header>
@@ -135,25 +94,29 @@ export function TradePage() {
                   전체
                 </button>
               </div>
-              {rows.map((s) => {
-                const isUp = s.price - s.prevClose >= 0
-                return (
-                  <Link key={s.code} to={`/trade/${s.code}`} className="k-row">
-                    <div className="k-tick">{s.name.charAt(0)}</div>
-                    <div className="k-row-main">
-                      <div className="k-row-name">{s.name}</div>
-                      <div className="k-row-sub">
-                        {s.code}
-                        {s.quantity > 0 ? ` · 보유 ${s.quantity}주` : ''}
+              <div className="k-list-body">
+                {isPending && <div className="k-row-sub">불러오는 중...</div>}
+                {isError && <div className="k-row-sub">종목을 못 불러왔어요. 잠시 후 다시 시도해 주세요.</div>}
+                {rows.map((s) => {
+                  const isUp = s.changeRate >= 0
+                  return (
+                    <Link key={s.code} to={`/trade/${s.code}`} className="k-row">
+                      <div className="k-tick">{s.name.charAt(0)}</div>
+                      <div className="k-row-main">
+                        <div className="k-row-name">{s.name}</div>
+                        <div className="k-row-sub">
+                          {s.code}
+                          {s.quantity > 0 ? ` · 보유 ${s.quantity}주` : ''}
+                        </div>
                       </div>
-                    </div>
-                    <div className="k-row-right">
-                      <div className="k-row-price">{formatKRW(s.price)}</div>
-                      <div className={`k-row-rate ${isUp ? 'k-up' : 'k-down'}`}>{toChangeText(s.price, s.prevClose)}</div>
-                    </div>
-                  </Link>
-                )
-              })}
+                      <div className="k-row-right">
+                        <div className="k-row-price">{formatKRW(s.price)}</div>
+                        <div className={`k-row-rate ${isUp ? 'k-up' : 'k-down'}`}>{toChangeText(s.changeRate)}</div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
             </section>
           </div>
 
@@ -164,7 +127,7 @@ export function TradePage() {
                 <div className="k-lab k-lab--gold">STOCKS</div>
               </div>
               <div className="k-stock-value">{formatKRW(stockValue)}</div>
-              <div className="k-px-sub">살 수 있는 돈 {formatKRW(CASH)}</div>
+              <div className="k-px-sub">살 수 있는 돈 {formatKRW(cash)}</div>
               <Link to="/trade/history" className="k-px-link">
                 <span>내 거래 · 실현손익</span>
                 <span className="k-px-link-arrow">&gt;</span>
@@ -182,7 +145,7 @@ export function TradePage() {
             </section>
           </div>
         </div>
-        <p className="k-note">※ 종목과 시세는 샘플이에요. 전부 가짜 돈이에요.</p>
+        <p className="k-note">※ 종목과 시세는 가상이에요. 전부 가짜 돈이에요.</p>
       </main>
     </div>
   )

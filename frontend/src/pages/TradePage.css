@@ -37,6 +37,8 @@
 /* 종목 목록 */
 .page-trade .k-list{padding-top:8px;padding-bottom:4px}
 .page-trade .k-tabs{display:flex;gap:8px;padding:8px 0 4px}
+/* 종목 줄만 스크롤 (약 8줄), 탭은 고정 */
+.page-trade .k-list-body{max-height:560px;overflow-y:auto;overscroll-behavior:contain}
 .page-trade .k-tab{min-height:44px;padding:0 16px;border:2px solid #231B3A;border-radius:0;box-shadow:0 3px 0 #231B3A;color:#231B3A;font-size:14px;font-weight:800;background:#FFFFFF}
 .page-trade .k-tab--on{background:#FFC93C}
 .page-trade .k-row-main{flex-grow:1;min-width:0}
@@ -62,6 +64,8 @@
 .page-trade .k-cheer-text{font-size:14px;font-weight:700;line-height:1.5}
 
 @media (max-width:899px){
+/* 모바일은 페이지 스크롤 */
+.page-trade .k-list-body{max-height:none;overflow-y:visible}
 .page-trade .k-cols{grid-template-columns:minmax(0,1fr)}
 .page-trade .k-wrap{padding:16px 16px 104px}
 .page-trade .k-links{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;gap:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 8px 12px;background:#231B3A;border-top:3px solid #0F0B1F}
