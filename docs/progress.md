@@ -106,6 +106,9 @@
   - `App.tsx`: `/`, `/seed`를 뺀 9개 라우트를 path 없는 `<Route element={<MemberGuard />}>`로 감쌈
   - 로컬 확인 (10/29): 로그인 상태 `/home` 직접 접속 → 홈, `me` 200 1번 / 시크릿 창 `/home` → `/`, `me` 401 1번(재시도 없음) / `/`, `/seed`는 시크릿 창에서 열림 / `npm run lint`, `npm run build` 통과
   - 실서버 (10/29): 시크릿 창 `/home` → `/` 이동 확인
+- 보유 종목 조회 API (2026-10-30, `feat/holding-query-api`): `GET /api/holdings` → `HoldingResponse{code, name, quantity, avgPrice, price}`(price는 메모리 현재가, avgPrice만 `BigDecimal`)
+  - `trade/HoldingService`(읽기 전용, `TradeService`와 분리), `HoldingController`, `StockHoldingRepository.findAllByMemberIdWithStock`(`join fetch h.stock`으로 N+1 방지, `member.id` 조건이라 회원 조회 없음, 코드순)
+  - 로컬 확인 (10/30): 로그인 상태 KK0001 12주 1건(`avgPrice` 51550, `price` 55500). 보유 없으면 `[]`
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
