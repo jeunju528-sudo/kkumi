@@ -387,3 +387,5 @@
     padding: 0 16px;
   }
 }
+/* 주문 불가·요청 중 버튼 잠금 표시 */
+.page-order .k-cta:disabled{opacity:.5;cursor:not-allowed}

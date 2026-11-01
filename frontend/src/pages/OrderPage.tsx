@@ -1,139 +1,125 @@
-import { useEffect, useState } from 'react'
+// 주식 매매/매도 화면 들어왔을 때 호출됨
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { StockResponse } from '../types/api'
-import { Sprite } from '../components/Sprite'
+import { ApiError } from '../api/apiError'
+import { useMemberQuery } from '../hooks/useMemberQuery'
+import { useStocksQuery } from '../hooks/useStocksQuery'
+import { useHoldingsQuery } from '../hooks/useHoldingsQuery'
+import { useBuyStockMutation } from '../hooks/useBuyStockMutation'
+import { useSellStockMutation } from '../hooks/useSellStockMutation'
+import { OrderHeader } from '../components/OrderHeader'
 import { formatKRW, formatNumber } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './OrderPage.css'
 
 type OrderMode = 'buy' | 'sell'
 
-// 화면 전용 목업 종목 (open: 오늘 시가, held: 보유 수량)
-type OrderStock = Pick<StockResponse, 'code' | 'name' | 'price'> & {
-  open: number
-  held: number
-}
-
-type Ticker = {
-  price: number
-  hist: number[]
-  flash: number
-}
-
 type OrderPanelProps = {
-  stock: OrderStock
+  stock: StockResponse,
+  held: number,
+  cash: number
 }
 
-// 목업 데이터
-const MOCK_CASH = 4210000
-const MOCK_STOCKS: OrderStock[] = [
-  { code: 'KK0002', name: '마르덴전자', price: 248000, open: 251270, held: 1 },
-  { code: 'KK0001', name: '세르반반도체', price: 71200, open: 70500, held: 3 },
-  { code: 'KK0003', name: '쿠르텍', price: 42350, open: 43100, held: 0 },
-  { code: 'KK0004', name: '브론델배터리', price: 182500, open: 179800, held: 2 },
-]
-const DEFAULT_STOCK = MOCK_STOCKS[0]
+const HIST_MAX = 30 // 차트에 남길 가격 기록 최대 갯수
 
-const createTicker = (price: number): Ticker => ({
-  price,
-  hist: Array.from({ length: 24 }, (_, j) =>
-    Math.round(price * (1 + 0.012 * Math.sin(j / 3 + 2) - 0.0006 * (23 - j))),
-  ),
-  flash: 0,
-})
-
-// 시안 헤더 (투자 탭 활성)
-function OrderHeader() {
-  return (
-    <header className="k-top">
-      <Link to="/home" className="k-logo">
-        <span className="k-mark">꿈</span>
-        <span>꿈이</span>
-      </Link>
-      <nav className="k-links" aria-label="메인 메뉴">
-        <Link to="/home" className="k-link">
-          <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true">
-            <path d="M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM1 4h2v4h-2zM5 4h2v4h-2zM3 4h2v1h-2z" />
-          </svg>
-          <span>홈</span>
-        </Link>
-        <Link to="/trade" className="k-link k-on" aria-current="page">
-          <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true">
-            <path d="M0 5h2v3h-2zM3 3h2v5h-2zM6 1h2v7h-2z" />
-          </svg>
-          <span>투자</span>
-        </Link>
-        <Link to="/apartments" className="k-link">
-          <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true">
-            <path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v3h-1zM6 2h1v3h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM7 7h1v1h-1z" />
-          </svg>
-          <span>집 찾기</span>
-        </Link>
-        <Link to="/village" className="k-link">
-          <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true">
-            <path d="M1 0h2v1h-2zM0 1h4v1h-4zM0 2h4v6h-4zM5 3h2v1h-2zM4 4h4v4h-4z" />
-          </svg>
-          <span>내 마을</span>
-        </Link>
-      </nav>
-      <div className="k-grow" />
-      <div className="k-chip">
-        <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
-        <div>
-          <div className="k-lab">CASH</div>
-          <div className="k-num k-cash">{formatNumber(MOCK_CASH)}</div>
-        </div>
-      </div>
-    </header>
-  )
+// 사용자가 볼 에러 규칙
+function toOrderErrorText(error: Error): string {
+  if (error instanceof ApiError) {
+    if (error.code === 'INSUFFICIENT_CASH') return '현금이 모자라요.'
+    if (error.code === 'INSUFFICIENT_HOLDING') return '가진 주식보다 많이 팔 수 없어요.'
+    if (error.code === 'INVALID_REQUEST') return '수량을 다시 확인해 주세요.'
+  }
+  return '주문이 안 됐어요. 잠시 후 다시 시도해 주세요.'
 }
 
 // 종목별 시세·주문 패널 (종목 바뀌면 key로 리셋)
-function OrderPanel({ stock }: OrderPanelProps) {
-  const [mode, setMode] = useState<OrderMode>('buy')
-  const [qty, setQty] = useState(3)
-  const [ticker, setTicker] = useState<Ticker>(() => createTicker(stock.price))
+// props : 종목, 보유수량, 현금
+function OrderPanel({ stock, held, cash }: OrderPanelProps) {
+  // useState값은 브라우저 탭의 메모리(js가 쓰는 ram)에 저장됨, 서버는 전혀 모름
+  // 컴포넌트가 화면에서 빠질 때 값이 사라짐
+  // tanStack캐시도 탭 메모리 안에 저장되고, 새로고침이나 탭 닫기하면 사라지지만 페이지를 옮겨도 남아있음
+  // useState : react한테 맡겨서 다음 렌더에도 기억되는 값
+  // 사용자 행동이나 시간에 따라 바뀌고 화면에 보여야하는 값은 state로 관리함
+  // const [aa, setAa ] = useState(1) 
+  //      현재값, 바꾸는 함수        초기값
+  const [mode, setMode] = useState<OrderMode>('buy') // 매수/매도, 담기/팔기 버튼 누를때 setMode
+  const [qty, setQty] = useState(1) // 사용자가 고른 수량, +/- 버튼 누를 때 setQty
+  const [message, setMessage] = useState<string | null>(null) // 말풍선에 띄울 결과 문구
+  const [hist, setHist] = useState<number[]>([stock.price]) // 이 화면에서 본 가격 기록, 가격이 바뀔 때마다 1개 추가
+  const [lastPrice, setLastPrice] = useState(stock.price) // 직전 렌더의 가격, 가격이 바뀔때 setLastPrice
+  const [flash, setFlash] = useState(0) // 방금 올랐는지 내렸는지 체크, 가격 바뀔 때 setFlash
+  const buyMutation = useBuyStockMutation() // 주문 버튼 눌렀을 때 사용(매수)
+  const sellMutation = useSellStockMutation() // 주문 버튼 눌렀을 때 사용(매도)
 
-  // 1.5초마다 가짜 시세 변동
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTicker((prev) => {
-        const next = Math.max(10000, prev.price + Math.round((Math.random() - 0.47) * 4) * 500)
-        const hist = [...prev.hist, next]
-        if (hist.length > 30) hist.shift()
-        return { price: next, hist, flash: next >= prev.price ? 1 : -1 }
-      })
-    }, 1500)
-    return () => clearInterval(timer)
-  }, [])
+  const { price } = stock // 종목에서 현재가를 꺼내서 ( 5초마다 새 값이 props 로 들어옴)
 
-  const { price, hist, flash } = ticker
+  if(price !== lastPrice){ // 현재가와 직전에 기억한 가격과 다르면 => 시세가 바뀌었으면
+    setLastPrice(price) // 새 가격을 기억하고
+    // prev : 지금까지 저장된 배열 통째로
+    // ...prev, price 지금까지 저장된 배열 통쨰로 다시 복사하고, price 붙임
+    // .slice(-30) 뒤에서부터 30개만 남김, - 는 뒤에서부터 센다는 것
+    // 30개가 안되면 그대로 둠
+    setHist((prev) => [...prev, price].slice(-HIST_MAX))  // 30개보다 많으면 오래된거 버림
+    setFlash(price > lastPrice ? 1 : -1) // 올랐으면 빨강, 내렸으면 파랑
+  }
+
   const isBuy = mode === 'buy'
-  const delta = price - stock.open
-  const isUp = delta >= 0
-  const pct = Math.abs((delta / stock.open) * 100).toFixed(1)
-  const maxBuy = Math.max(1, Math.floor(MOCK_CASH / price))
-  const max = isBuy ? maxBuy : stock.held
-  const q = Math.min(Math.max(1, qty), max)
+  // changeRate : 오늘 시작가 대비 지금 가격이 몇 %가 바뀌었는지를 계산한 값
+  const isUp = stock.changeRate >= 0
+  const pct = Math.abs(stock.changeRate * 100).toFixed(1) // 등락률 숫자만 첫번째 소숫점까지만
+  const maxBuy = Math.floor(cash / price) // 현금으로 살 수 있는 최대 수량
+  const max = isBuy ? maxBuy : held // 지금 모드의 최대 수량, 매수면 maxBuy만큼 매도면 held(보유수량만큼)
+  const q = Math.min(Math.max(1, qty), Math.max(1, max)) // 실제 주문 수량, 1이상 최대 이하
+  const isSubmitting = buyMutation.isPending || sellMutation.isPending // 주문 요청 중인지~
+  const canSubmit = max > 0 && !isSubmitting // 버튼 눌러도 되는지~ max가 0보다 크고 주문 요청 중이 아닌지~
 
+  // 차트 계산을 위해, 가격 기록을 300 X 100 그림 안의 점 좌표로 바꾸는 것
+  // 싼 값은 아래에
+  // 비싼 값은 위로 가게 설정
   const lo = Math.min(...hist)
   const hi = Math.max(...hist)
-  const span = Math.max(1, hi - lo)
+  const span = Math.max(price * 0.02, hi - lo)   // 세로 폭 최소 2% (작은 흔들림은 작게)
+  const step = 300 / (HIST_MAX - 1)              // 점 간격 고정 (왼쪽부터 자라남)
   const chartPoints = hist
-    .map(
-      (v, i) =>
-        `${(i * (300 / (hist.length - 1))).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`,
-    )
-    .join(' ')
+        .map((v, i) => `${(i * step).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`)
+        .join(' ')
 
-  const deltaText = `${isUp ? '▲ ' : '▼ '}${formatNumber(Math.abs(delta))} (${isUp ? '+' : '-'}${pct}%) 오늘`
+  // 화면 그릴 때 사용
+  const deltaText = `${isUp ? '▲ +' : '▼ -'}${pct}% 오늘`
   const deltaColor = isUp ? '#D32F36' : '#2563EB'
   const flashBg = flash === 1 ? '#FFE3E6' : flash === -1 ? '#DCE9FF' : 'transparent'
 
-  const handleBuyMode = () => setMode('buy')
-  const handleSellMode = () => setMode('sell')
-  const handleDecrease = () => setQty(Math.max(1, q - 1))
-  const handleIncrease = () => setQty(Math.min(max, q + 1))
+  const emptyText = isBuy ? '현금이 모자라서 1주도 못 사요.' : '팔 주식이 없어요.'
+  const defaultText = isBuy ? `${q}주 담아볼까?` : `${q}주 팔고 치킨 먹자!`
+  const bubbleText = message ?? (max === 0 ? emptyText : defaultText)
+
+  // 버튼 눌렀을 때 handler
+  const handleBuyMode = () => {
+    setMode('buy')
+    setMessage(null)
+  }
+  const handleSellMode = () => {
+    setMode('sell')
+    setMessage(null)
+  }
+
+  // 수량 버튼 눌렀을 때 handler
+  const handleDecrease = () => setQty(Math.max(1, q - 1)) // 감소, 1이랑 현재수량에서 1뺀 것 중에 큰 것
+  const handleIncrease = () => setQty(Math.min(Math.max(1, max), q + 1)) // 증가, 최대로 살 수 있는 양이랑 현재수량에서 1더한 것 중에 작은 것
+  const handleSubmit = () => {
+    const request = { code: stock.code, quantity: q }
+    const onError = (error: Error) => setMessage(toOrderErrorText(error))
+    if(isBuy){
+      // mutate : 쓰기 요청을 지금 보내라고 함
+      // mutationFn(buyStock)에 request 값을 넣어서 실행하라고 한것
+      buyMutation.mutate(request, { onSuccess: () => setMessage(`${q}주 샀어! 부자가 될거야!`), onError})
+    }
+    else {
+      sellMutation.mutate(request, { onSuccess: () => setMessage(`${q}주 팔았어! 치킨 각`), onError })
+    }
+  }
+
 
   return (
     <div className="k-cols">
@@ -143,7 +129,7 @@ function OrderPanel({ stock }: OrderPanelProps) {
           <div className="k-head-info">
             <h1 className="k-name">{stock.name}</h1>
             <div className="k-sub">
-              {stock.code} · 보유 {stock.held}주
+              {stock.code} · 보유 {held}주
             </div>
           </div>
           <div className="k-live">
@@ -212,7 +198,7 @@ function OrderPanel({ stock }: OrderPanelProps) {
           <div className="k-avatar">
             <img src={tier1} alt="걸뱅이 꿈이" />
           </div>
-          <div className="k-bubble">{isBuy ? `${q}주 담아볼까?` : `${q}주 팔고 치킨 먹자!`}</div>
+          <div className="k-bubble">{bubbleText}</div>
         </div>
 
         <div className="k-qty-row">
@@ -235,7 +221,7 @@ function OrderPanel({ stock }: OrderPanelProps) {
           <div className="k-sum-row">
             <span className="k-sum-label">{isBuy ? '살 수 있는 돈' : '팔 수 있는 수량'}</span>
             <span className="k-sum-val">
-              {isBuy ? `${formatKRW(MOCK_CASH)} (최대 ${maxBuy}주)` : `${stock.held}주`}
+              {isBuy ? `${formatKRW(cash)} (최대 ${maxBuy}주)` : `${held}주`}
             </span>
           </div>
           <div className="k-sum-row">
@@ -244,8 +230,8 @@ function OrderPanel({ stock }: OrderPanelProps) {
           </div>
         </div>
 
-        <button type="button" className="k-cta" style={{ background: isBuy ? '#D32F36' : '#2563EB' }}>
-          {isBuy ? '담기' : '팔기'}
+        <button type="button" className="k-cta" onClick={handleSubmit} disabled={!canSubmit} style={{ background: isBuy ? '#D32F36' : '#2563EB' }}>
+          {isSubmitting ? '주문 중...' : isBuy ? '담기' : '팔기'}
         </button>
         <p className="k-note">실제 돈은 1원도 안 나가요. 누르는 순간의 시세로 체결돼요.</p>
       </section>
@@ -253,19 +239,43 @@ function OrderPanel({ stock }: OrderPanelProps) {
   )
 }
 
+//  데이터를 모으는 곳
 export function OrderPage() {
-  const { code } = useParams()
-  const stock = MOCK_STOCKS.find((s) => s.code === code) ?? DEFAULT_STOCK
+  const { code } = useParams() // 주소 /trade/KK0001에서 'KK0001'을 꺼냄
+  const { data: member } = useMemberQuery() // 회원 정보
+  const { data: stocks = [], isPending, isError } = useStocksQuery() // 주식 목록 + 로딩/에러 상태
+  const { data: holdings = [] } = useHoldingsQuery() // 내 보유 목록
 
+  const cash = member?.cash ?? 0 // 사용자 현금 가지고 있는 값
+  const stock = stocks.find((s) => s.code === code) // 주식 종목 중 이 종목 하나
+  const held = holdings.find((h) => h.code === code)?.quantity ?? 0 // 그 종목의 보유수량
+  // return (...) 안에 있는 html 처럼 생긴 것은 JSX : 화면을 이렇게 그려줘 하는 설계도
+  // react가 이걸 보고 실제 브라우저 화면을 만듦
+  // <소문자태그> ex) <main /> : HTML 태그 (이 페이지의 본문 영역을 뜻함)
+  // <대문자 태그> ex) <OrderHeader /> : 직접 만든 컴포넌트, 이 함수를 불러서 걔가 돌려준 화면을 넣어라
+  // cash={cash} props로 cash 값 넣음
+  // { ... } 중괄호 : JSX 안에 JS값 끼워 넣을 때 사용
+  // {조건 && <p />} : 조건이 참일 때만 화면을 그려라
+  // 함수 하나당 return이 하나인 것이 규칙!
+  // 컴포넌트 하나당 JSX 덩어리 하나만 return 해야된다.
   return (
     <div className="page-order">
-      <OrderHeader />
+      <OrderHeader cash={cash} />
       <main className="k-wrap">
         <Link to="/trade" className="k-back">
           &lt; 종목 목록
         </Link>
-        <OrderPanel key={stock.code} stock={stock} />
+        {isPending && <p className="k-note">불러오는 중...</p>}
+        {isError && <p className="k-note">종목을 못 불러왔어요. 잠시 후 다시 시도해 주세요.</p>}
+        {!isPending && !isError && !stock && <p className="k-note">그런 종목은 없어요.</p>}
+        {stock && <OrderPanel key={stock.code} stock={stock} held={held} cash={cash} />}
       </main>
     </div>
   )
 }
+
+// 컴포넌트 : 대문자로 시작하고, JSX를 return 하는 함수
+// 컴포넌트를 호출할 때 붙은 key는 react가 이 컴포넌트가 아까 컴포넌트랑 같은 놈인가를 판단하는 이름표
+// <OrderPanel key = {} 
+// 같은 값이면 state를 그대로 유지함, 다른 값이면 기존걸 다 버리고 새로 만들어서 state가 다 처음값으로 돌아감
+// rows.map 의 <Link key={s.code} 이것도 줄마다 이름표를 붙여서 목록이 바뀌어도 줄 구분을 react가 하게 해줌
