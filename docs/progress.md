@@ -115,14 +115,24 @@
   - `StockSearchPage`: 같은 `['stocks']` 캐시 사용(목록에서 들어오면 요청 없이 표시). "지금 인기"는 고정 코드 5개(순위 API 없음, 랭킹 MVP 밖), 최근 검색은 빈 상태로 시작(저장은 추후)
   - 종목 목록 데스크톱은 목록 영역만 스크롤(`max-height` 560px, 탭 고정), 모바일은 페이지 스크롤. 안내 문구 "샘플" → "가상"
   - 로컬 확인 (10/30): 상단 현금, 내 종목 KK0001 12주, 전체 20개, `stocks` 요청 5초 간격 + 가격·등락률 갱신. `eslint`, `tsc -b` 통과
+- 사기·팔기 화면 연결 (2026-11-01, `feat/order-page-connect`, 종목·매매 연결 PR B)
+  - `api/tradeApi.buyStock`·`sellStock`(성공 바디 없음 → `Promise<void>`), `hooks/useBuyStockMutation`·`useSellStockMutation`(`onSuccess`에서 `queryKeys.member()`·`holdings()` invalidate, 시세는 제외)
+  - `OrderPage`: 종목 하나는 `useStocksQuery` 목록에서 URL code로 찾음(새 API 없음, 5초 폴링 그대로), 보유 수량 `useHoldingsQuery`, 현금 `useMemberQuery`. 없는 코드는 "그런 종목은 없어요"
+  - `OrderPanel`: 최대 수량(매수 현금 ÷ 현재가 내림, 매도 보유 수량), 0이면 주문 버튼 잠금. `mutate(값, { onSuccess, onError })`로 말풍선 문구, 에러는 `ApiError.code`(`INSUFFICIENT_CASH`, `INSUFFICIENT_HOLDING`, `INVALID_REQUEST`)별 문구. 요청 중 버튼 잠금("주문 중...")
+  - 시세 기록·깜빡임: `lastPrice` state와 비교해 렌더 중 갱신(react-hooks v7이 effect 안 setState 금지). 차트는 화면에 들어온 뒤 본 가격만(최대 30개), 점 간격 고정 + 세로 폭 최소 현재가 2%
+  - 등락 표시는 "▲ +1.3% 오늘"(응답에 오늘 시작가가 없어 원 단위 생략)
+  - `components/OrderHeader` 분리(현금 props만). `OrderPanel`은 매매 훅·`ApiError`를 써서 `pages`에 남김
+  - 확인: `tsc -b`, `eslint` 통과. 못 확인한 것: 브라우저에서 매수·매도 후 현금·보유 즉시 갱신, 잠금 표시
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: 시드 선택·종목 목록·검색 외 화면은 목업 상수 (홈의 현금·평가액 등). 다음은 사기·팔기(PR B, 매수·매도 후 회원·보유 쿼리 invalidate 포함)
+- 프론트 데이터 연결: 시드 선택·종목 목록·검색·사기·팔기 외 화면은 목업 상수 (홈의 현금·평가액, 내 거래 등)
 - 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
+- `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
+- 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
 - `@Valid` 실패 응답 형식: `GlobalExceptionHandler`가 `BusinessException`만 처리해서 Spring 기본 바디(`timestamp`, `status`, `error` 등)로 나감. `{code, message}`로 맞출지는 종목·매매 화면 연결(10/30~31) 때 결정
 
