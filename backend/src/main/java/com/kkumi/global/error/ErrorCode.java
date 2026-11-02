@@ -36,7 +36,9 @@ public enum ErrorCode {
     // 회원 ID로 조회 실패 (탈퇴·잘못된 토큰 등)
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다"),
     // 요청한 종목 코드 없음
-    STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다");
+    STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다"),
+    // @Valid 검증 실패 (수량 0, 빈 종목 코드 등)
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다");
 
     private final HttpStatus status;
     private final String message;
