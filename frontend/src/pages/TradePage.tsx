@@ -11,6 +11,7 @@ import './TradePage.css'
 type StockTab = 'MINE' | 'ALL'
 
 function toChangeText(changeRate: number): string {
+  // toFixed(1) : 숫자를 소수 n자리까지 반올림해서 문자열로 바꿔주는 JS메서드
   const pct = (changeRate * 100).toFixed(1)
   return changeRate >= 0 ? `▲ +${pct}%` : `▼ ${pct}%`
 }
@@ -22,11 +23,20 @@ export function TradePage() {
   const { data: holdings = [] } = useHoldingsQuery()
 
   const cash = member?.cash ?? 0
+  // 내가 가지고 있는 종목을 code랑 quantity로 배열사전을 하나 만들어서
   const quantityByCode = new Map(holdings.map((h) => [h.code, h.quantity]))
+  // map((s) => ()) 종목을 하나씩 꺼내서 새 모양으로 바꾼 새 배열을 만든다
+  // ({}) 새 객체를 돌려줌
+  // ...s : 스프레드, s가 가지고 있는 칸을 전부 복사
+  // ,quantity : 거기에다가 quantity 라는 값을 추가함
+  // 전체 주식 종목 목록에다가 내가 가지고 있는 주식의 수량을 붙임
   const allRows = stocks.map((s) => ({ ...s, quantity: quantityByCode.get(s.code) ?? 0 }))
 
   const isMineTab = tab === 'MINE'
   const rows = isMineTab ? allRows.filter((s) => s.quantity > 0) : allRows
+  // reduce : 배열을 돌면서 값 하나로 줄여가는 메서드
+  // sum : 지금까지의 누적액에 이번 종목 s를 더해서 다음 누적값으로 넘겨
+  // 0은 sum의 초기값
   const stockValue = allRows.reduce((sum, s) => sum + s.price * s.quantity, 0)
 
   const handleMineClick = () => setTab('MINE')

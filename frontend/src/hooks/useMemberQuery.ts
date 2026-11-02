@@ -7,6 +7,9 @@ export function useMemberQuery() {
     // queryKey(캐시 칸의 이름)를 보고 값이 비었거나 낡았으면
     // queryFn을 실행해서(isPending = true) 값을 저장하고 data로 돌려주고 화면 다시 그림
     // 다른 컴포넌트가 같은 키로 부르면 요청을 또 보내지 않고 칸에 있는걸 같이 사용
+    // useQuery가 응답을 받을 때 자동으로 캐시에 값을 넣음
+    // 캐시칸이름 : queryKeys.member()
+    // 캐시데이터 : getMyInfo 로 리턴받는 값
     return useQuery({
         queryKey: queryKeys.member(),
         queryFn: getMyInfo,
