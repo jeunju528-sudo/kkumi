@@ -115,6 +115,7 @@
   - `StockSearchPage`: 같은 `['stocks']` 캐시 사용(목록에서 들어오면 요청 없이 표시). "지금 인기"는 고정 코드 5개(순위 API 없음, 랭킹 MVP 밖), 최근 검색은 빈 상태로 시작(저장은 추후)
   - 종목 목록 데스크톱은 목록 영역만 스크롤(`max-height` 560px, 탭 고정), 모바일은 페이지 스크롤. 안내 문구 "샘플" → "가상"
   - 로컬 확인 (10/30): 상단 현금, 내 종목 KK0001 12주, 전체 20개, `stocks` 요청 5초 간격 + 가격·등락률 갱신. `eslint`, `tsc -b` 통과
+- `@Valid` 실패 응답 형식 (2026-10-30, `fix/valid-error-response`): `GlobalExceptionHandler`가 `MethodArgumentNotValidException`도 받아 `ErrorCode.INVALID_REQUEST`(400) → `{code, message}`. 필드별 상세는 넣지 않음(프론트는 `code`로만 분기, 수량은 화면에서 먼저 막음). 도메인 검증 `INVALID_QUANTITY`(엔티티)와 요청 형식 검증은 층이 달라 분리. JSON 형식 오류는 범위 밖
 - 사기·팔기 화면 연결 (2026-11-01, `feat/order-page-connect`, 종목·매매 연결 PR B)
   - `api/tradeApi.buyStock`·`sellStock`(성공 바디 없음 → `Promise<void>`), `hooks/useBuyStockMutation`·`useSellStockMutation`(`onSuccess`에서 `queryKeys.member()`·`holdings()` invalidate, 시세는 제외)
   - `OrderPage`: 종목 하나는 `useStocksQuery` 목록에서 URL code로 찾음(새 API 없음, 5초 폴링 그대로), 보유 수량 `useHoldingsQuery`, 현금 `useMemberQuery`. 없는 코드는 "그런 종목은 없어요"
@@ -134,7 +135,7 @@
 - `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
 - 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
 - 거래내역 조회 API: 기간·구분 필터 목록(페이징), 기간 합계(실현손익·매수·매도), 종목별 실현손익 집계 (ADR 032). 11/1, 화면은 이미 있음(목업 → 연결)
-- `@Valid` 실패 응답 형식: `GlobalExceptionHandler`가 `BusinessException`만 처리해서 Spring 기본 바디(`timestamp`, `status`, `error` 등)로 나감. `{code, message}`로 맞출지는 종목·매매 화면 연결(10/30~31) 때 결정
+- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`)
