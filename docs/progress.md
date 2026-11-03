@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-01
+## 기준일: 2026-11-03
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -137,6 +137,14 @@
   - `TradeHistoryPage`: 목업 거래·기간 계산 삭제 → 요약·목록·종목별 응답 사용. 'ALL' → null 변환은 페이지에서. 보이는 탭만 로딩·에러 표시, 로딩 중엔 빈 상태 숨김. 목록은 첫 20건(page 0)
   - 총손익 구성 카드는 목업 유지(`TOTAL_PROFIT`, `ALL_REALIZED`), 평가액 API 연결 때 교체
   - 로컬 확인 (11/3): 진입 시 요청 3개, 현금 실제 값, 1주 실현손익 −8,400·수익률 −5.43%, 날짜별 목록, [매도] `type=SELL` 매도 1건만, [매수]·[전체] 전환, 기간 전환 재요청, 종목별 탭 1줄. `eslint`, `tsc -b` 통과
+- 작성 분담 조정 (2026-11-03, `decisions/045`): 프론트(React) 집중. 백엔드는 새 개념이 있는 작업(심장 ③ 배치, WebSocket 푸시)만 개발자 직접, 심장 ②와 반복 로직(추천 API, 집 사기 등)은 Claude 작성 → 개발자 리뷰. 심장 ①③④·프론트 동작은 기존대로. CLAUDE.md "절대 금지"·"테스트", `domain/glossary.md` 반영
+- 평가액 API (심장 ②) (2026-11-03, `feat/portfolio-api`, PR A, `decisions/044`)
+  - `GET /api/portfolios/me` → `PortfolioResponse{cash, initialCash, stockValue, totalAsset, profit, profitRate, holdings}`
+  - `PortfolioService`(조회만: 회원 + `HoldingService.findHoldings`) → `PortfolioCalculator.calculate`(final 클래스·static, DB·시세 모름, WebSocket 푸시에서 재사용 예정) → `PortfolioValuation`
+  - 금액 `Math.multiplyExact`·`addExact`·`subtractExact`, 수익률 `BigDecimal` 소수 4자리 HALF_UP(`changeRate`와 같음). 시드머니 1원 미만이면 `IllegalArgumentException`
+  - `PortfolioCalculatorTest` 9개 메서드(경계 포함 13케이스): 보유 없음, 합계, 이익(523만 → +4.6%), 손실, 반올림 경계(±0.00005), 시드 5,000만, 곱셈·덧셈 넘침, 시드 0·음수
+  - 확인 (11/3): `./gradlew test` 통과, 로컬 응답 cash 3,666,550 + stockValue 1,300,400 = totalAsset 4,966,950, profit −33,050, profitRate −0.0066 (손 검산 일치)
+  - 못 확인한 것: 쿠키 없는 요청 401 (기존 `SecurityConfig` 규칙 대상)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
@@ -172,7 +180,7 @@
 3. (10/29 완료) 회원 조회 API(`/api/members/me`, #42) + `useMemberQuery` + 화면 가드
 4. (11/1 완료) 종목·매매 화면 연결: 보유 종목 API(#45), 목록·검색(#46), @Valid 형식(#47), 사기·팔기(#48). 버퍼 포함 2일 계획에서 하루 초과
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
-6. 11/3 평가액 계산 (심장 ②) + 홈 화면 연결 + 내 거래 총손익 카드
+6. 11/3 평가액 계산 (심장 ②) API(PR A, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B)
 7. 11/4 WebSocket 평가액 푸시
 8. 11/5 실시간 평가액 차트 (심장 ④) + 손익 그래프 (버퍼 사용으로 하루)
 9. 11/6~7 실거래가 배치 (심장 ③), 11/7 오후 도메인·HTTPS (Secure 쿠키 켜기)

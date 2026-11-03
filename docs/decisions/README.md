@@ -50,8 +50,10 @@
 | 041 | [가상 종목 카탈로그: 유형 배치, 시작가, 호가 단위, market 삭제](041-virtual-stock-catalog.md) | 확정 |
 | 042 | [가상 시세 내부 가격: 반올림 전 값은 double, 밖으로는 long](042-virtual-price-internal-double.md) | 확정 |
 | 043 | [화면 가드: 회원 조회 실패면 시작 화면](043-screen-guard-member-me.md) | 확정 |
+| 044 | [평가액 계산: 조회(Service)와 계산(순수 클래스) 분리](044-portfolio-calculation-split.md) | 확정 |
+| 045 | [작성 분담 조정: 백엔드는 새 개념만 직접, 반복 로직은 에이전트](045-work-split-react-focus.md) | 확정 |
 
-다음 번호: 044
+다음 번호: 046
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
