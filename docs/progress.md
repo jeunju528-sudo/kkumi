@@ -143,7 +143,8 @@
   - `PortfolioService`(조회만: 회원 + `HoldingService.findHoldings`) → `PortfolioCalculator.calculate`(final 클래스·static, DB·시세 모름, WebSocket 푸시에서 재사용 예정) → `PortfolioValuation`
   - 금액 `Math.multiplyExact`·`addExact`·`subtractExact`, 수익률 `BigDecimal` 소수 4자리 HALF_UP(`changeRate`와 같음). 시드머니 1원 미만이면 `IllegalArgumentException`
   - `PortfolioCalculatorTest` 9개 메서드(경계 포함 13케이스): 보유 없음, 합계, 이익(523만 → +4.6%), 손실, 반올림 경계(±0.00005), 시드 5,000만, 곱셈·덧셈 넘침, 시드 0·음수
-  - 못 확인한 것: `./gradlew test`(작업 환경에서 Gradle 다운로드 차단, 개발자 PC에서 실행 필요), 로컬 curl 응답, 테스트 손 검산(045 조건)
+  - 확인 (11/3): `./gradlew test` 통과, 로컬 응답 cash 3,666,550 + stockValue 1,300,400 = totalAsset 4,966,950, profit −33,050, profitRate −0.0066 (손 검산 일치)
+  - 못 확인한 것: 쿠키 없는 요청 401 (기존 `SecurityConfig` 규칙 대상)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
