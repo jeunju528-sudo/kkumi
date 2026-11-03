@@ -1,55 +1,35 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
+import { useMemberQuery } from '../hooks/useMemberQuery'
+import { useStockProfitsQuery } from '../hooks/useStockProfitsQuery'
+import { useTradeHistoryQuery } from '../hooks/useTradeHistoryQuery'
+import { useTradeHistorySummaryQuery } from '../hooks/useTradeHistorySummaryQuery'
 import { formatKRW, formatNumber, formatRate, formatSignedKRW } from '../utils/format'
-import type { TradeHistoryResponse, TradeType } from '../types/api'
+import type { Period, TradeHistoryResponse, TradeType } from '../types/api'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './TradeHistoryPage.css'
 
 type HistoryTab = 'LIST' | 'BY_STOCK'
-type Period = 'WEEK' | 'MONTH' | 'QUARTER' | 'ALL'
 type KindFilter = 'ALL' | TradeType
 
-type MockTrade = TradeHistoryResponse & {
-  costBasis: number // 매도 수량 × 평균 매입가 (수익률 계산용)
-}
-
-type StockProfit = {
-  code: string
-  name: string
-  profit: number
-  costBasis: number
-  sellCount: number
-}
-
-// 목업 데이터. 실제 연결 시 API 응답으로 교체
-const CASH = 4_210_000
-const TODAY = new Date('2026-10-07T23:59:59')
+// 총손익 구성 카드 목업, 평가액 API 연결 때 교체
 const TOTAL_PROFIT = 230_000 // 홈 평가액 카드의 시드 대비 손익
-const TRADES: MockTrade[] = [
-  { id: 8, code: 'KK0003', name: '쿠르텍', tradeType: 'SELL', price: 40200, quantity: 2, realizedProfit: 2400, tradedAt: '2026-10-07T14:12:00', costBasis: 78000 },
-  { id: 7, code: 'KK0002', name: '마르덴전자', tradeType: 'BUY', price: 248000, quantity: 1, realizedProfit: null, tradedAt: '2026-10-07T10:03:00', costBasis: 0 },
-  { id: 6, code: 'KK0004', name: '브론델배터리', tradeType: 'SELL', price: 181500, quantity: 3, realizedProfit: -25500, tradedAt: '2026-10-06T15:40:00', costBasis: 570000 },
-  { id: 5, code: 'KK0003', name: '쿠르텍', tradeType: 'BUY', price: 39000, quantity: 6, realizedProfit: null, tradedAt: '2026-10-06T09:21:00', costBasis: 0 },
-  { id: 4, code: 'KK0013', name: '라미로보틱스', tradeType: 'SELL', price: 131000, quantity: 2, realizedProfit: 38000, tradedAt: '2026-10-05T13:05:00', costBasis: 224000 },
-  { id: 3, code: 'KK0004', name: '브론델배터리', tradeType: 'BUY', price: 190000, quantity: 3, realizedProfit: null, tradedAt: '2026-10-04T11:30:00', costBasis: 0 },
-  { id: 2, code: 'KK0013', name: '라미로보틱스', tradeType: 'BUY', price: 112000, quantity: 2, realizedProfit: null, tradedAt: '2026-10-04T10:10:00', costBasis: 0 },
-  { id: 1, code: 'KK0001', name: '세르반반도체', tradeType: 'BUY', price: 50500, quantity: 12, realizedProfit: null, tradedAt: '2026-09-28T09:00:00', costBasis: 0 },
+const ALL_REALIZED = 14_900
+
+const PERIODS: { value: Period; label: string; title: string }[] = [
+  { value: 'WEEK', label: '1주', title: '최근 1주' },
+  { value: 'MONTH', label: '1달', title: '최근 1달' },
+  { value: 'QUARTER', label: '3달', title: '최근 3달' },
+  { value: 'ALL', label: '전체', title: '전체 기간' },
 ]
 
-const PERIODS: { value: Period; label: string; title: string; days: number }[] = [
-  { value: 'WEEK', label: '1주', title: '최근 1주', days: 7 },
-  { value: 'MONTH', label: '1달', title: '최근 1달', days: 31 },
-  { value: 'QUARTER', label: '3달', title: '최근 3달', days: 92 },
-  { value: 'ALL', label: '전체', title: '전체 기간', days: Number.POSITIVE_INFINITY },
-]
 const KINDS: { value: KindFilter; label: string }[] = [
   { value: 'ALL', label: '전체' },
   { value: 'BUY', label: '매수' },
   { value: 'SELL', label: '매도' },
 ]
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-const DAY_MS = 86_400_000
 
 // "▲ +14,900원" / "▼ -25,500원" / "0원"
 function toProfitText(won: number): string {
@@ -73,23 +53,27 @@ export function TradeHistoryPage() {
   const [tab, setTab] = useState<HistoryTab>('LIST')
   const [period, setPeriod] = useState<Period>('WEEK')
   const [kind, setKind] = useState<KindFilter>('ALL')
+  // 'ALL'은 화면 전용 값, api에는 null로 (type 생략 = 전체)
+  const tradeType = kind === 'ALL' ? null : kind
+  const { data: member } = useMemberQuery()
+  const { data: summary } = useTradeHistorySummaryQuery(period)
+  const historyQuery = useTradeHistoryQuery(period, tradeType)
+  const stockProfitsQuery = useStockProfitsQuery(period)
 
-  // 목업 계산. 실제는 기간을 API 파라미터로 넘기고 합계는 응답으로 받음
+  const cash = member?.cash ?? 0
   const periodInfo = PERIODS.find((p) => p.value === period) ?? PERIODS[0]
-  const inPeriod = TRADES.filter((t) => (TODAY.getTime() - new Date(t.tradedAt).getTime()) / DAY_MS < periodInfo.days)
-  const sells = inPeriod.filter((t) => t.tradeType === 'SELL')
-  const realized = sells.reduce((sum, t) => sum + (t.realizedProfit ?? 0), 0)
-  const soldCost = sells.reduce((sum, t) => sum + t.costBasis, 0)
+  // 첫 응답 전엔 data가 undefined라 0으로 시작
+  const realized = summary?.realizedProfit ?? 0
+  const soldCost = summary?.soldCostBasis ?? 0
   const realizedRate = soldCost > 0 ? realized / soldCost : 0
-  const buyTotal = inPeriod.filter((t) => t.tradeType === 'BUY').reduce((sum, t) => sum + t.price * t.quantity, 0)
-  const sellTotal = sells.reduce((sum, t) => sum + t.price * t.quantity, 0)
+  const buyTotal = summary?.buyTotal ?? 0
+  const sellTotal = summary?.sellTotal ?? 0
+  const tradeCount = summary?.tradeCount ?? 0
+  const unrealized = TOTAL_PROFIT - ALL_REALIZED
 
-  const allRealized = TRADES.reduce((sum, t) => sum + (t.realizedProfit ?? 0), 0)
-  const unrealized = TOTAL_PROFIT - allRealized
-
-  const shown = inPeriod.filter((t) => kind === 'ALL' || t.tradeType === kind)
-  const dayGroups: { label: string; trades: MockTrade[] }[] = []
-  shown.forEach((t) => {
+  const trades = historyQuery.data?.items ?? []
+  const dayGroups: { label: string; trades: TradeHistoryResponse[] }[] = []
+  trades.forEach((t) => {
     const label = toDayLabel(t.tradedAt)
     const last = dayGroups[dayGroups.length - 1]
     if (last && last.label === label) {
@@ -99,20 +83,13 @@ export function TradeHistoryPage() {
     }
   })
 
-  const profitMap = new Map<string, StockProfit>()
-  sells.forEach((t) => {
-    const prev = profitMap.get(t.code) ?? { code: t.code, name: t.name, profit: 0, costBasis: 0, sellCount: 0 }
-    profitMap.set(t.code, {
-      ...prev,
-      profit: prev.profit + (t.realizedProfit ?? 0),
-      costBasis: prev.costBasis + t.costBasis,
-      sellCount: prev.sellCount + 1,
-    })
-  })
-  const stockProfits = [...profitMap.values()].sort((a, b) => b.profit - a.profit)
+  const stockProfits = stockProfitsQuery.data ?? []
 
   const isListTab = tab === 'LIST'
-  const isEmpty = isListTab ? dayGroups.length === 0 : stockProfits.length === 0
+  const isLoading = isListTab ? historyQuery.isPending : stockProfitsQuery.isPending
+  const isLoadError = isListTab ? historyQuery.isError : stockProfitsQuery.isError
+  // 로딩 중 빈 배열일 때 "사고판 게 없어요"가 깜빡이지 않게
+  const isEmpty = !isLoading && !isLoadError && (isListTab ? dayGroups.length === 0 : stockProfits.length === 0)
 
   const handleListTabClick = () => setTab('LIST')
   const handleStockTabClick = () => setTab('BY_STOCK')
@@ -147,7 +124,7 @@ export function TradeHistoryPage() {
           <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
           <div>
             <div className="k-lab">CASH</div>
-            <div className="k-num k-num--cash">{formatNumber(CASH)}</div>
+            <div className="k-num k-num--cash">{formatNumber(cash)}</div>
           </div>
         </div>
       </header>
@@ -178,7 +155,7 @@ export function TradeHistoryPage() {
             </div>
             <div>
               <div className="k-stat-label">거래</div>
-              <div className="k-stat-value">{inPeriod.length}건</div>
+              <div className="k-stat-value">{tradeCount}건</div>
             </div>
           </div>
         </section>
@@ -190,7 +167,7 @@ export function TradeHistoryPage() {
           </span>
           <span className="k-sum-item">
             <span>= 실현</span>
-            <b>{formatSignedKRW(allRealized)}</b>
+            <b>{formatSignedKRW(ALL_REALIZED)}</b>
           </span>
           <span className="k-sum-item">
             <span>+ 보유 종목 평가</span>
@@ -238,7 +215,8 @@ export function TradeHistoryPage() {
               </div>
             )}
           </div>
-
+          {isLoading && <div className="k-row-sub">불러오는 중...</div>}
+          {isLoadError && <div className="k-row-sub">거래내역을 못 불러왔어요. 잠시 후 다시 시도해 주세요.</div>}
           {isListTab &&
             dayGroups.map((g) => (
               <div key={g.label}>
