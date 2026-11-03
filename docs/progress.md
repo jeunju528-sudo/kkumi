@@ -131,6 +131,12 @@
   - 매도 원가는 저장하지 않고 `체결가 × 수량 − 실현손익`으로 쿼리에서 역산 (심장 ① 저장 로직 변경 없음)
   - 페이징은 `Slice`(화면에 전체 건수 불필요, count 쿼리 없음), size는 서버 상수 20
   - 로컬 확인 (11/2): 목록 12건 최신순, `tradedAt` ISO 문자열, 매수 합 618,600 검산 일치. KK0001 3주 매도 후 실현손익 −8,400, 매도 원가 154,650(51,550 × 3), 종목별 1줄. `page=-1` 400
+- 내 거래 화면 연결 (2026-11-03, `feat/trade-history-connect`, 무한 스크롤 전 PR A)
+  - `api/tradeHistoryApi.ts`(`getTradeHistory`·`getTradeHistorySummary`·`getStockProfits`, `URLSearchParams`로 쿼리스트링, `type` null이면 생략), `types/api.ts`(`Period`, `TradeHistoryPageResponse`, `TradeHistorySummaryResponse`, `StockProfitResponse`)
+  - 쿼리 키에 선택값 포함: `['tradeHistory', 'list', period, type]`, `['tradeHistory', 'summary', period]`, `['tradeHistory', 'byStock', period]`. 앞부분 `'tradeHistory'`로 한 번에 무효화 가능. 훅 3개(`useTradeHistoryQuery`·`useTradeHistorySummaryQuery`·`useStockProfitsQuery`), 폴링·매매 후 invalidate 없음(화면 재진입 시 staleTime 0으로 재조회)
+  - `TradeHistoryPage`: 목업 거래·기간 계산 삭제 → 요약·목록·종목별 응답 사용. 'ALL' → null 변환은 페이지에서. 보이는 탭만 로딩·에러 표시, 로딩 중엔 빈 상태 숨김. 목록은 첫 20건(page 0)
+  - 총손익 구성 카드는 목업 유지(`TOTAL_PROFIT`, `ALL_REALIZED`), 평가액 API 연결 때 교체
+  - 로컬 확인 (11/3): 진입 시 요청 3개, 현금 실제 값, 1주 실현손익 −8,400·수익률 −5.43%, 날짜별 목록, [매도] `type=SELL` 매도 1건만, [매수]·[전체] 전환, 기간 전환 재요청, 종목별 탭 1줄. `eslint`, `tsc -b` 통과
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
@@ -141,7 +147,8 @@
 - 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
 - `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
 - 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
-- 내 거래 화면 연결 (목업 → 거래내역 API 3개)
+- 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
+- 내 거래 총손익 구성 카드·안내 문구("샘플") 목업 → 평가액 API 연결 때 교체
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검
 
@@ -164,8 +171,8 @@
 2. 10/27~29 시세 제공자 (PR 3개): PR 1 종목 카탈로그(#39, 10/27 완료) → PR 2 가상 시세 엔진(#40, 10/27 완료) → PR 3 현재가 저장·복구(ADR 040) + 종목 조회 API(#41, 10/29 완료)
 3. (10/29 완료) 회원 조회 API(`/api/members/me`, #42) + `useMemberQuery` + 화면 가드
 4. (11/1 완료) 종목·매매 화면 연결: 보유 종목 API(#45), 목록·검색(#46), @Valid 형식(#47), 사기·팔기(#48). 버퍼 포함 2일 계획에서 하루 초과
-5. 11/2 중간 점검 완료 → 거래내역 조회 API 완료, 내 거래 화면 연결 진행 중
-6. 11/3 평가액 계산 (심장 ②) + 홈 화면 연결
+5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
+6. 11/3 평가액 계산 (심장 ②) + 홈 화면 연결 + 내 거래 총손익 카드
 7. 11/4 WebSocket 평가액 푸시
 8. 11/5 실시간 평가액 차트 (심장 ④) + 손익 그래프 (버퍼 사용으로 하루)
 9. 11/6~7 실거래가 배치 (심장 ③), 11/7 오후 도메인·HTTPS (Secure 쿠키 켜기)

@@ -1,3 +1,4 @@
+import type { TradeType, Period } from "../types/api";
 // { } 는 클래스 없이 바로 만든 객체 하나(객체 리터럴)
 // new도 없고 클래스도 없음
 // 키: member
@@ -15,6 +16,12 @@ export const queryKeys = {
     // holdings 는 내 보유종목을 보는거라서 holdings 중에 me 내것이라는 뜻을 붙인 것
     // 그리고 앞 부분으로 한 번에 무효화 처리가 가능함, invalidateQueries({queryKey: ['stocks']})
     holdings: () => ['holdings', 'me'] as const,
+
+    // history 관련 key가 다 'tradeHistory' 로 시작하는 이유 : 한번에 캐시 무효화 하려고
+    tradeHistory: (period: Period, type: TradeType | null) => ['tradeHistory', 'list', period, type] as const,
+    tradeHistorySummary: (period: Period) => ['tradeHistory', 'summary', period] as const,
+    stockProfits: (period: Period) => ['tradeHistory', 'byStock', period] as const,
+
 }
 
 /**
