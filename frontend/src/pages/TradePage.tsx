@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Sprite } from "../components/Sprite" // 픽셀 그림 하나를 그려주는 컴포넌트
+import { usePortfolioQuery } from "../hooks/usePortfolioQuery"
 import { formatKRW, formatNumber } from "../utils/format"
 import { useMemberQuery } from "../hooks/useMemberQuery"
 import { useStocksQuery } from "../hooks/useStocksQuery"
@@ -21,6 +22,7 @@ export function TradePage() {
   const { data: member } = useMemberQuery()
   const { data: stocks = [], isPending, isError } = useStocksQuery()
   const { data: holdings = [] } = useHoldingsQuery()
+  const { data: portfolio } = usePortfolioQuery()
 
   const cash = member?.cash ?? 0
   // 내가 가지고 있는 종목을 code랑 quantity로 배열사전을 하나 만들어서
@@ -34,10 +36,8 @@ export function TradePage() {
 
   const isMineTab = tab === 'MINE'
   const rows = isMineTab ? allRows.filter((s) => s.quantity > 0) : allRows
-  // reduce : 배열을 돌면서 값 하나로 줄여가는 메서드
-  // sum : 지금까지의 누적액에 이번 종목 s를 더해서 다음 누적값으로 넘겨
-  // 0은 sum의 초기값
-  const stockValue = allRows.reduce((sum, s) => sum + s.price * s.quantity, 0)
+
+  const stockValue = portfolio?.stockValue ?? 0
 
   const handleMineClick = () => setTab('MINE')
   const handleAllClick = () => setTab('ALL')

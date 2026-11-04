@@ -45,10 +45,11 @@ export type HoldingResponse = {
 
 export type PortfolioResponse = {
   cash: number
+  initialCash: number // 시드머니 (500만 / 5,000만)
   stockValue: number
   totalAsset: number // 평가액 = 현금 + 주식 평가액
-  profit: number
-  profitRate: number
+  profit: number // 평가액 − 시드머니
+  profitRate: number // 0.0123 = +1.23%
   holdings: HoldingResponse[]
 }
 

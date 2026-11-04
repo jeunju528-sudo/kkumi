@@ -4,6 +4,7 @@ import { Sprite } from '../components/Sprite'
 import { useMemberQuery } from '../hooks/useMemberQuery'
 import { useStockProfitsQuery } from '../hooks/useStockProfitsQuery'
 import { useTradeHistoryQuery } from '../hooks/useTradeHistoryQuery'
+import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { useTradeHistorySummaryQuery } from '../hooks/useTradeHistorySummaryQuery'
 import { formatKRW, formatNumber, formatRate, formatSignedKRW } from '../utils/format'
 import type { Period, TradeHistoryResponse, TradeType } from '../types/api'
@@ -12,10 +13,6 @@ import './TradeHistoryPage.css'
 
 type HistoryTab = 'LIST' | 'BY_STOCK'
 type KindFilter = 'ALL' | TradeType
-
-// 총손익 구성 카드 목업, 평가액 API 연결 때 교체
-const TOTAL_PROFIT = 230_000 // 홈 평가액 카드의 시드 대비 손익
-const ALL_REALIZED = 14_900
 
 const PERIODS: { value: Period; label: string; title: string }[] = [
   { value: 'WEEK', label: '1주', title: '최근 1주' },
@@ -57,6 +54,9 @@ export function TradeHistoryPage() {
   const tradeType = kind === 'ALL' ? null : kind
   const { data: member } = useMemberQuery()
   const { data: summary } = useTradeHistorySummaryQuery(period)
+  const { data: portfolio } = usePortfolioQuery()
+  // 총손익 구성은 기간 필터와 무관하게 전체 기간 실현손익
+  const { data: allSummary } = useTradeHistorySummaryQuery('ALL')
   const historyQuery = useTradeHistoryQuery(period, tradeType)
   const stockProfitsQuery = useStockProfitsQuery(period)
 
@@ -69,7 +69,11 @@ export function TradeHistoryPage() {
   const buyTotal = summary?.buyTotal ?? 0
   const sellTotal = summary?.sellTotal ?? 0
   const tradeCount = summary?.tradeCount ?? 0
-  const unrealized = TOTAL_PROFIT - ALL_REALIZED
+
+  const totalProfit = portfolio?.profit ?? 0
+  const allRealized = allSummary?.realizedProfit ?? 0
+  // 평가손익은 역산 (총손익 − 실현손익)
+  const unrealized = totalProfit - allRealized
 
   const trades = historyQuery.data?.items ?? []
   const dayGroups: { label: string; trades: TradeHistoryResponse[] }[] = []
@@ -163,11 +167,11 @@ export function TradeHistoryPage() {
         <section className="k-card k-sum" aria-label="총손익 구성">
           <span className="k-sum-item">
             <span>총손익(시드 대비)</span>
-            <b className={toProfitClass(TOTAL_PROFIT)}>{toProfitText(TOTAL_PROFIT)}</b>
+            <b className={toProfitClass(totalProfit)}>{toProfitText(totalProfit)}</b>
           </span>
           <span className="k-sum-item">
             <span>= 실현</span>
-            <b>{formatSignedKRW(ALL_REALIZED)}</b>
+            <b>{formatSignedKRW(allRealized)}</b>
           </span>
           <span className="k-sum-item">
             <span>+ 보유 종목 평가</span>
@@ -273,7 +277,6 @@ export function TradeHistoryPage() {
           )}
         </section>
 
-        <p className="k-note">※ 거래와 금액은 샘플이에요. 전부 가짜 돈이에요.</p>
       </main>
     </div>
   )

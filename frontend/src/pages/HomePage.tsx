@@ -1,25 +1,17 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
+import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
 import { formatKRW, formatManwon, formatNumber, formatSignedKRW } from '../utils/format'
-import type { HoldingResponse } from '../types/api'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './HomePage.css'
 
 type ChartPeriod = 'DAY' | 'WEEK' | 'MONTH'
 
 // 목업 데이터
-const SEED_MONEY = 5_000_000
-const CASH = 4_210_000
-const NET_WORTH = 5_230_000
 const MARKET_CLOSE_LEFT = '02:14:30'
 const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
-const HOLDINGS: HoldingResponse[] = [
-  { code: 'KK0001', name: '세르반반도체', quantity: 12, avgPrice: 49950, price: 51000 },
-  { code: 'KK0002', name: '마르덴전자', quantity: 1, avgPrice: 251270, price: 248000 },
-  { code: 'KK0003', name: '쿠르텍', quantity: 4, avgPrice: 39760, price: 40000 },
-]
 const CHART_PERIODS: { value: ChartPeriod; label: string }[] = [
   { value: 'DAY', label: '1일' },
   { value: 'WEEK', label: '1주' },
@@ -31,24 +23,39 @@ function toRateText(rate: number): string {
   return `${rate > 0 ? '+' : ''}${(rate * 100).toFixed(1)}%`
 }
 
+// 픽셀 화살표 (8x8)
+const ARROW_UP = 'M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM3 3h2v5h-2z'
+const ARROW_DOWN = 'M3 0h2v5h-2zM1 5h6v1h-6zM2 6h4v1h-4zM3 7h2v1h-2z'
+
+// 손익 부호 → 색 구분 (design.md --up / --down, 0은 회색)
+function toProfitTone(profit: number): 'up' | 'down' | 'flat' {
+  if (profit > 0) return 'up'
+  if (profit < 0) return 'down'
+  return 'flat'
+}
+
 function cssVars(vars: Record<string, string>): CSSProperties {
   return vars as CSSProperties
 }
 
 export function HomePage() {
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('DAY')
+  const { data: portfolio, isError } = usePortfolioQuery()
 
-  const profit = NET_WORTH - SEED_MONEY
+  const cash = portfolio?.cash ?? 0
+  const netWorth = portfolio?.totalAsset ?? 0
+  const holdings = portfolio?.holdings ?? []
+
   const goalOwnAmount = (GOAL.priceManwon * 10000 * 4) / 10
-  const goalLeft = Math.max(0, goalOwnAmount - NET_WORTH)
-  const goalPct = `${Math.min(100, (NET_WORTH / goalOwnAmount) * 100).toFixed(1)}%`
+  const goalLeft = Math.max(0, goalOwnAmount - netWorth)
+  const goalPct = `${Math.min(100, (netWorth / goalOwnAmount) * 100).toFixed(1)}%`
 
   const cashChip = (
     <div className="k-chip">
       <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
       <div>
         <div className="k-lab">CASH</div>
-        <div className="k-num k-num--cash">{formatNumber(CASH)}</div>
+        <div className="k-num k-num--cash">{formatNumber(cash)}</div>
       </div>
     </div>
   )
@@ -127,16 +134,26 @@ export function HomePage() {
                 <div className="k-px-label">내 평가액</div>
                 <div className="k-lab k-lab--gold">NET WORTH</div>
               </div>
-              <div className="k-net">{formatKRW(NET_WORTH)}</div>
-              <div className="k-profit">
-                <svg width="16" height="16" viewBox="0 0 8 8" style={{ shapeRendering: 'crispEdges' }} aria-hidden="true">
-                  <path d="M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM3 3h2v5h-2z" style={{ fill: '#FF7A7E' }} />
-                </svg>
-                <div className="k-profit-num">
-                  {formatSignedKRW(profit)} ({toRateText(profit / SEED_MONEY)})
+              {portfolio ? (
+                <>
+                  <div className="k-net">{formatKRW(portfolio.totalAsset)}</div>
+                  <div className={`k-profit k-profit--${toProfitTone(portfolio.profit)}`}>
+                    {portfolio.profit !== 0 && (
+                      <svg width="16" height="16" viewBox="0 0 8 8" style={{ shapeRendering: 'crispEdges' }} aria-hidden="true">
+                        <path d={portfolio.profit > 0 ? ARROW_UP : ARROW_DOWN} fill="currentColor" />
+                      </svg>
+                    )}
+                    <div className="k-profit-num">
+                      {formatSignedKRW(portfolio.profit)} ({toRateText(portfolio.profitRate)})
+                    </div>
+                    <div className="k-profit-cap">시드머니 대비</div>
+                  </div>
+                </>
+              ) : (
+                <div className="k-profit-cap">
+                  {isError ? '평가액을 못 불러왔어요. 잠시 후 다시 시도해 주세요.' : '불러오는 중...'}
                 </div>
-                <div className="k-profit-cap">시드머니 대비</div>
-              </div>
+              )}
               <Link to="/trade/history" className="k-px-link">
                 <span>실현손익 · 거래내역 보기</span>
                 <span className="k-px-link-arrow">&gt;</span>
@@ -187,7 +204,7 @@ export function HomePage() {
                 <polyline points="0,92 54,84 108,96 162,70 216,60 270,44 322,30" fill="none" stroke="#E5484D" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                 <circle cx="322" cy="30" r="5" fill="#E5484D" stroke="#FFFFFF" strokeWidth="2" />
               </svg>
-              <div className="k-chart-base">시드머니 {formatKRW(SEED_MONEY)}</div>
+              {portfolio && <div className="k-chart-base">시드머니 {formatKRW(portfolio.initialCash)}</div>}
               <div className="k-days">
                 <span>월</span>
                 <span>화</span>
@@ -204,7 +221,8 @@ export function HomePage() {
                 <div className="k-card-title">보유 종목</div>
                 <Link to="/trade" className="k-more">종목 거래하기 &gt;</Link>
               </div>
-              {HOLDINGS.map((h) => {
+              {portfolio && holdings.length === 0 && <div className="k-row-sub">아직 산 종목이 없어요.</div>}
+              {holdings.map((h) => {
                 const rate = (h.price - h.avgPrice) / h.avgPrice
                 return (
                   <Link key={h.code} to="/trade" className="k-row">
@@ -239,7 +257,6 @@ export function HomePage() {
             <Link to="/apartments" className="k-btn">집 보러 가기</Link>
           </div>
         </div>
-        <p className="k-note">※ 샘플 데이터예요. 전부 가짜 돈이라 잃을 게 없어요.</p>
       </main>
     </div>
   )
