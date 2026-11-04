@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-03
+## 기준일: 2026-11-04
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -135,7 +135,7 @@
   - `api/tradeHistoryApi.ts`(`getTradeHistory`·`getTradeHistorySummary`·`getStockProfits`, `URLSearchParams`로 쿼리스트링, `type` null이면 생략), `types/api.ts`(`Period`, `TradeHistoryPageResponse`, `TradeHistorySummaryResponse`, `StockProfitResponse`)
   - 쿼리 키에 선택값 포함: `['tradeHistory', 'list', period, type]`, `['tradeHistory', 'summary', period]`, `['tradeHistory', 'byStock', period]`. 앞부분 `'tradeHistory'`로 한 번에 무효화 가능. 훅 3개(`useTradeHistoryQuery`·`useTradeHistorySummaryQuery`·`useStockProfitsQuery`), 폴링·매매 후 invalidate 없음(화면 재진입 시 staleTime 0으로 재조회)
   - `TradeHistoryPage`: 목업 거래·기간 계산 삭제 → 요약·목록·종목별 응답 사용. 'ALL' → null 변환은 페이지에서. 보이는 탭만 로딩·에러 표시, 로딩 중엔 빈 상태 숨김. 목록은 첫 20건(page 0)
-  - 총손익 구성 카드는 목업 유지(`TOTAL_PROFIT`, `ALL_REALIZED`), 평가액 API 연결 때 교체
+  - 총손익 구성 카드는 목업 유지(`TOTAL_PROFIT`, `ALL_REALIZED`), 평가액 API 연결 때 교체 → 11/4 교체 완료
   - 로컬 확인 (11/3): 진입 시 요청 3개, 현금 실제 값, 1주 실현손익 −8,400·수익률 −5.43%, 날짜별 목록, [매도] `type=SELL` 매도 1건만, [매수]·[전체] 전환, 기간 전환 재요청, 종목별 탭 1줄. `eslint`, `tsc -b` 통과
 - 작성 분담 조정 (2026-11-03, `decisions/045`): 프론트(React) 집중. 백엔드는 새 개념이 있는 작업(심장 ③ 배치, WebSocket 푸시)만 개발자 직접, 심장 ②와 반복 로직(추천 API, 집 사기 등)은 Claude 작성 → 개발자 리뷰. 심장 ①③④·프론트 동작은 기존대로. CLAUDE.md "절대 금지"·"테스트", `domain/glossary.md` 반영
 - 평가액 API (심장 ②) (2026-11-03, `feat/portfolio-api`, PR A, `decisions/044`)
@@ -145,18 +145,28 @@
   - `PortfolioCalculatorTest` 9개 메서드(경계 포함 13케이스): 보유 없음, 합계, 이익(523만 → +4.6%), 손실, 반올림 경계(±0.00005), 시드 5,000만, 곱셈·덧셈 넘침, 시드 0·음수
   - 확인 (11/3): `./gradlew test` 통과, 로컬 응답 cash 3,666,550 + stockValue 1,300,400 = totalAsset 4,966,950, profit −33,050, profitRate −0.0066 (손 검산 일치)
   - 못 확인한 것: 쿠키 없는 요청 401 (기존 `SecurityConfig` 규칙 대상)
+- 홈·평가액 화면 연결 (2026-11-04, `feat/home-portfolio-connect`, 평가액 PR B)
+  - `api/portfolioApi.getMyPortfolio`, `queryKeys.portfolio`(`['portfolio', 'me']`), `hooks/usePortfolioQuery`(`refetchInterval` 5초, WebSocket 전까지 폴링). 탭이 백그라운드면 폴링 건너뜀(`refetchIntervalInBackground` 기본 false, query-core `queryObserver.js` 소스로 확인)
+  - `types/api.ts` `PortfolioResponse`에 `initialCash` 추가
+  - `HomePage`: 목업 `SEED_MONEY`·`CASH`·`NET_WORTH`·`HOLDINGS` 삭제 → 응답 사용(CASH 칩, 평가액, 손익·수익률, 목표 진행바, 차트 기준선, 보유 종목). 데이터가 한 번도 안 왔을 때만 로딩·에러 문구(폴링 실패 시 직전 값 유지), 보유 없으면 "아직 산 종목이 없어요."
+  - 홈 손익 색·화살표를 부호별로: 수익 `#E5484D` 위, 손실 `#3B82F6` 아래(design.md 어두운 배경 `--up`/`--down`), 0원은 회색·화살표 없음. 기존 `#FF7A7E` 고정 빨강 제거
+  - 매수·매도 성공 시 `queryKeys.portfolio()` invalidate 추가
+  - `TradeHistoryPage` 총손익 구성 카드: 총손익 = `portfolio.profit`, 실현 = 전체 기간 요약(`useTradeHistorySummaryQuery('ALL')`, 기간 필터가 전체면 같은 키라 요청 1번), 평가손익 = 총손익 − 실현(역산, `decisions/044`)
+  - `TradePage` "내 종목 평가액" 화면 합계 → `portfolio.stockValue`
+  - 홈·내 거래 하단 "샘플" 안내 문구 삭제 (실제 데이터라 불필요). 아파트·계약서·내 마을은 연결 때 같은 방식
+  - 남은 목업: 홈 목표 아파트(`GOAL`, 추천 API 때), 장 마감 시계, 손익 차트(심장 ④)
+  - 로컬 확인 (11/4): 홈 평가액·손익 응답 값 표시, 손실 시 파란 아래 화살표, `portfolios/me` 5초 간격 요청
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - WebSocket 평가액 푸시
-- 프론트 데이터 연결: 시드 선택·종목 목록·검색·사기·팔기 외 화면은 목업 상수 (홈의 현금·평가액, 내 거래 등)
+- 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
 - 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
 - `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
 - 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
 - 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
-- 내 거래 총손익 구성 카드·안내 문구("샘플") 목업 → 평가액 API 연결 때 교체
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검
 
@@ -180,7 +190,7 @@
 3. (10/29 완료) 회원 조회 API(`/api/members/me`, #42) + `useMemberQuery` + 화면 가드
 4. (11/1 완료) 종목·매매 화면 연결: 보유 종목 API(#45), 목록·검색(#46), @Valid 형식(#47), 사기·팔기(#48). 버퍼 포함 2일 계획에서 하루 초과
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
-6. 11/3 평가액 계산 (심장 ②) API(PR A, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B)
+6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
 7. 11/4 WebSocket 평가액 푸시
 8. 11/5 실시간 평가액 차트 (심장 ④) + 손익 그래프 (버퍼 사용으로 하루)
 9. 11/6~7 실거래가 배치 (심장 ③), 11/7 오후 도메인·HTTPS (Secure 쿠키 켜기)

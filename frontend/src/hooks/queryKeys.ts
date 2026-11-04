@@ -21,7 +21,7 @@ export const queryKeys = {
     tradeHistory: (period: Period, type: TradeType | null) => ['tradeHistory', 'list', period, type] as const,
     tradeHistorySummary: (period: Period) => ['tradeHistory', 'summary', period] as const,
     stockProfits: (period: Period) => ['tradeHistory', 'byStock', period] as const,
-
+    portfolio: () => ['portfolio', 'me'] as const,
 }
 
 /**

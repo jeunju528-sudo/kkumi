@@ -14,6 +14,7 @@ export function useBuyStockMutation() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.member() })
             queryClient.invalidateQueries({ queryKey: queryKeys.holdings() })
+            queryClient.invalidateQueries({ queryKey: queryKeys.portfolio() })
         },
     })
 }

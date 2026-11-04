@@ -22,7 +22,6 @@
 .page-home .k-quest{background:#FFFFFF;border:2px solid #231B3A;box-shadow:0 3px 0 #231B3A;padding:14px 14px 16px}
 .page-home .k-btn{display:flex;align-items:center;justify-content:center;min-height:56px;box-sizing:border-box;padding:0 16px;background:#FFC93C;color:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;border-radius:0;font-size:16px;font-weight:800}
 .page-home .k-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #0F0B1F}
-.page-home .k-note{margin:24px 0 0;text-align:center;font-size:12px;line-height:1.5;color:#6B6F80}
 .page-home .k-hero-hud{display:none;position:absolute;left:14px;right:14px;top:14px;justify-content:space-between;align-items:flex-start}
 .page-home .k-scene{position:relative;height:188px;overflow:hidden;background:#1E90E6}
 .page-home .k-scene .sp{position:absolute;shape-rendering:crispEdges}
@@ -54,7 +53,10 @@
 .page-home .k-lab--sub{color:#6B6F80}
 .page-home .k-net{margin-top:4px;font-size:40px;font-weight:800;line-height:1.15;color:#FFC93C;font-variant-numeric:tabular-nums}
 .page-home .k-profit{margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.page-home .k-profit-num{font-size:14px;font-weight:700;color:#FF7A7E;font-variant-numeric:tabular-nums}
+.page-home .k-profit-num{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.page-home .k-profit--up{color:#E5484D}
+.page-home .k-profit--down{color:#3B82F6}
+.page-home .k-profit--flat{color:#B9BCD0}
 .page-home .k-profit-cap{font-size:12px;color:#B9BCD0;margin-left:auto}
 
 /* 목표 패널 */
