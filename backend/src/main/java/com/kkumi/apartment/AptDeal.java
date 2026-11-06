@@ -57,5 +57,31 @@ public class AptDeal {
 	@Column(nullable = false)
 	private boolean canceled;
 
+	/** 시세 기간 (ADR 015): 최근 6개월 거래만 추천·구매 대상 */
+	public static final int MARKET_PRICE_MONTHS = 6;
+
+	private AptDeal(AptComplex complex, BigDecimal area, int floor, long price, LocalDate contractDate) {
+		this.complex = complex;
+		this.area = area;
+		this.floor = floor;
+		this.price = price;
+		this.contractDate = contractDate;
+		this.canceled = false;
+	}
+
+	public static AptDeal of(AptComplex complex, BigDecimal area, int floor, long price, LocalDate contractDate) {
+		return new AptDeal(complex, area, floor, price, contractDate);
+	}
+
+	// 시세 기간 시작일 (오늘 − 6개월, 이 날짜 계약까지 포함)
+	public static LocalDate marketPriceSince(LocalDate today) {
+		return today.minusMonths(MARKET_PRICE_MONTHS);
+	}
+
+	// 살 수 있는 거래: 해제 안 됨 + 시세 기간 안
+	public boolean isAvailable(LocalDate today) {
+		return !canceled && !contractDate.isBefore(marketPriceSince(today));
+	}
+
 	// TODO: 국토부 응답 → 엔티티 변환, 해제여부 갱신
 }

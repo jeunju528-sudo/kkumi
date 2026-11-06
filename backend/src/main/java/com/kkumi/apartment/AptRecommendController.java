@@ -1,11 +1,13 @@
 package com.kkumi.apartment;
 
 import com.kkumi.apartment.dto.AptRecommendPageResponse;
+import com.kkumi.apartment.dto.AptRecommendResponse;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,5 +28,11 @@ public class AptRecommendController {
                                                         @RequestParam(name = "affordableOnly", defaultValue = "true") boolean isAffordableOnly,
                                                         @RequestParam(defaultValue = "0") @Min(0) int page) {
         return aptRecommendService.findRecommendations(memberId, q, isAffordableOnly, page, PAGE_SIZE);
+    }
+
+    // 계약서 화면: 거래 1건 + 카드 상태
+    @GetMapping("/{dealId}")
+    public AptRecommendResponse getDeal(@AuthenticationPrincipal Long memberId, @PathVariable Long dealId) {
+        return aptRecommendService.getDeal(memberId, dealId);
     }
 }

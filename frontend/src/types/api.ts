@@ -86,10 +86,34 @@ export type AptRecommendPageResponse = {
   maxPrice: number // 평가액으로 살 수 있는 최대 집값
 }
 
+// POST /api/houses
+export type BuyHouseRequest = {
+  dealId: number
+}
+
 export type BuyHouseResponse = {
   houseId: number
   tier: Tier
-  isTierUp: boolean
+  isTierUp: boolean // 이번 구매로 변신 단계가 올라갔는지
+}
+
+// 내 마을 집 한 채
+export type HouseResponse = {
+  houseId: number
+  dealId: number
+  complexName: string
+  region: string
+  area: number // ㎡
+  floor: number
+  purchasePrice: number // 산 때 집값
+  purchasedAt: string // ISO
+}
+
+// GET /api/houses
+export type MyHousesResponse = {
+  houses: HouseResponse[]
+  houseCount: number
+  tier: Tier
 }
 
 export type TradeHistoryResponse = {

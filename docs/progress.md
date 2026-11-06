@@ -181,6 +181,16 @@
   - `MemberGuard`: 회원 조회 성공(`isSuccess`) 후 연결. 로그인 화면 전체를 감싸서 페이지 이동해도 연결 1개 유지
   - `usePortfolioQuery`: `refetchInterval`(5초 폴링) 삭제 → 첫 값만 GET, 이후 WebSocket
   - 네트워크 단절(서버 재시작 등)은 stompjs 자동 재연결, 화면 이탈은 React cleanup이 담당
+- 집 사기·내 마을 API (2026-11-06, `feat/house-purchase-api`, `decisions/048`, 작성 분담 045)
+  - `POST /api/houses {dealId}` → `BuyHouseResponse{houseId, tier, isTierUp}`. `HouseService.buyHouse`: 회원 비관적 락(025) → 거래 조회 → `AptDeal.isAvailable`(해제 아님 + 계약일 ≥ 오늘 − 6개월) → 같은 회원 같은 거래 중복 확인 → `member.withdraw(HousePriceRule.ownAmount)` → `House.purchase` 저장 → 집 수로 `Tier`
+  - `GET /api/houses` → `MyHousesResponse{houses, houseCount, tier}`(join fetch 거래·단지, 먼저 산 순)
+  - `GET /api/apartments/{dealId}` → 계약서 화면용 거래 1건(`AptRecommendResponse`, 카드 상태 포함)
+  - `house/Tier`(GEOLBAENGI·SEOMIN·JOKBU·GAPBU, 화면 타입과 같은 이름), `ErrorCode` `DEAL_NOT_FOUND`(404)·`DEAL_NOT_AVAILABLE`(400)·`ALREADY_OWNED_DEAL`(409)
+  - `AptComplex.of`·`AptDeal.of` 정적 팩토리(배치·테스트용), `AptDeal.marketPriceSince`로 6개월 기준을 추천·구매가 공유
+  - `MemberResponse`에 tier·houseCount는 넣지 않음(member ↔ house 순환 참조 방지, 홈은 내 마을 쿼리 사용)
+  - 테스트: `TierTest`(0·1·2~4·5 이상·음수), `AptDealTest`(6개월 경계 당일 포함, 하루 전 불가, 해제), `HouseServiceTest`(40% 차감·집 저장·서민 변신, 현금 = 내 돈 경계, 변신 여부 2·3·5·6채째, 1원 부족 실패 시 현금·저장 그대로, 없는 거래, 기간 지난 거래, 중복 구매, 락 사용)
+  - `types/api.ts`: `BuyHouseRequest`, `HouseResponse`, `MyHousesResponse`
+  - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 차단), 응답 JSON의 `isTierUp` 이름(Jackson record 직렬화, 로컬 curl로 확인 필요), 실제 거래 데이터(배치 전)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
