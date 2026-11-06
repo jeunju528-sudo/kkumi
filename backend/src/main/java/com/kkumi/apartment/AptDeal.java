@@ -46,7 +46,7 @@ public class AptDeal {
 	@Column(nullable = false)
 	private int floor;
 
-	/** 거래금액 (원/만원 단위 변환 여부 미정) */
+	/** 거래금액 (원). 국토부 응답은 만원 단위라 배치에서 × 10,000 (ADR 019, 047) */
 	@Column(nullable = false)
 	private long price;
 

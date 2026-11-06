@@ -164,6 +164,16 @@
   - 로컬 확인 (11/6): 브라우저 콘솔에서 STOMP 프레임 직접 전송(CONNECT → SUBSCRIBE `/user/queue/portfolio`) → `CONNECTED` 프레임 `user-name:1`(Principal 이름 = memberId 확인), 5초마다 `MESSAGE`에 평가액 JSON(cash 3,666,550 + stockValue 1,231,300 = totalAsset 4,897,850 일치)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
+- 아파트 추천 API (2026-11-06, `feat/apt-recommend-api`, `decisions/047`, 작성 분담 045: 에이전트 작성 → 개발자 리뷰)
+  - `GET /api/apartments?q=&affordableOnly=&page=` → `AptRecommendPageResponse{items, page, hasNext, maxPrice}`. 카드 `AptRecommendResponse{dealId, complexName, region, area, floor, price, contractDate, ownAmount, loanAmount, affordability, shortage}`
+  - `HousePriceRule`(내 돈 = 집값 × 40% 원 미만 올림, 대출 = 나머지, 평가액으로 살 수 있는 최대 집값), `Affordability`(OK·NEED_SELL·SHORT) + `AffordabilityCheck.of(내 돈, 현금, 평가액)` → 상태·부족액
+  - `AptDealRepository`: 최근 6개월·해제 제외·단지 join fetch. 살 수 있는 집만 비싼 순 / 전체 싼 순, 검색어는 단지명·지역명·법정동
+  - `AptRecommendService`: 평가액·현금은 `PortfolioService`(044), 판정은 `AffordabilityCheck`
+  - `AptComplex.regionName` NOT NULL 컬럼 추가(배치가 시군구 코드표로 채움), `AptDeal.price` 원 단위로 확정(배치에서 만원 × 10,000)
+  - 테스트: `HousePriceRuleTest`(40%·60%, 올림 경계, 최대 집값과 판정 경계 일치, 0·음수, 넘침), `AffordabilityCheckTest`(현금·평가액 = 내 돈 경계, 1원 부족, 돈 없음)
+  - `types/api.ts`: `AptRecommendResponse`에 `floor`·`contractDate`, `AptRecommendPageResponse` 추가
+  - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 다운로드 차단), 실제 데이터 조회(배치 전이라 `apt_deal` 비어 있음, 배치 후 확인)
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)

@@ -53,8 +53,9 @@
 | 044 | [평가액 계산: 조회(Service)와 계산(순수 클래스) 분리](044-portfolio-calculation-split.md) | 확정 |
 | 045 | [작성 분담 조정: 백엔드는 새 개념만 직접, 반복 로직은 에이전트](045-work-split-react-focus.md) | 확정 |
 | 046 | [WebSocket 푸시: 사용자별 평가액을 서버가 계산해서 개인 큐로](046-websocket-push-per-user-portfolio.md) | 확정 |
+| 047 | [아파트 추천 조회: 원 단위 저장, 지역명 컬럼, 살 수 있는 집 비싼 순](047-apartment-recommend-query.md) | 확정 |
 
-다음 번호: 047
+다음 번호: 048
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
