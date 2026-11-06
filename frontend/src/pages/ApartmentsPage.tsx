@@ -3,6 +3,7 @@ import type { ChangeEvent, CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import type { AptRecommendResponse } from '../types/api'
 import { Sprite } from '../components/Sprite'
+import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './ApartmentsPage.css'
@@ -13,9 +14,7 @@ type HomeMock = Pick<AptRecommendResponse, 'dealId' | 'complexName' | 'region' |
   roof: string
 }
 
-// 목업 데이터 (W: 평가액, C: 현금)
-const MOCK_TOTAL_ASSET = 5230000
-const MOCK_CASH = 4210000
+// 목업 집 (추천 API 연결 때 교체). 현금·평가액은 실제 값 (홈·투자 HUD와 같은 값)
 const MOCK_APARTMENTS: HomeMock[] = [
   { dealId: 101, complexName: '태백 [단지명]', region: '강원 태백시', area: 39, priceManwon: 1800, roof: '#D64545' },
   { dealId: 102, complexName: '군산 [단지명]', region: '전북 군산시', area: 45, priceManwon: 2400, roof: '#3E9B3E' },
@@ -25,11 +24,13 @@ const MOCK_APARTMENTS: HomeMock[] = [
   { dealId: 106, complexName: '창원 [단지명]', region: '경남 창원시', area: 84, priceManwon: 18000, roof: '#D64545' },
 ]
 
-// 평가액이 집값 40% 이상인 최대 집값 (만원)
-const MAX_PRICE_MANWON = Math.floor(MOCK_TOTAL_ASSET / 0.4 / 10000)
 
 // 시안 헤더 (집 찾기 탭 활성)
-function ApartmentsHeader() {
+type ApartmentsHeaderProps = {
+  cash: number
+}
+
+function ApartmentsHeader({ cash }: ApartmentsHeaderProps) {
   return (
     <header className="k-top">
       <Link to="/home" className="k-logo">
@@ -67,7 +68,7 @@ function ApartmentsHeader() {
         <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
         <div>
           <div className="k-lab">CASH</div>
-          <div className="k-num k-cash">{formatNumber(MOCK_CASH)}</div>
+          <div className="k-num k-cash">{formatNumber(cash)}</div>
         </div>
       </div>
     </header>
@@ -78,11 +79,17 @@ export function ApartmentsPage() {
   const [query, setQuery] = useState('')
   const [isOnlyOk, setIsOnlyOk] = useState(false)
 
+  const { data: portfolio } = usePortfolioQuery()
+  const cash = portfolio?.cash ?? 0
+  const totalAsset = portfolio?.totalAsset ?? 0
+  // 평가액이 집값 40% 이상인 최대 집값 (만원)
+  const maxPriceManwon = Math.floor(totalAsset / 0.4 / 10000)
+
   const q = query.trim()
   const rows = MOCK_APARTMENTS.map((home, index) => {
     const ownWon = home.priceManwon * 10000 * 0.4
-    const hasEnoughCash = ownWon <= MOCK_CASH
-    const isNeedSell = !hasEnoughCash && ownWon <= MOCK_TOTAL_ASSET
+    const hasEnoughCash = ownWon <= cash
+    const isNeedSell = !hasEnoughCash && ownWon <= totalAsset
     const isRecommended = hasEnoughCash || isNeedSell
     return { home, index, ownWon, hasEnoughCash, isNeedSell, isRecommended }
   }).filter(
@@ -96,7 +103,7 @@ export function ApartmentsPage() {
 
   return (
     <div className="page-apartments">
-      <ApartmentsHeader />
+      <ApartmentsHeader cash={cash} />
       <main className="k-wrap">
         <h1 className="k-title">동네 부동산</h1>
         <p className="k-desc">전국 진짜 아파트를 검색해서 가짜로 계약해요. 국토부 실거래가 기준이에요.</p>
@@ -117,7 +124,7 @@ export function ApartmentsPage() {
               <div className="k-px-label">내 평가액으로 살 수 있는 집</div>
               <div className="k-lab">MAX</div>
             </div>
-            <div className="k-max">약 {formatManwon(MAX_PRICE_MANWON)}까지</div>
+            <div className="k-max">약 {formatManwon(maxPriceManwon)}까지</div>
           </section>
         </div>
 
@@ -204,12 +211,12 @@ export function ApartmentsPage() {
                 )}
                 {isNeedSell && (
                   <Link to="/trade" className="k-btn k-btn--sell">
-                    현금 {formatKRW(ownWon - MOCK_CASH)} 부족 · 주식 팔러 가기
+                    현금 {formatKRW(ownWon - cash)} 부족 · 주식 팔러 가기
                   </Link>
                 )}
                 {!isRecommended && (
                   <button type="button" className="k-btn k-btn--off" disabled>
-                    {formatKRW(ownWon - MOCK_TOTAL_ASSET)} 모자라요
+                    {formatKRW(ownWon - totalAsset)} 모자라요
                   </button>
                 )}
               </article>
