@@ -67,13 +67,23 @@ export type SellStockRequest = {
 export type AptRecommendResponse = {
   dealId: number
   complexName: string
-  region: string
+  region: string // 예: 강원 태백시
   area: number // ㎡
+  floor: number
   price: number
-  ownAmount: number // 집값 40%
+  contractDate: string // 계약일 'YYYY-MM-DD'
+  ownAmount: number // 집값 40% (원 미만 올림)
   loanAmount: number // 집값 60%
   affordability: Affordability
   shortage: number // NEED_SELL: 현금 부족액, SHORT: 평가액 부족액
+}
+
+// GET /api/apartments?q=&affordableOnly=&page= (20건씩)
+export type AptRecommendPageResponse = {
+  items: AptRecommendResponse[]
+  page: number
+  hasNext: boolean
+  maxPrice: number // 평가액으로 살 수 있는 최대 집값
 }
 
 export type BuyHouseResponse = {

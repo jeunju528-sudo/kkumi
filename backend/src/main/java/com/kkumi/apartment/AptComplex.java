@@ -43,5 +43,9 @@ public class AptComplex {
 
 	private Integer builtYear;
 
+	/** 지역명 (예: 강원 태백시). 국토부 응답에 이름이 없어 배치가 시군구 코드표로 채움 (ADR 047) */
+	@Column(nullable = false, length = 30)
+	private String regionName;
+
 	// TODO: 배치 - 단지 조회 or 신규 생성
 }
