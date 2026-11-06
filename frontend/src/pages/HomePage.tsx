@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { usePortfolioHistoryQuery } from '../hooks/usePortfolioHistoryQuery'
+import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { ValuationChart } from '../components/ValuationChart'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
@@ -13,7 +14,6 @@ import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './HomePage.css'
 
 // 목업 데이터
-const MARKET_CLOSE_LEFT = '02:14:30'
 const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
 
 // 손익 차트 기간: 1일 탭 없음, 일별 기록 + 오늘 현재값 (ADR 049)
@@ -48,6 +48,8 @@ export function HomePage() {
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('WEEK')
   const { data: portfolio, isError } = usePortfolioQuery()
   const { data: history = [] } = usePortfolioHistoryQuery(chartPeriod)
+  // 0시에 오늘 시작가·상하한·일별 기록이 바뀜 → 장 시간 대신 하루 마감 (ADR 050)
+  const dayCloseLeft = useMidnightCountdown()
 
   const cash = portfolio?.cash ?? 0
   const netWorth = portfolio?.totalAsset ?? 0
@@ -81,8 +83,8 @@ export function HomePage() {
     <div className="k-chip">
       <Sprite id="px-clock" viewBox="0 0 8 8" width={16} height={16} />
       <div>
-        <div className="k-clock-lab">장 마감까지</div>
-        <div className="k-num k-num--clock">{MARKET_CLOSE_LEFT}</div>
+        <div className="k-clock-lab">오늘 마감까지</div>
+        <div className="k-num k-num--clock">{dayCloseLeft}</div>
       </div>
     </div>
   )
@@ -217,7 +219,14 @@ export function HomePage() {
                   ))}
                 </div>
               </div>
-              {portfolio && (
+              {/* 기록 0개면 점 하나뿐이라 빈 차트 대신 안내 (첫 기록은 다음 0시) */}
+              {portfolio && history.length === 0 && (
+                <div className="k-chart-empty">
+                  <div className="k-chart-empty-title">평가액이 쌓이면 그래프로 한눈에 볼 수 있어요</div>
+                  <div>매일 0시에 그날 평가액이 기록돼요</div>
+                </div>
+              )}
+              {portfolio && history.length > 0 && (
                 <ValuationChart
                   points={chartPoints}
                   slotCount={pastDays + 1}
@@ -226,15 +235,16 @@ export function HomePage() {
                   label={`최근 ${chartPeriodLabel} 평가액 추이 그래프, 점선은 시드머니`}
                 />
               )}
-              {portfolio && <div className="k-chart-base">점선 시드머니 {formatKRW(portfolio.initialCash)}</div>}
-              {portfolio && history.length === 0 && (
-                <div className="k-chart-base">평가액 기록은 매일 0시에 하루치씩 쌓여요.</div>
+              {portfolio && history.length > 0 && (
+                <>
+                  <div className="k-chart-base">점선 시드머니 {formatKRW(portfolio.initialCash)}</div>
+                  <div className="k-days">
+                    {axisLabels.map((day, i) => (
+                      <span key={i}>{day}</span>
+                    ))}
+                  </div>
+                </>
               )}
-              <div className="k-days">
-                {axisLabels.map((day, i) => (
-                  <span key={i}>{day}</span>
-                ))}
-              </div>
             </section>
           </div>
 
@@ -277,7 +287,12 @@ export function HomePage() {
               </div>
             </section>
 
-            <Link to="/apartments" className="k-btn">집 보러 가기</Link>
+            {/* 보유 종목 0개(신규)면 첫 행동은 종목 사기, 집 화면은 "모자라요"만 보임 */}
+            {portfolio && holdings.length === 0 ? (
+              <Link to="/trade" className="k-btn">첫 종목 사러 가기</Link>
+            ) : (
+              <Link to="/apartments" className="k-btn">집 보러 가기</Link>
+            )}
           </div>
         </div>
       </main>

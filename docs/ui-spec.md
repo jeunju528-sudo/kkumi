@@ -59,7 +59,7 @@ SeedPick
 ```
 Home
   PixelTownScene
-  HudChips            # CASH, 장 마감 시계
+  HudChips            # CASH, 오늘 마감 시계(다음 0시까지, ADR 050)
   ValuationCard       # 내 평가액(롤링), 손익, 내 거래 링크(→/trade/history)
   GoalPanel           # 첫 집 목표 + 진행 바
   ValuationChart

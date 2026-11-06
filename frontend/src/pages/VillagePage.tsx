@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
+import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
+import { useMemberQuery } from '../hooks/useMemberQuery'
 import type { SpriteId } from '../components/PixelDefs'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
 import tier3 from '../assets/sprites/kkumi-tier3.svg'
@@ -34,13 +36,15 @@ const MOCK_HOUSES: OwnedHouse[] = [
     sprite: { id: 'px-apt-mid', viewBox: '0 0 14 26', width: 28, height: 52 },
   },
 ]
-const MOCK_CLOCK = '02:14:30'
 const NEXT_TIER_GOAL = 5
 const ORDINALS = ['첫', '두', '세', '네', '다섯', '여섯']
 
 const roofStyle = (roof: string): CSSProperties => ({ '--roof': roof }) as CSSProperties
 
 export function VillagePage() {
+  const dayCloseLeft = useMidnightCountdown()
+  // HUD는 다른 화면과 같은 현금 (마을 총 가치는 아래 카드)
+  const { data: member } = useMemberQuery()
   const houseCount = MOCK_HOUSES.length
   const totalManwon = MOCK_HOUSES.reduce((sum, h) => sum + h.priceManwon, 0)
   const totalWon = totalManwon * 10_000
@@ -52,11 +56,11 @@ export function VillagePage() {
     <>
       <div className="k-chip">
         <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
-        <div><div className="k-lab">TOTAL</div><div className="k-num" style={{ color: '#FFC93C' }}>{formatNumber(totalWon)}</div></div>
+        <div><div className="k-lab">CASH</div><div className="k-num" style={{ color: '#FFC93C' }}>{formatNumber(member?.cash ?? 0)}</div></div>
       </div>
       <div className="k-chip">
         <Sprite id="px-clock" viewBox="0 0 8 8" width={16} height={16} />
-        <div><div className="village-clock-lab">장 마감까지</div><div className="k-num" style={{ color: '#FFFFFF' }}>{MOCK_CLOCK}</div></div>
+        <div><div className="village-clock-lab">오늘 마감까지</div><div className="k-num" style={{ color: '#FFFFFF' }}>{dayCloseLeft}</div></div>
       </div>
     </>
   )
