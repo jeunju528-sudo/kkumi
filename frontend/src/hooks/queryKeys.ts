@@ -1,4 +1,4 @@
-import type { TradeType, Period } from "../types/api";
+import type { TradeType, Period, ChartPeriod } from "../types/api";
 // { } 는 클래스 없이 바로 만든 객체 하나(객체 리터럴)
 // new도 없고 클래스도 없음
 // 키: member
@@ -22,6 +22,8 @@ export const queryKeys = {
     tradeHistorySummary: (period: Period) => ['tradeHistory', 'summary', period] as const,
     stockProfits: (period: Period) => ['tradeHistory', 'byStock', period] as const,
     portfolio: () => ['portfolio', 'me'] as const,
+    // 일별 기록은 하루 1번만 바뀌어서 평가액(me)과 칸 분리
+    portfolioHistory: (period: ChartPeriod) => ['portfolio', 'history', period] as const,
 }
 
 /**

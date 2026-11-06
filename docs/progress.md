@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-04
+## 기준일: 2026-11-06
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -191,6 +191,16 @@
   - 테스트: `TierTest`(0·1·2~4·5 이상·음수), `AptDealTest`(6개월 경계 당일 포함, 하루 전 불가, 해제), `HouseServiceTest`(40% 차감·집 저장·서민 변신, 현금 = 내 돈 경계, 변신 여부 2·3·5·6채째, 1원 부족 실패 시 현금·저장 그대로, 없는 거래, 기간 지난 거래, 중복 구매, 락 사용)
   - `types/api.ts`: `BuyHouseRequest`, `HouseResponse`, `MyHousesResponse`
   - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 차단), 응답 JSON의 `isTierUp` 이름(Jackson record 직렬화, 로컬 curl로 확인 필요), 실제 거래 데이터(배치 전)
+- 일별 평가액 기록 + 홈 손익 차트 (심장 ④) (2026-11-06, `feat/portfolio-snapshot-chart`, `decisions/049`, 작성 분담 049: 에이전트 작성 → 개발자 리뷰)
+  - `portfolio/PortfolioSnapshot`(`portfolio_snapshot`, 회원·날짜 UK `uk_snapshot_member_date`, `total_asset`), `PortfolioSnapshotRepository`(`existsByMemberIdAndSnapshotDate`, `findAllByMemberIdSince` 날짜 오름차순)
+  - `PortfolioSnapshotScheduler`: `@Scheduled(cron = "${portfolio-snapshot.cron:0 0 0 * * *}", zone = "Asia/Seoul")` → 어제 날짜로 회원별 기록. `BusinessException`·`DataIntegrityViolationException`은 그 회원만 건너뜀
+  - `PortfolioSnapshotService.recordSnapshot`: 이미 있으면 false(멱등), 계산은 `PortfolioCalculator`(044) 재사용. 회원마다 트랜잭션 분리(스케줄러 → 서비스, 같은 클래스 호출 시 프록시 우회 방지)
+  - `MemberRepository.findAllIds`, `ChartPeriod`(WEEK 6·MONTH 29일 전부터), `GET /api/portfolios/me/history?period=` → `PortfolioHistoryResponse{date, totalAsset}`
+  - 프론트: `types/api.ts`(`ChartPeriod`, `PortfolioHistoryResponse`), `api/portfolioApi.getMyPortfolioHistory`, `queryKeys.portfolioHistory`(`['portfolio', 'history', period]`), `hooks/usePortfolioHistoryQuery`(staleTime 10분), `utils/chart.ts`(날짜 칸·축 라벨·좌표), `components/ValuationChart`
+  - `HomePage`: 1일 탭 삭제, 기본 1주. 지난 날 = 기록, 마지막 칸 = WebSocket 평가액. 빈 날은 점 없이 앞뒤 직선 연결, 점선 = 시드머니, 선 색은 손익 부호. 기록 없으면 "매일 0시에 하루치씩 쌓여요"
+  - 테스트: `PortfolioSnapshotServiceTest`(저장 값 450만 + 10주 × 52,000 = 502만, 이미 있으면 건너뜀, 회원 없음, 기간 시작일)
+  - 확인: 프론트 `tsc -b`, `eslint` 통과
+  - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 차단), `portfolio_snapshot` 테이블 생성, 스케줄러 실행(로컬 `PORTFOLIO_SNAPSHOT_CRON=0 * * * * *`로 확인 예정: 첫 실행 1명 저장, 다음부터 0명), 화면 표시
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
@@ -201,6 +211,7 @@
 - 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
 - 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
+- 시세 실시간 방송 (런칭 후 과제): 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지. 모두에게 같은 값이라 `/topic/stocks` 브로드캐스트로 바꿀 수 있음(평가액은 개인 큐 `/user/queue`, 046). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검
 
 ### 외부 대기 · 결정 필요
@@ -225,7 +236,7 @@
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
 6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
 7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
-8. 11/7 실시간 평가액 차트 (심장 ④) + 손익 그래프. 병렬: 집 사기 API + 변신 단계 + 내 마을 조회 백엔드 (Claude)
+8. (11/6 앞당겨 작성) 일별 평가액 기록 + 손익 차트 (심장 ④, `decisions/049`). 집 사기 API + 변신 단계 + 내 마을 조회 백엔드는 11/6 완료(#56). 11/7: 로컬 확인 후 merge
 9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
 10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크
