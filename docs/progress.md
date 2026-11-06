@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-04
+## 기준일: 2026-11-06
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -191,28 +191,48 @@
   - 테스트: `TierTest`(0·1·2~4·5 이상·음수), `AptDealTest`(6개월 경계 당일 포함, 하루 전 불가, 해제), `HouseServiceTest`(40% 차감·집 저장·서민 변신, 현금 = 내 돈 경계, 변신 여부 2·3·5·6채째, 1원 부족 실패 시 현금·저장 그대로, 없는 거래, 기간 지난 거래, 중복 구매, 락 사용)
   - `types/api.ts`: `BuyHouseRequest`, `HouseResponse`, `MyHousesResponse`
   - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 차단), 응답 JSON의 `isTierUp` 이름(Jackson record 직렬화, 로컬 curl로 확인 필요), 실제 거래 데이터(배치 전)
+- 일별 평가액 기록 + 홈 손익 차트 (심장 ④) (2026-11-06, `feat/portfolio-snapshot-chart`, `decisions/049`, 작성 분담 049: 에이전트 작성 → 개발자 리뷰)
+  - `portfolio/PortfolioSnapshot`(`portfolio_snapshot`, 회원·날짜 UK `uk_snapshot_member_date`, `total_asset`), `PortfolioSnapshotRepository`(`existsByMemberIdAndSnapshotDate`, `findAllByMemberIdSince` 날짜 오름차순)
+  - `PortfolioSnapshotScheduler`: `@Scheduled(cron = "${portfolio-snapshot.cron:0 0 0 * * *}", zone = "Asia/Seoul")` → 어제 날짜로 회원별 기록. `BusinessException`·`DataIntegrityViolationException`은 그 회원만 건너뜀
+  - `PortfolioSnapshotService.recordSnapshot`: 이미 있으면 false(멱등), 계산은 `PortfolioCalculator`(044) 재사용. 회원마다 트랜잭션 분리(스케줄러 → 서비스, 같은 클래스 호출 시 프록시 우회 방지)
+  - `MemberRepository.findAllIds`, `ChartPeriod`(WEEK 6·MONTH 29일 전부터), `GET /api/portfolios/me/history?period=` → `PortfolioHistoryResponse{date, totalAsset}`
+  - 프론트: `types/api.ts`(`ChartPeriod`, `PortfolioHistoryResponse`), `api/portfolioApi.getMyPortfolioHistory`, `queryKeys.portfolioHistory`(`['portfolio', 'history', period]`), `hooks/usePortfolioHistoryQuery`(staleTime 10분), `utils/chart.ts`(날짜 칸·축 라벨·좌표), `components/ValuationChart`
+  - `HomePage`: 1일 탭 삭제, 기본 1주. 지난 날 = 기록, 마지막 칸 = WebSocket 평가액. 빈 날은 점 없이 앞뒤 직선 연결, 점선 = 시드머니, 선 색은 손익 부호. 기록 없으면 "매일 0시에 하루치씩 쌓여요"
+  - 테스트: `PortfolioSnapshotServiceTest`(저장 값 450만 + 10주 × 52,000 = 502만, 이미 있으면 건너뜀, 회원 없음, 기간 시작일)
+  - 확인: 프론트 `tsc -b`, `eslint` 통과
+  - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 차단), `portfolio_snapshot` 테이블 생성, 스케줄러 실행(로컬 `PORTFOLIO_SNAPSHOT_CRON=0 * * * * *`로 확인 예정: 첫 실행 1명 저장, 다음부터 0명), 화면 표시
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
-- 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
-- `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
-- 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
-- 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
-- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
-- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검
+- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
+- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
+
+### 런칭 후 과제 (우선순위)
+기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능 순서는 9월 확정 순서(필터 JSON → 골든셋 → ES) 유지
+1. 자연어 아파트 검색 (필터 JSON, `decisions/023`): 11/11 게이트 통과 시 11/13에 런칭 전으로 당김, 아니면 런칭 직후 1순위. LLM은 필터 JSON만 추출, 쿼리는 코드(추천 API 조회 재사용)
+2. 시세 실시간 방송 `/topic/stocks`: 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지 중. 모두에게 같은 값이라 공용 채널 방송이 맞음(평가액은 개인 큐 `/user/queue`, `decisions/046`). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
+3. AI 응답 평가 골든셋: 자연어 검색 질문 50~100개 + 기대 필터, 정확도 리포트. CI 포함 여부(PR마다 vs 수동) 결정 필요
+4. Elasticsearch 자동완성: 단지 마스터만 인덱싱(거래 행 제외). `decisions/024` 기술 상한선 변경 ADR + EC2 메모리(t3.small 2GB) 검토 선행. "DB 내장 검색으로 충분하지만 오버킬임을 알고 붙였다"로 설명
+5. 시세 기록 API: 주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요 (엔진은 현재가만 보관)
+6. 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
+7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
+8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
+9. 스케줄러 스레드 풀 분리: 0시 평가액 기록이 시세 갱신과 같은 스레드 1개 사용, 회원이 늘면 시세 갱신이 밀림 (`decisions/049`)
+10. 정리: 종목 검색 최근 검색 저장(지금은 빈 상태로 시작), `OrderPanel` components 분리(주문 동작을 `OrderPage`로 올리고 props `onSubmit`·`isSubmitting`·`message`로 내리기)
+- MVP 밖 (런칭 후에도 미정): 빌딩, 랭킹·친구 비교, 집 팔기, 집값 하락 표시, 네이티브 앱
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`)
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
   - 현재가 저장·복구(`decisions/040`), 종목 유형 배치·시작가·호가 단위·`market` 삭제(`decisions/041`) 확정 (2026-10-27)
-  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
+  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR) → 11/12 처리
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
-- AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
-- 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27)
+- AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`) → 런칭 후 과제 7
+- 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27) → 런칭 후 과제 8
 - 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
-- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인
+- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인 → 11/12 처리
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
   - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
@@ -225,11 +245,16 @@
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
 6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
 7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
-8. 11/7 실시간 평가액 차트 (심장 ④) + 손익 그래프. 병렬: 집 사기 API + 변신 단계 + 내 마을 조회 백엔드 (Claude)
+8. (11/6 앞당겨 작성) 일별 평가액 기록 + 손익 차트 (심장 ④, `decisions/049`). 집 사기 API + 변신 단계 + 내 마을 조회 백엔드는 11/6 완료(#56). 11/7: 로컬 확인 후 merge
 9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
 10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크
 12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
+  - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
+    1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
+    2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일
+    3. 쿠키 없는 401에 `JSESSIONID` 쿠키가 발급되는 원인 확인 (2026-10-27 발견)
+    4. `application.yaml`, `docker-compose.yml`의 KIS 키 설정 정리 (가상 시세로 결정, `decisions/020`)
 13. 11/14 캡처 화면 다듬기 + README + 최종 점검 → 런칭
 - 11/6 점검: 11/4 오후~11/5 개발 공백으로 2일 밀림 → 10번 버퍼 하루 사용 + 추천·집 사기 백엔드를 Claude가 병렬 작성(045 범위)해 하루 확보. 기능 축소 없음 (2026-11-06 개발자와 합의). 남은 버퍼: 11/13(자연어 검색과 겸용). 더 밀리면 자연어 검색 포함 여부를 다시 논의
 - 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 점검 결과 하루 밀림 → 5~8번을 하루씩 미루고 8번 버퍼로 흡수, 11/6부터 원래 일정 (2026-11-01 개발자와 합의, 기능 축소 없음). 남은 버퍼: 10번 하루 + 11/13. 더 밀리면 10번 버퍼 → 11/13 순, 그 이상은 다시 논의 (`decisions/039`)

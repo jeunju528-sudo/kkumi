@@ -8,6 +8,7 @@ export type Tier = 'GEOLBAENGI' | 'SEOMIN' | 'JOKBU' | 'GAPBU' // 걸뱅이 / �
 export type TradeType = 'BUY' | 'SELL'
 export type Period = 'WEEK' | 'MONTH' | 'QUARTER' | 'ALL' // 내 거래 기간 필터 (백엔드 enum Period)
 export type Affordability = 'OK' | 'NEED_SELL' | 'SHORT'
+export type ChartPeriod = 'WEEK' | 'MONTH' // 홈 손익 차트 기간 (백엔드 enum ChartPeriod)
 
 export type MemberResponse = {
   id: number
@@ -51,6 +52,12 @@ export type PortfolioResponse = {
   profit: number // 평가액 − 시드머니
   profitRate: number // 0.0123 = +1.23%
   holdings: HoldingResponse[]
+}
+
+// GET /api/portfolios/me/history, 그날 마감 평가액 (어제까지, 빈 날은 없음)
+export type PortfolioHistoryResponse = {
+  date: string // 'YYYY-MM-DD'
+  totalAsset: number
 }
 
 // POST /api/trades/buy, /api/trades/sell (엔드포인트 분리)

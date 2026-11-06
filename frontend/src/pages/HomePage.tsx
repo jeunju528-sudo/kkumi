@@ -1,22 +1,28 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
+import { usePortfolioHistoryQuery } from '../hooks/usePortfolioHistoryQuery'
+import { ValuationChart } from '../components/ValuationChart'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
 import { formatKRW, formatManwon, formatNumber, formatSignedKRW } from '../utils/format'
+import { addDays, daysBetween, toAxisLabels, toDateKey } from '../utils/chart'
+import type { ChartPoint } from '../utils/chart'
+import type { ChartPeriod } from '../types/api'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './HomePage.css'
-
-type ChartPeriod = 'DAY' | 'WEEK' | 'MONTH'
 
 // 목업 데이터
 const MARKET_CLOSE_LEFT = '02:14:30'
 const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
+
+// 손익 차트 기간: 1일 탭 없음, 일별 기록 + 오늘 현재값 (ADR 049)
 const CHART_PERIODS: { value: ChartPeriod; label: string }[] = [
-  { value: 'DAY', label: '1일' },
   { value: 'WEEK', label: '1주' },
   { value: 'MONTH', label: '1달' },
 ]
+// 오늘 앞 지난 날 수 (백엔드 ChartPeriod와 같은 값)
+const CHART_PAST_DAYS: Record<ChartPeriod, number> = { WEEK: 6, MONTH: 29 }
 
 // 소수 1자리 등락률: 0.046 → "+4.6%"
 function toRateText(rate: number): string {
@@ -39,8 +45,9 @@ function cssVars(vars: Record<string, string>): CSSProperties {
 }
 
 export function HomePage() {
-  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('DAY')
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('WEEK')
   const { data: portfolio, isError } = usePortfolioQuery()
+  const { data: history = [] } = usePortfolioHistoryQuery(chartPeriod)
 
   const cash = portfolio?.cash ?? 0
   const netWorth = portfolio?.totalAsset ?? 0
@@ -49,6 +56,17 @@ export function HomePage() {
   const goalOwnAmount = (GOAL.priceManwon * 10000 * 4) / 10
   const goalLeft = Math.max(0, goalOwnAmount - netWorth)
   const goalPct = `${Math.min(100, (netWorth / goalOwnAmount) * 100).toFixed(1)}%`
+
+  // 차트 칸: 기간 첫날 ~ 오늘. 지난 날은 일별 기록, 마지막 칸은 WebSocket 평가액(5초마다 갱신)
+  const pastDays = CHART_PAST_DAYS[chartPeriod]
+  const today = toDateKey(new Date())
+  const chartFrom = addDays(today, -pastDays)
+  const chartPoints: ChartPoint[] = history
+    .filter((h) => h.date >= chartFrom && h.date < today)
+    .map((h) => ({ slot: daysBetween(chartFrom, h.date), value: h.totalAsset }))
+  if (portfolio) chartPoints.push({ slot: pastDays, value: portfolio.totalAsset })
+  const axisLabels = toAxisLabels(chartFrom, pastDays + 1)
+  const chartPeriodLabel = chartPeriod === 'WEEK' ? '1주' : '1달'
 
   const cashChip = (
     <div className="k-chip">
@@ -199,18 +217,23 @@ export function HomePage() {
                   ))}
                 </div>
               </div>
-              <svg viewBox="0 0 326 104" width="100%" role="img" aria-label="최근 5일 평가액 추이 그래프, 우상향" className="k-chart">
-                <line x1="0" y1="100" x2="326" y2="100" stroke="#E6E8F0" strokeWidth="1.5" strokeDasharray="4 4" />
-                <polyline points="0,92 54,84 108,96 162,70 216,60 270,44 322,30" fill="none" stroke="#E5484D" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-                <circle cx="322" cy="30" r="5" fill="#E5484D" stroke="#FFFFFF" strokeWidth="2" />
-              </svg>
-              {portfolio && <div className="k-chart-base">시드머니 {formatKRW(portfolio.initialCash)}</div>}
+              {portfolio && (
+                <ValuationChart
+                  points={chartPoints}
+                  slotCount={pastDays + 1}
+                  baseline={portfolio.initialCash}
+                  tone={toProfitTone(portfolio.profit)}
+                  label={`최근 ${chartPeriodLabel} 평가액 추이 그래프, 점선은 시드머니`}
+                />
+              )}
+              {portfolio && <div className="k-chart-base">점선 시드머니 {formatKRW(portfolio.initialCash)}</div>}
+              {portfolio && history.length === 0 && (
+                <div className="k-chart-base">평가액 기록은 매일 0시에 하루치씩 쌓여요.</div>
+              )}
               <div className="k-days">
-                <span>월</span>
-                <span>화</span>
-                <span>수</span>
-                <span>목</span>
-                <span>금</span>
+                {axisLabels.map((day, i) => (
+                  <span key={i}>{day}</span>
+                ))}
               </div>
             </section>
           </div>
