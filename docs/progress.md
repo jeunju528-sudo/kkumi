@@ -26,7 +26,7 @@
 - Hello World: 외부에서 `/actuator/health` 가 `UP` 확인 (2026-10-06)
 - `SecurityConfig` 인증 규칙 (2026-10-13): 공개 경로(`/oauth2/**`, `/login/oauth2/**`, `/api/members/seed`, `/actuator/health/**`, `/error`) 외 `authenticated()`. 미인증은 `HttpStatusEntryPoint`로 401 (oauth2Login 기본값 302 대신)
   - 로컬 curl 확인: 막힌 경로 401, 쿠키 없는 시드 선택 400(`/error` 공개로 401에 안 덮임), health 200, 로그인 시작 302 → kauth
-  - `/ws`는 WebSocket 만들 때 결정
+  - `/ws`는 인증 필요(`anyRequest().authenticated()`), handshake에 실린 accessToken 쿠키로 기존 필터가 인증 (2026-11-06, `decisions/046`)
 - 테스트 범위 조정 (2026-10-13, `decisions/036`): 돈 계산(심장 ①②③)·도메인 규칙만 자동 테스트, 단순 Service·Controller는 화면 연결 때 수동 확인
 - 지식 저장소 정비: `docs/`를 `decisions/`(ADR 29개), `conventions/`, `domain/`, `failures/`로 재구성. 구조·작성 규칙은 `docs/README.md`, CLAUDE.md "참고 문서"에 연결
 - 시세 출처 확정 (2026-10-06): KIS·공공데이터 모두 서비스 사용 불가 → 서버가 만드는 가상 시세와 가상 종목. `decisions/020`, `029`, `failures/001`, `002` (#17)
@@ -156,6 +156,12 @@
   - 홈·내 거래 하단 "샘플" 안내 문구 삭제 (실제 데이터라 불필요). 아파트·계약서·내 마을은 연결 때 같은 방식
   - 남은 목업: 홈 목표 아파트(`GOAL`, 추천 API 때), 장 마감 시계, 손익 차트(심장 ④)
   - 로컬 확인 (11/4): 홈 평가액·손익 응답 값 표시, 손실 시 파란 아래 화살표, `portfolios/me` 5초 간격 요청
+- WebSocket 평가액 푸시 백엔드 (2026-11-06, `feat/portfolio-websocket-push`, PR 1/2, `decisions/046`)
+  - `global/config/WebSocketConfig`: `@EnableWebSocketMessageBroker`, STOMP 엔드포인트 `/ws`, 메모리 브로커 `/queue`(`/user` 접두사는 기본값). 허용 Origin 기본값(같은 출처)
+  - `portfolio/PortfolioPushScheduler`: `@Scheduled(fixedRateString = "${virtual-price.tick-interval}")`(시세 주기 5초와 같음), `SimpUserRegistry` 접속자마다 `PortfolioService.getMyPortfolio` → `convertAndSendToUser(memberId, "/queue/portfolio", …)`. 한 명 실패(`BusinessException`)해도 나머지 계속
+  - `vite.config.ts`: `/ws` 프록시 `ws: true`
+  - `docs/ui-spec.md`: §6 구독 경로 `/user/queue/portfolio` + `PortfolioResponse`로 확정, §8 "가짜 돈" 안내는 시작·시드 선택·아파트 대출 안내에서만
+  - 로컬 확인 (11/6): 브라우저 콘솔에서 STOMP 프레임 직접 전송(CONNECT → SUBSCRIBE `/user/queue/portfolio`) → `CONNECTED` 프레임 `user-name:1`(Principal 이름 = memberId 확인), 5초마다 `MESSAGE`에 평가액 JSON(cash 3,666,550 + stockValue 1,231,300 = totalAsset 4,897,850 일치)
 - 일정 재조정 (2026-10-25, `decisions/039`): 10/16~10/25 개발 공백(코스콤 필기 준비)으로 런칭 10/29 → 11/14, 기능 축소 없음
 
 ### 아직 안 한 것
@@ -191,13 +197,14 @@
 4. (11/1 완료) 종목·매매 화면 연결: 보유 종목 API(#45), 목록·검색(#46), @Valid 형식(#47), 사기·팔기(#48). 버퍼 포함 2일 계획에서 하루 초과
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
 6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
-7. 11/4 WebSocket 평가액 푸시
-8. 11/5 실시간 평가액 차트 (심장 ④) + 손익 그래프 (버퍼 사용으로 하루)
-9. 11/6~7 실거래가 배치 (심장 ③), 11/7 오후 도메인·HTTPS (Secure 쿠키 켜기)
-10. 11/8~9 추천 API + 아파트 화면 연결
-11. 11/10~11 집 사기(계약서) → 내 마을, 변신 단계 → 11/11 게이트 체크
-12. 11/12~13 통합 테스트·버그 수정 (13일은 버퍼 겸용), 11/13 자연어 아파트 검색(게이트 통과 시)
+7. 11/6 WebSocket 평가액 푸시 (PR 1 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (Claude, `decisions/045`)
+8. 11/7 실시간 평가액 차트 (심장 ④) + 손익 그래프. 병렬: 집 사기 API + 변신 단계 + 내 마을 조회 백엔드 (Claude)
+9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
+10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
+11. 11/11 변신 단계 화면 → 게이트 체크
+12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
 13. 11/14 캡처 화면 다듬기 + README + 최종 점검 → 런칭
+- 11/6 점검: 11/4 오후~11/5 개발 공백으로 2일 밀림 → 10번 버퍼 하루 사용 + 추천·집 사기 백엔드를 Claude가 병렬 작성(045 범위)해 하루 확보. 기능 축소 없음 (2026-11-06 개발자와 합의). 남은 버퍼: 11/13(자연어 검색과 겸용). 더 밀리면 자연어 검색 포함 여부를 다시 논의
 - 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 점검 결과 하루 밀림 → 5~8번을 하루씩 미루고 8번 버퍼로 흡수, 11/6부터 원래 일정 (2026-11-01 개발자와 합의, 기능 축소 없음). 남은 버퍼: 10번 하루 + 11/13. 더 밀리면 10번 버퍼 → 11/13 순, 그 이상은 다시 논의 (`decisions/039`)
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
 

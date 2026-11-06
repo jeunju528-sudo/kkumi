@@ -107,16 +107,9 @@ Village  : TierProgress, HouseCollection > HouseSlot*, EmptySlot*
 
 ## 6. 실시간 평가액 (WebSocket / STOMP)
 
-```ts
-// 구독 경로는 백엔드와 확정. 아래는 가칭.
-export interface ValuationMessage {
-  totalValue: number;
-  profit: number;
-  profitRate: number;
-  at: string;              // ISO
-}
-// subscribe: /user/queue/valuation
-```
+- 구독 경로: `/user/queue/portfolio` (서버는 `convertAndSendToUser(memberId, "/queue/portfolio", …)`)
+- 메시지: `PortfolioResponse` (REST `GET /api/portfolios/me`와 같은 모양). 5초마다 접속 중인 사용자별로 서버가 계산해서 보냄 (decisions/046)
+- 화면은 받은 값을 `setQueryData(queryKeys.portfolio(), 메시지)`로 캐시에 넣기만 함. 홈·내 거래·종목 목록이 같은 캐시를 씀
 
 UI 규칙: 값이 오르면 숫자가 위로, 내리면 아래로 롤링(0.4초 이내), 상승 --up, 하락 --down, 부호와 화살표 병기. prefers-reduced-motion이면 페이드.
 
@@ -146,4 +139,4 @@ UI 규칙: 값이 오르면 숫자가 위로, 내리면 아래로 롤링(0.4초 
 - 모든 목록: 로딩 / 빈 상태(픽셀 캐릭터 + 한 줄) / 에러
 - 주문: 잔액 부족, 보유 수량 초과, 장 마감
 - 계약: 현금 부족(서버 검증이 최종), 이미 계약한 단지
-- 모든 화면에 "가짜 돈입니다" 안내 유지
+- "가짜 돈" 안내는 시작·시드 선택 화면과 아파트 대출 안내(LOAN 카드)에서. 나머지 화면은 반복하지 않음 (2026-11-04 개발자 결정)
