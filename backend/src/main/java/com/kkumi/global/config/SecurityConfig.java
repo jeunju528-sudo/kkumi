@@ -43,7 +43,8 @@ public class SecurityConfig {
         // 프론트에서 401(누군지 모름) 을 받으면 로그인 페이지로 분기처리를 해주기 위해 401로 에러코드 보냄
         http
             // spring csrf는 서버가 폼마다 토큰을 숨겨서 심는 방식, 서버가 html을 그리는 세션 기반 앱에 맞춰 있어서 끔
-            // 우리는 SameSite=Lax(다른 사이트 요청에 쿠키 안 실림) + 쓰기 API는 POST·JSON만으로 csrf 방어 (decisions/031).csrf(AbstractHttpConfigurer::disable)
+            // 우리는 SameSite=Lax(다른 사이트 요청에 쿠키 안 실림) + 쓰기 API는 POST·JSON만으로 csrf 방어 (decisions/031)
+            .csrf(AbstractHttpConfigurer::disable)
             .oauth2Login(oauth -> oauth.successHandler(loginSuccessHandler))
             // HTTP 요청은 CookieAuthenticationFilter 를 타게 되어있음
             // 거기서 SecurityContextHolder에 memberId 저장하고 @AuthenticationPrincipal에서 값 꺼내씀
