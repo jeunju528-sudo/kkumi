@@ -174,10 +174,17 @@
   - `types/api.ts`: `AptRecommendResponse`에 `floor`·`contractDate`, `AptRecommendPageResponse` 추가
   - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 다운로드 차단), 실제 데이터 조회(배치 전이라 `apt_deal` 비어 있음, 배치 후 확인)
 
+- WebSocket 평가액 프론트 연결 (2026-11-06, `feat/portfolio-websocket-connect`, PR 2/2, `decisions/046`)
+  - `@stomp/stompjs` 7.5.0 추가 (STOMP 표준 클라이언트, 의존성 없음)
+  - `ws/portfolioSocket.subscribePortfolio(onMessage)`: `Client`(brokerURL `ws(s)://{host}/ws`, `reconnectDelay` 5초) → `onConnect`에서 `/user/queue/portfolio` 구독(재연결 때 자동 재구독) → 끊는 함수 반환(`deactivate`)
+  - `hooks/usePortfolioSocket(isEnabled)`: `useEffect`에서 구독, 메시지는 `setQueryData(queryKeys.portfolio())`, cleanup에서 연결 종료
+  - `MemberGuard`: 회원 조회 성공(`isSuccess`) 후 연결. 로그인 화면 전체를 감싸서 페이지 이동해도 연결 1개 유지
+  - `usePortfolioQuery`: `refetchInterval`(5초 폴링) 삭제 → 첫 값만 GET, 이후 WebSocket
+  - 네트워크 단절(서버 재시작 등)은 stompjs 자동 재연결, 화면 이탈은 React cleanup이 담당
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
-- WebSocket 평가액 푸시
 - 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
 - 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
 - `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
@@ -207,7 +214,7 @@
 4. (11/1 완료) 종목·매매 화면 연결: 보유 종목 API(#45), 목록·검색(#46), @Valid 형식(#47), 사기·팔기(#48). 버퍼 포함 2일 계획에서 하루 초과
 5. (11/3 오전 완료) 중간 점검 → 거래내역 조회 API(#49) → 내 거래 화면 연결(PR A). 무한 스크롤(PR B) 남음
 6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
-7. 11/6 WebSocket 평가액 푸시 (PR 1 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (Claude, `decisions/045`)
+7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
 8. 11/7 실시간 평가액 차트 (심장 ④) + 손익 그래프. 병렬: 집 사기 API + 변신 단계 + 내 마을 조회 백엔드 (Claude)
 9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
 10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
