@@ -47,5 +47,20 @@ public class AptComplex {
 	@Column(nullable = false, length = 30)
 	private String regionName;
 
+	private AptComplex(String sigunguCode, String dong, String jibun, String name, Integer builtYear,
+		String regionName) {
+		this.sigunguCode = sigunguCode;
+		this.dong = dong;
+		this.jibun = jibun;
+		this.name = name;
+		this.builtYear = builtYear;
+		this.regionName = regionName;
+	}
+
+	public static AptComplex of(String sigunguCode, String dong, String jibun, String name, Integer builtYear,
+		String regionName) {
+		return new AptComplex(sigunguCode, dong, jibun, name, builtYear, regionName);
+	}
+
 	// TODO: 배치 - 단지 조회 or 신규 생성
 }

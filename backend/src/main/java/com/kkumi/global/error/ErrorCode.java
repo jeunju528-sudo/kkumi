@@ -37,6 +37,12 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다"),
     // 요청한 종목 코드 없음
     STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다"),
+    // 요청한 실거래 없음
+    DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "거래를 찾을 수 없습니다"),
+    // 해제됐거나 시세 기간(6개월)이 지난 거래
+    DEAL_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "지금은 살 수 없는 거래입니다"),
+    // 같은 회원이 같은 거래를 다시 구매
+    ALREADY_OWNED_DEAL(HttpStatus.CONFLICT, "이미 산 집입니다"),
     // @Valid 검증 실패 (수량 0, 빈 종목 코드 등)
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다");
 
