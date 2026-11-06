@@ -62,6 +62,7 @@ kkumi/
 - 계층: Controller → Service → Repository. Controller에서 Repository 직접 호출 금지
 - Controller: 요청 검증(`@Valid`)과 DTO 변환만. `if`로 비즈니스 분기 금지
 - URL: `/api/{복수형 리소스}` (e.g. `POST /api/trades/buy`, `GET /api/houses`)
+- 상태를 바꾸는 API는 POST·PUT·DELETE + JSON 본문만. GET으로 상태 변경 금지 (CSRF 방어가 쿠키 `SameSite=Lax`에 의존, `docs/decisions/031`)
 - Service: 클래스에 `@Transactional(readOnly = true)`, 쓰기 메서드만 `@Transactional`
   - `org.springframework.transaction.annotation.Transactional`만 사용 (`jakarta.transaction.Transactional` 금지)
 - 의존성 주입: 생성자 주입(`@RequiredArgsConstructor` + `private final`)만 사용

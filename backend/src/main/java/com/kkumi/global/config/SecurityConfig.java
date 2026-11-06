@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
     /*
-      .oauth2Login(Customizer.withDefaults()) 를 켜면 security chain에 추가하면 2가지 url을 만들어 줌(고정된 패턴)
+      .oauth2Login(Customizer.withDefaults()) 를 켜고 security chain에 추가하면 2가지 url을 처리하는 필터를 filterchain에 끼워줌(고정된 패턴)
       1. /oauth2/authorization/{registrationId}: state를 만들어서 카카오 로그인 화면으로 보내줌
       2. /login/oauth2/code/{registrationId}: 카카오가 코드를 돌려주는 곳, 카카오 디벨로퍼에 등록한 redirect URI 주소
                                    여기서 토큰 교환과 사용자 정보 조회까지 가능
@@ -42,8 +42,13 @@ public class SecurityConfig {
         // oauth2를 켜두면 인증 안 된 요청이 막혔을 때 Spring의 기본 동작은 로그인 페이지로 302 리다이렉트됨
         // 프론트에서 401(누군지 모름) 을 받으면 로그인 페이지로 분기처리를 해주기 위해 401로 에러코드 보냄
         http
-			.csrf(AbstractHttpConfigurer::disable)
+            // spring csrf는 서버가 폼마다 토큰을 숨겨서 심는 방식, 서버가 html을 그리는 세션 기반 앱에 맞춰 있어서 끔
+            // 우리는 SameSite=Lax(다른 사이트 요청에 쿠키 안 실림) + 쓰기 API는 POST·JSON만으로 csrf 방어 (decisions/031)
+            .csrf(AbstractHttpConfigurer::disable)
             .oauth2Login(oauth -> oauth.successHandler(loginSuccessHandler))
+            // HTTP 요청은 CookieAuthenticationFilter 를 타게 되어있음
+            // 거기서 SecurityContextHolder에 memberId 저장하고 @AuthenticationPrincipal에서 값 꺼내씀
+            // 응답이 끝나면 ContextHolder에서 값 비워짐, 요청 하나에만 쓰고 값 버려짐
             .addFilterBefore(new CookieAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/oauth2/**").permitAll()

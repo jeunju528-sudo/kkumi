@@ -18,6 +18,18 @@ export default defineConfig({
       '/api': toBackend,
       '/oauth2': toBackend,
       '/login/oauth2': toBackend,
+      '/ws': {...toBackend, ws: true}, // ws:true vite 프록시가 http를 websocket으로 바꾸는 업그레이드 요청도 넘기게하는 요청
     },
   },
 })
+
+/** 
+ * Websocket 첫 시작은 HTTP로 시작함, 그리고 요청헤더에 websocket하겠다고 알려줌
+ *  - Upgrade: websocket
+ * 그러면 응답으로 101 Switching Protocols이 뜨고 TCP연결은 이제 HTTP가 아니라 WebSocket 통로가 됨
+ * 이 handshake가 끝나면 데이터는 HTTP메세지가 아닌 Frame이라는 작은 단위로 통신이 됨
+ * 헤더가 몇 바이트로 아주 가볍기 때문에 실시간에 적합해짐
+ * 양쪽 누구도 아무때나 프레임을 보낼 수 있음 -> full duplex
+ * ws://a.com/ws
+ * wss://a.com/ws < secure
+ * */ 
