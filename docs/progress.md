@@ -206,24 +206,33 @@
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 실거래가 배치 (`@Scheduled`)
 - 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
-- 종목 검색의 최근 검색 저장 (지금은 빈 상태로 시작)
-- `OrderPanel` components 분리: 주문 동작(`mutate`, 에러 문구)을 `OrderPage`로 올리고 props(`onSubmit`, `isSubmitting`, `message`)로 내리기
-- 시세 기록 API (주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요. 엔진은 현재가만 보관, 런칭 후 과제)
-- 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
-- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검
-- 시세 실시간 방송 (런칭 후 과제): 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지. 모두에게 같은 값이라 `/topic/stocks` 브로드캐스트로 바꿀 수 있음(평가액은 개인 큐 `/user/queue`, 046). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
-- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검
+- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
+- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
+
+### 런칭 후 과제 (우선순위)
+기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능 순서는 9월 확정 순서(필터 JSON → 골든셋 → ES) 유지
+1. 자연어 아파트 검색 (필터 JSON, `decisions/023`): 11/11 게이트 통과 시 11/13에 런칭 전으로 당김, 아니면 런칭 직후 1순위. LLM은 필터 JSON만 추출, 쿼리는 코드(추천 API 조회 재사용)
+2. 시세 실시간 방송 `/topic/stocks`: 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지 중. 모두에게 같은 값이라 공용 채널 방송이 맞음(평가액은 개인 큐 `/user/queue`, `decisions/046`). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
+3. AI 응답 평가 골든셋: 자연어 검색 질문 50~100개 + 기대 필터, 정확도 리포트. CI 포함 여부(PR마다 vs 수동) 결정 필요
+4. Elasticsearch 자동완성: 단지 마스터만 인덱싱(거래 행 제외). `decisions/024` 기술 상한선 변경 ADR + EC2 메모리(t3.small 2GB) 검토 선행. "DB 내장 검색으로 충분하지만 오버킬임을 알고 붙였다"로 설명
+5. 시세 기록 API: 주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요 (엔진은 현재가만 보관)
+6. 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
+7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
+8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
+9. 스케줄러 스레드 풀 분리: 0시 평가액 기록이 시세 갱신과 같은 스레드 1개 사용, 회원이 늘면 시세 갱신이 밀림 (`decisions/049`)
+10. 정리: 종목 검색 최근 검색 저장(지금은 빈 상태로 시작), `OrderPanel` components 분리(주문 동작을 `OrderPage`로 올리고 props `onSubmit`·`isSubmitting`·`message`로 내리기)
+- MVP 밖 (런칭 후에도 미정): 빌딩, 랭킹·친구 비교, 집 팔기, 집값 하락 표시, 네이티브 앱
 
 ### 외부 대기 · 결정 필요
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`)
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
   - 현재가 저장·복구(`decisions/040`), 종목 유형 배치·시작가·호가 단위·`market` 삭제(`decisions/041`) 확정 (2026-10-27)
-  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR)
+  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR) → 11/12 처리
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
-- AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`)
-- 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27)
+- AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`) → 런칭 후 과제 7
+- 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27) → 런칭 후 과제 8
 - 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
-- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인
+- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인 → 11/12 처리
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
   - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
@@ -241,6 +250,11 @@
 10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크
 12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
+  - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
+    1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
+    2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일
+    3. 쿠키 없는 401에 `JSESSIONID` 쿠키가 발급되는 원인 확인 (2026-10-27 발견)
+    4. `application.yaml`, `docker-compose.yml`의 KIS 키 설정 정리 (가상 시세로 결정, `decisions/020`)
 13. 11/14 캡처 화면 다듬기 + README + 최종 점검 → 런칭
 - 11/6 점검: 11/4 오후~11/5 개발 공백으로 2일 밀림 → 10번 버퍼 하루 사용 + 추천·집 사기 백엔드를 Claude가 병렬 작성(045 범위)해 하루 확보. 기능 축소 없음 (2026-11-06 개발자와 합의). 남은 버퍼: 11/13(자연어 검색과 겸용). 더 밀리면 자연어 검색 포함 여부를 다시 논의
 - 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 점검 결과 하루 밀림 → 5~8번을 하루씩 미루고 8번 버퍼로 흡수, 11/6부터 원래 일정 (2026-11-01 개발자와 합의, 기능 축소 없음). 남은 버퍼: 10번 하루 + 11/13. 더 밀리면 10번 버퍼 → 11/13 순, 그 이상은 다시 논의 (`decisions/039`)
