@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-06
+## 기준일: 2026-11-10
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -207,6 +207,14 @@
   - HUD 현금 통일: 집 찾기 CASH·추천 계산을 실제 현금·평가액(`usePortfolioQuery`)으로, 내 마을 HUD TOTAL → CASH(`useMemberQuery`). 집 목록·마을 집은 아직 목업
   - 종목 유형·평소 가격 공개는 구현 후 화면 확인에서 포기 (스스로 파악하는 재미, 050 포기한 대안)
   - 확인: `tsc -b` 통과, 브라우저에서 홈 시계 카운트다운·차트 빈 상태 확인. 못 확인: ESLint(작업 환경 시간 초과, 커밋 훅에서 확인), 집 찾기·내 마을 HUD 값
+- 실거래가 배치 PR A: 국토부 API 클라이언트 (2026-11-10, `feat/apt-deal-client`, `decisions/052`)
+  - 국토부 "아파트 매매 실거래가 상세 자료" API (`RTMSDataSvcAptTradeDev`), `_type=json`
+  - `apartment/molit/MolitClient.fetchDeals(시군구, YearMonth)`: 1,000건씩 페이지 반복(누적 ≥ totalCount 또는 빈 페이지면 종료), 연결 5초·읽기 30초 타임아웃, 응답은 `byte[]`로 받아 전용 `JsonMapper`로 파싱(빈 달 `"items":""` → null), 결과 코드 `000` 아니면 예외
+  - Boot 4는 `RestClient.Builder` 자동 설정이 별도 모듈이라 `RestClient.builder()`로 직접 생성(의존성 추가 없음)
+  - `MolitDealItem`: 응답 필드 전부 `String`, 변환 메서드(금액 만원 × 10,000, 면적 소수 2자리 HALF_UP, 계약일, 해제 `O`, 공백 trim)
+  - 시군구 코드표 `resources/apartment/sigungu.csv` 256개 (법정동코드 전체자료에서 생성, 전남광주통합특별시 12xxx·화성 구 반영, 옛 코드 0건 확인)
+  - 테스트: `MolitDealItemTest` 8개, `MolitResponseParseTest` 5개(1건 객체, 배열, 숫자 → 문자열, 빈 달, XML 에러). 전체 `./gradlew test` 통과
+  - 심장 ③ 작성 방식 변경: 대화창 소스 제시 → 개발자 입력 (045 보강)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
