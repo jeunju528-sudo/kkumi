@@ -58,8 +58,9 @@
 | 049 | [손익 차트: 1일 탭 없이 일별 평가액 기록 + 오늘 현재값, 심장 ④는 에이전트 작성](049-portfolio-daily-snapshot-chart.md) | 확정 |
 | 050 | [플레이 점검 반영: 종목 정보는 숨기고 "오늘 마감" 시계·신규 CTA·HUD 현금 통일](050-player-hints-day-close.md) | 확정 |
 | 051 | [AI 자산 코치: 런칭 후 추가, Spring AI + Gemini, 호출 한도는 Redis](051-ai-asset-coach.md) | 확정 |
+| 052 | [실거래가 배치 수집: 전국 시군구 코드표, 매일 2개월 재수집, JSON 응답](052-apt-deal-batch-collection.md) | 확정 |
 
-다음 번호: 052
+다음 번호: 053
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.

@@ -52,6 +52,7 @@ virtual-price:
 
 external:
   molit:
+    base-url: http://localhost
     service-key: test
   kis:
     app-key: test
