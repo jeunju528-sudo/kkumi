@@ -57,8 +57,9 @@
 | 048 | [집 사기: 같은 회원 같은 거래 1번, 살 때 거래 재검증, 변신 단계는 내 마을 API](048-house-purchase-rules.md) | 확정 |
 | 049 | [손익 차트: 1일 탭 없이 일별 평가액 기록 + 오늘 현재값, 심장 ④는 에이전트 작성](049-portfolio-daily-snapshot-chart.md) | 확정 |
 | 050 | [플레이 점검 반영: 종목 정보는 숨기고 "오늘 마감" 시계·신규 CTA·HUD 현금 통일](050-player-hints-day-close.md) | 확정 |
+| 051 | [AI 자산 코치: 런칭 후 추가, Spring AI + Gemini, 호출 한도는 Redis](051-ai-asset-coach.md) | 확정 |
 
-다음 번호: 051
+다음 번호: 052
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
