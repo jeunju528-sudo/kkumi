@@ -142,6 +142,7 @@ kkumi/
 - `main` 브랜치 직접 push 금지 → 브랜치 + PR
 - 운영(prod) 프로필에 `ddl-auto: create` / `create-drop` 금지
 - 새 기술 추가 금지: Kafka, Kubernetes, Redis, Elasticsearch, MSA, Next.js, 전역 상태관리 라이브러리(Redux, Zustand 등)
+  - 예외 (051): 런칭 후 AI 자산 코치에 Spring AI + Gemini, 호출 한도용 Redis. Kafka는 AI 코치 완료 후 별도 ADR로 도입
 - MVP 범위 밖 기능 구현 금지: 빌딩, 랭킹, 친구 비교, 집 팔기, 집값 하락 표시, 네이티브 모바일앱 (모바일 웹 반응형은 MVP 안)
 - 커밋 메시지·PR·주석에 AI 작성 표시 금지 (Co-Authored-By, "Generated with" 등)
 - `System.out.println` 금지 → `@Slf4j` + `log.info()`
