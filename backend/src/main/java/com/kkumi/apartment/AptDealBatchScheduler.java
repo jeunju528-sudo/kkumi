@@ -20,10 +20,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "apt-deal-batch.enabled", havingValue = "true", matchIfMissing = true)
 public class AptDealBatchScheduler {
+
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final int DAILY_MONTHS = 2;
     private static final int INITIAL_MONTHS = AptDeal.MARKET_PRICE_MONTHS + 1;
 
+    private final AptDealBatchProperties properties;
     private final MolitClient molitClient;
     private final AptDealBatchService batchService;
     private final SigunguCodes sigunguCodes;
@@ -33,10 +35,10 @@ public class AptDealBatchScheduler {
     // DB의 카운트로는 저장 중인지, 저장이 완료된 값인지를 알 수 없어서 별도 표시가 필요함
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
 
-    // 거래가 비어있으면 첫 적재(별도 스레드로 돌림)
+    // 거래가 비어 있거나 강제 재실행이면 첫 적재 (별도 스레드)
     @EventListener(ApplicationReadyEvent.class)
     public void collectInitialIfEmpty() {
-        if (batchService.hasNoDeals()) {
+        if (properties.forceInitial() || batchService.hasNoDeals()) {
             // 우리가 직접 만드는 스레드, 첫 적재 7개월치 수행
             // main 스레드의 ApplicationReadyEvent Listener에서 시작되는데
             // 같은 이벤트를 VirtualPriceProvider도 받아서 종목 시세를 메모리에 올림
@@ -59,6 +61,8 @@ public class AptDealBatchScheduler {
             return;
         }
         try {
+            log.info("실거래가 수집 시작: {}개월, 시군구 {}개", monthCount, sigunguCodes.getAllCodes().size());
+
             YearMonth thisMonth = YearMonth.now(KST);
             int inserted = 0;
             int updated = 0;
