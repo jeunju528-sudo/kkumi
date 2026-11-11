@@ -1,7 +1,7 @@
 # 테스트용 설정 (main application.yaml 대신 로드됨)
 # CI에서 MySQL 없이 테스트 돌리려고 H2(MySQL 모드) 사용
 spring:
-  datasource:
+  datasource: # mem : 디스크가 아니라 메모리에 DB를 만들고 테스트 끝나면 사라짐, MODE=MySQL : h2가 mysql문법을 최대한 흉내내게함
     url: jdbc:h2:mem:kkumi;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
     password:
