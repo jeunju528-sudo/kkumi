@@ -1,5 +1,6 @@
 name: deploy
 
+# main에 커밋이 들어올 때 실행, 프로젝트에서는 PR을 통해 merge했을 때 실행됨
 on:
   push:
     branches: [main]
@@ -19,16 +20,19 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }} # 이 실행을 일으킨 사람 계정
+          password: ${{ secrets.GITHUB_TOKEN }} # 잡이 시작될 때 마다 github이 자동으로 만들어서 넣어줌
 
       # sha를 붙이면 커밋마다 고유한 번호를 붙이는 거라 특정 이미지로 돌리고 싶을 때 사용할 수 있음
       # latest는 가장 최근에 올렸다는 의미로 가장 최신 이미지에 붙음
       - name: backend 이미지 빌드 + push
         uses: docker/build-push-action@v7
         with:
-          context: backend
-          push: true
+          context: backend # backend 폴더의 Dockerfile로 빌드함
+          push: true # build 후 GHCR에 올림
+          # latest: 가장 최신 이미지
+          # github.sha: 커밋 해시, 특정 이미지로 되돌릴 때 사용
+          # | 쓰면 여러줄 문자열을 작성할 수 있음
           tags: |
             ghcr.io/jeunju528-sudo/kkumi-backend:latest
             ghcr.io/jeunju528-sudo/kkumi-backend:${{ github.sha }}
@@ -44,7 +48,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: build-and-push # jobs의 build-and-push 라는 잡 이름
+    # github > settings > secrets 에 저장한 값을 환경변수로 넣음
     env:
       EC2_HOST: ${{ secrets.EC2_HOST }}
       EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
@@ -59,6 +64,9 @@ jobs:
       - name: 서버 믿는다고 등록
         run: |
           ssh-keyscan $EC2_HOST >> ~/.ssh/known_hosts
+      # AWS 인프라 만들 때 EC2에서 github의 레포를 clone했고 원격 주소가 github로 저장됨
+      # docker-compose.yml 파일을 최신으로 맞추려고 git pull 하는거고
+      # 나머지 backend랑 frontend는 이미지로 실행함
       - name: 원격 명령 실행
         run: |
           ssh -i ~/.ssh/.privatekey $EC2_USER@$EC2_HOST "cd ~/kkumi && git pull && docker compose pull && docker compose up -d"
