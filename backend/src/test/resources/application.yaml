@@ -57,3 +57,6 @@ external:
   kis:
     app-key: test
     app-secret: test
+
+apt-deal-batch:
+  enabled: false

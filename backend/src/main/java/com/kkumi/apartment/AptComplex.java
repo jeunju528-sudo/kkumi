@@ -62,5 +62,4 @@ public class AptComplex {
 		return new AptComplex(sigunguCode, dong, jibun, name, builtYear, regionName);
 	}
 
-	// TODO: 배치 - 단지 조회 or 신규 생성
 }

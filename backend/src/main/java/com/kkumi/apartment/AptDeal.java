@@ -83,5 +83,12 @@ public class AptDeal {
 		return !canceled && !contractDate.isBefore(marketPriceSince(today));
 	}
 
-	// TODO: 국토부 응답 → 엔티티 변환, 해제여부 갱신
+	// 해제 여부 갱신, 바뀌었으면 true
+    public boolean updateCanceled(boolean canceled){
+        if (this.canceled == canceled){
+            return false;
+        }
+        this.canceled = canceled;
+        return true;
+    }
 }

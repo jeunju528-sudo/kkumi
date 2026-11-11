@@ -1,5 +1,6 @@
 package com.kkumi.apartment;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -42,4 +43,7 @@ public interface AptDealRepository extends JpaRepository<AptDeal, Long> {
             """)
     Slice<AptDeal> findRecentSlice(@Param("since") LocalDate since, @Param("keyword") String keyword,
                                    Pageable pageable);
+
+    Optional<AptDeal> findByComplexAndAreaAndFloorAndPriceAndContractDate(AptComplex complex, BigDecimal area, int floor, long price, LocalDate contractDate);
+
 }
