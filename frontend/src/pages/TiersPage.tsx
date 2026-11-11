@@ -83,7 +83,7 @@ export function TiersPage() {
             )
           })}
         </div>
-        <p className="k-note">※ 보유한 집 수에 따라 꿈이가 변신해요. 전부 가짜 돈입니다.</p>
+        <p className="k-note">※ 보유한 집 수에 따라 꿈이가 변신해요.</p>
       </main>
     </div>
   )

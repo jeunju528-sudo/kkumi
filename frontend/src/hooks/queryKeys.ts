@@ -24,6 +24,8 @@ export const queryKeys = {
     portfolio: () => ['portfolio', 'me'] as const,
     // 일별 기록은 하루 1번만 바뀌어서 평가액(me)과 칸 분리
     portfolioHistory: (period: ChartPeriod) => ['portfolio', 'history', period] as const,
+    // 검색어·토글(살 수 있는 집)을 키에 넣어야 값이 바뀔 때 다른 캐시로 보고 새로 요청함
+    aptRecommendations: (q: string, isAffordableOnly: boolean) => ['apartments', 'list', q, isAffordableOnly] as const,
 }
 
 /**

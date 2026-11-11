@@ -149,7 +149,7 @@ export function StockSearchPage() {
           </section>
         )}
 
-        <p className="k-note">※ 종목과 시세는 가상이에요. 전부 가짜 돈이에요.</p>
+        <p className="k-note">※ 종목과 시세는 가상이에요.</p>
       </main>
     </div>
   )

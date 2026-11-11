@@ -1,31 +1,18 @@
 import { useState } from 'react'
-import type { ChangeEvent, CSSProperties } from 'react'
+import type { ChangeEvent, CSSProperties, FormEvent } from 'react'
+import { useAptRecommendationsQuery } from '../hooks/useAptRecommendationsQuery'
 import { Link } from 'react-router-dom'
-import type { AptRecommendResponse } from '../types/api'
 import { Sprite } from '../components/Sprite'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './ApartmentsPage.css'
 
-// 화면 전용 목업 집 (가격은 만원 단위, roof: 썸네일 지붕색)
-type HomeMock = Pick<AptRecommendResponse, 'dealId' | 'complexName' | 'region' | 'area'> & {
-  priceManwon: number
-  roof: string
-}
-
-// 목업 집 (추천 API 연결 때 교체). 현금·평가액은 실제 값 (홈·투자 HUD와 같은 값)
-const MOCK_APARTMENTS: HomeMock[] = [
-  { dealId: 101, complexName: '태백 [단지명]', region: '강원 태백시', area: 39, priceManwon: 1800, roof: '#D64545' },
-  { dealId: 102, complexName: '군산 [단지명]', region: '전북 군산시', area: 45, priceManwon: 2400, roof: '#3E9B3E' },
-  { dealId: 103, complexName: '영주 [단지명]', region: '경북 영주시', area: 49, priceManwon: 3200, roof: '#E58A2B' },
-  { dealId: 104, complexName: '청주 [단지명]', region: '충북 청주시', area: 59, priceManwon: 6500, roof: '#3B82F6' },
-  { dealId: 105, complexName: '천안 [단지명]', region: '충남 천안시', area: 59, priceManwon: 12000, roof: '#8E5BD6' },
-  { dealId: 106, complexName: '창원 [단지명]', region: '경남 창원시', area: 84, priceManwon: 18000, roof: '#D64545' },
-]
-
-
 // 시안 헤더 (집 찾기 탭 활성)
+const ROOF_COLORS = ['#D64545', '#3E9B3E', '#E58A2B', '#3B82F6', '#8E5BD6']
+const ONLY_OK_STORAGE_KEY = 'apartments.isOnlyOk'
+const LOW_RISE_MAX_PRICE = 50_000_000
+
 type ApartmentsHeaderProps = {
   cash: number
 }
@@ -77,46 +64,43 @@ function ApartmentsHeader({ cash }: ApartmentsHeaderProps) {
 
 export function ApartmentsPage() {
   const [query, setQuery] = useState('')
-  const [isOnlyOk, setIsOnlyOk] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isOnlyOk, setIsOnlyOk] = useState(() => sessionStorage.getItem(ONLY_OK_STORAGE_KEY) !== 'false')
 
   const { data: portfolio } = usePortfolioQuery()
   const cash = portfolio?.cash ?? 0
-  const totalAsset = portfolio?.totalAsset ?? 0
-  // 평가액이 집값 40% 이상인 최대 집값 (만원)
-  const maxPriceManwon = Math.floor(totalAsset / 0.4 / 10000)
 
-  const q = query.trim()
-  const rows = MOCK_APARTMENTS.map((home, index) => {
-    const ownWon = home.priceManwon * 10000 * 0.4
-    const hasEnoughCash = ownWon <= cash
-    const isNeedSell = !hasEnoughCash && ownWon <= totalAsset
-    const isRecommended = hasEnoughCash || isNeedSell
-    return { home, index, ownWon, hasEnoughCash, isNeedSell, isRecommended }
-  }).filter(
-    (row) =>
-      (!q || row.home.complexName.includes(q) || row.home.region.includes(q)) &&
-      (!isOnlyOk || row.isRecommended),
-  )
+  const { data, isPending, isError } = useAptRecommendationsQuery(searchQuery, isOnlyOk)
+  const items = data?.items ?? []
+  const maxPriceManwon = Math.floor((data?.maxPrice ?? 0) / 10000)
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)
-  const handleOnlyOkToggle = () => setIsOnlyOk((prev) => !prev)
+  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setSearchQuery(query.trim())
+  }
+  const handleOnlyOkToggle = () => {
+    const next = !isOnlyOk
+    setIsOnlyOk(next)
+    sessionStorage.setItem(ONLY_OK_STORAGE_KEY, String(next))
+  }
 
   return (
     <div className="page-apartments">
       <ApartmentsHeader cash={cash} />
       <main className="k-wrap">
         <h1 className="k-title">동네 부동산</h1>
-        <p className="k-desc">전국 진짜 아파트를 검색해서 가짜로 계약해요. 국토부 실거래가 기준이에요.</p>
+        <p className="k-desc">전국 진짜 아파트를 검색해서 계약해요. 국토부 실거래가 기준이에요.</p>
 
         <div className="k-top2">
           <section className="k-px" aria-label="대출 안내">
             <div className="k-px-head">
-              <div className="k-px-label">가짜 대출 60% 자동 적용</div>
+              <div className="k-px-label">대출 60% 자동 적용</div>
               <div className="k-lab">LOAN</div>
             </div>
             <div className="k-px-body">
-              집값의 40%만 현금에서 나가요. 추천은 평가액으로, 계약은 현금으로 해요. 현금이 모자라면 주식을
-              팔아요. 이자는 없어요.
+              집값의 40%만 현금에서 나가요.
+              추천은 평가액으로, 계약은 현금으로 해요.
             </div>
           </section>
           <section className="k-px" aria-label="살 수 있는 최대 집값">
@@ -129,94 +113,87 @@ export function ApartmentsPage() {
         </div>
 
         <section className="k-card k-search" aria-label="집 검색">
-          <label htmlFor="q" className="k-search-label">
-            집 찾기
-          </label>
-          <div className="k-search-row">
-            <input
-              id="q"
-              type="text"
-              className="k-input"
-              placeholder="동네나 단지 이름"
-              value={query}
-              onChange={handleQueryChange}
-            />
-            <button
-              type="button"
-              className="k-filter"
-              onClick={handleOnlyOkToggle}
-              aria-pressed={isOnlyOk}
-              style={{ background: isOnlyOk ? '#FFC93C' : '#FFFFFF' }}
-            >
-              살 수 있는 집만
-            </button>
+          <form onSubmit={handleSearchSubmit}>
+            <label htmlFor="q" className="k-search-label">
+              집 찾기
+            </label>
+            <div className="k-search-row">
+              <input
+                id="q"
+                type="text"
+                className="k-input"
+                placeholder="동네나 단지 이름 입력 후 Enter"
+                value={query}
+                onChange={handleQueryChange}
+              />
+              <button
+                type="button"
+                className="k-filter"
+                onClick={handleOnlyOkToggle}
+                aria-pressed={isOnlyOk}
+                style={{ background: isOnlyOk ? '#FFC93C' : '#FFFFFF' }}
+              >
+                살 수 있는 집만
+              </button>
+            </div>
+          </form>
+          <div className="k-count">
+            검색 결과 {items.length}채{data?.hasNext ? ' 이상' : ''}
           </div>
-          <div className="k-count">검색 결과 {rows.length}채</div>
         </section>
 
+        {isPending && <p className="k-note">집 목록 불러오는 중...</p>}
+        {isError && <p className="k-note">집 목록을 못 불러왔어요. 잠시 후 다시 시도해 주세요.</p>}
+
         <div className="k-list">
-          {rows.map(({ home, index, ownWon, hasEnoughCash, isNeedSell, isRecommended }) => {
-            const roofStyle = { '--roof': home.roof } as CSSProperties
-            const isLow = home.priceManwon < 5000
+          {items.map((apt, index) => {
+            const roofStyle = { '--roof': ROOF_COLORS[apt.dealId % ROOF_COLORS.length] } as CSSProperties
+            const isLow = apt.price < LOW_RISE_MAX_PRICE
             return (
-              <article key={home.dealId} className="k-card k-home">
+              <article key={apt.dealId} className="k-card k-home">
                 <div className="k-home-top">
                   <div className="k-thumb">
                     <div className="k-thumb-grass" />
                     {isLow ? (
-                      <Sprite
-                        id="px-apt-low"
-                        viewBox="0 0 16 20"
-                        width={48}
-                        height={60}
-                        className="k-thumb-apt"
-                        style={roofStyle}
-                      />
+                      <Sprite id="px-apt-low" viewBox="0 0 16 20" width={48} height={60} className="k-thumb-apt" style={roofStyle} />
                     ) : (
-                      <Sprite
-                        id="px-apt-mid"
-                        viewBox="0 0 14 26"
-                        width={28}
-                        height={52}
-                        className="k-thumb-apt"
-                        style={roofStyle}
-                      />
+                      <Sprite id="px-apt-mid" viewBox="0 0 14 26" width={28} height={52} className="k-thumb-apt" style={roofStyle} />
                     )}
                   </div>
                   <div className="k-home-info">
                     <div className="k-home-name-row">
-                      <div className="k-home-name">{home.complexName}</div>
-                      {index === 0 && <div className="k-badge">가장 가까워요</div>}
+                      <div className="k-home-name">{apt.complexName}</div>
+                      {isOnlyOk && index === 0 && <div className="k-badge">가장 가까워요</div>}
                     </div>
                     <div className="k-home-meta">
-                      {home.region} · 전용 {home.area}㎡
+                      {apt.region} · 전용 {apt.area}㎡
                     </div>
-                    <div className="k-home-price">{formatManwon(home.priceManwon)}</div>
+                    <div className="k-home-price">{formatManwon(apt.price / 10000)}</div>
                   </div>
                 </div>
                 <div className="k-split">
                   <div className="k-split-row">
                     <span className="k-split-label">내 돈 40%</span>
-                    <span className="k-split-own">{formatManwon(Math.round(home.priceManwon * 0.4))}</span>
+                    <span className="k-split-own">{formatManwon(apt.ownAmount / 10000)}</span>
                   </div>
                   <div className="k-split-row">
-                    <span className="k-split-label">가짜 대출 60%</span>
-                    <span className="k-split-loan">{formatManwon(Math.round(home.priceManwon * 0.6))}</span>
+                    <span className="k-split-label">대출 60%</span>
+                    <span className="k-split-loan">{formatManwon(apt.loanAmount / 10000)}</span>
                   </div>
                 </div>
-                {hasEnoughCash && (
-                  <Link to={`/contract/${home.dealId}`} className="k-btn">
+                {apt.affordability === 'OK' && (
+                  <Link to={`/contract/${apt.dealId}`} className="k-btn">
                     계약하기
                   </Link>
                 )}
-                {isNeedSell && (
+                {apt.affordability === 'NEED_SELL' && (
                   <Link to="/trade" className="k-btn k-btn--sell">
-                    현금 {formatKRW(ownWon - cash)} 부족 · 주식 팔러 가기
+                    현금 {formatKRW(apt.shortage)} 부족 · 주식 팔러 가기
                   </Link>
                 )}
-                {!isRecommended && (
+                {apt.affordability === 'SHORT' && (
                   <button type="button" className="k-btn k-btn--off" disabled>
-                    {formatKRW(ownWon - totalAsset)} 모자라요
+                    {formatKRW(apt.shortage)} 모자라요
                   </button>
                 )}
               </article>
@@ -224,19 +201,17 @@ export function ApartmentsPage() {
           })}
         </div>
 
-        {rows.length === 0 && (
+        {!isPending && !isError && items.length === 0 && (
           <section className="k-card k-empty">
             <div className="k-avatar">
               <img src={tier1} alt="걸뱅이 꿈이" />
             </div>
             <div>
-              <div className="k-empty-title">살 수 있는 집이 아직 없어요.</div>
+              <div className="k-empty-title">{isOnlyOk ? '살 수 있는 집이 아직 없어요.' : '검색 결과가 없어요.'}</div>
               <div className="k-empty-sub">종목을 불려서 다시 오거나 다른 동네를 찾아봐요!</div>
             </div>
           </section>
         )}
-
-        <p className="k-note k-foot">※ 단지명과 가격은 샘플이에요. 실제 서비스는 국토부 실거래가를 보여줘요.</p>
       </main>
     </div>
   )
