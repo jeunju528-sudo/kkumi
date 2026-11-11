@@ -223,7 +223,13 @@
   - 테스트 `AptDealBatchServiceTest` 8개(H2, `@SpringBootTest` + `@Transactional` 롤백): 신규 저장·지역명, 중복 1건, 면적 반올림 후 같은 거래, 해제 갱신, 처음부터 해제, 같은 단지 2건, 코드표에 없는 시군구, 변환 실패만 건너뜀. 전체 `./gradlew test` 통과
   - 로컬 첫 적재 (11/11): 248,133건, 시군구 255개(52800까지), 2026-05~11, 최저가 800만 원
   - 로컬 메모: `show-sql`·`format_sql`(local 프로필)로 쿼리 70만 개 이상이 콘솔에 찍혀 IntelliJ "Low memory" 경고. 서버 동작과는 무관, 마지막 집계 로그는 못 봄
-  - 못 확인한 것: "시세 저장" 로그의 스레드 이름(풀 2개 적용 여부), 실서버 첫 적재(RDS)
+  - 못 확인한 것: "시세 저장" 로그의 스레드 이름(풀 2개 적용 여부), 실서버 첫 적재(RDS) → 아래 fix에서 확인
+- 스케줄러 분리·첫 적재 재실행 (2026-11-11, `fix/scheduler-and-batch-rerun`, `decisions/052` 정정)
+  - 실서버 로그 `[MessageBroker-2] 시세 저장`: `@Scheduled`가 WebSocket 브로커 스케줄러를 쓰고 있었음. yaml `spring.task.scheduling.pool.size`는 효과 없어 삭제
+  - `global/config/SchedulingConfig`: `SchedulingConfigurer` + `ScheduledExecutorService` 빈(2개, `scheduling-` 이름, 종료 시 `shutdown`)
+  - 실서버 첫 적재가 배포 재시작으로 50,884건(시군구 59개, 26290까지)에서 중단 → 재시작 후 거래가 있어 첫 적재 생략
+  - `AptDealBatchProperties`(`enabled`, `forceInitial`), `APT_DEAL_BATCH_FORCE_INITIAL`(yaml, compose)로 강제 재실행. 시작 로그 `실거래가 수집 시작: N개월, 시군구 256개`
+  - 운영 순서: EC2 `.env`에 true → 배포 → 끝날 때까지 배포 금지 → false로 되돌리고 `docker compose up -d`
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
@@ -243,7 +249,7 @@
 6. 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
 7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
 8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
-9. (2026-11-11 해결, `decisions/052`) 스케줄러 스레드 풀 분리: `spring.task.scheduling.pool.size: 2`. 실서버 로그의 스레드 이름으로 적용 확인 필요 (WebSocket 브로커 스케줄러와의 관계)
+9. (2026-11-11 해결, `decisions/052`) 스케줄러 스레드 풀 분리: `SchedulingConfigurer`로 `@Scheduled` 전용 풀 2개 (yaml 설정은 WebSocket 브로커 스케줄러 때문에 효과 없었음)
 10. 정리: 종목 검색 최근 검색 저장(지금은 빈 상태로 시작), `OrderPanel` components 분리(주문 동작을 `OrderPage`로 올리고 props `onSubmit`·`isSubmitting`·`message`로 내리기)
 - MVP 밖 (런칭 후에도 미정): 빌딩, 랭킹·친구 비교, 집 팔기, 집값 하락 표시, 네이티브 앱
 

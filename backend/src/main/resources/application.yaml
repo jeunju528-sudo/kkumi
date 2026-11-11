@@ -11,10 +11,6 @@ spring:
         jdbc:
           time_zone: Asia/Seoul
         default_batch_fetch_size: 100
-  task:
-    scheduling:
-      pool:
-        size: 2 # thread 2개로 만들기
 
   # 카카오 로그인
   security:
@@ -85,6 +81,7 @@ external:
 
 apt-deal-batch:
   enabled: true
+  force-initial: ${APT_DEAL_BATCH_FORCE_INITIAL:false}
 ---
 # local: docker-compose.local.yml MySQL
 spring:
