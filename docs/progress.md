@@ -215,10 +215,18 @@
   - 시군구 코드표 `resources/apartment/sigungu.csv` 256개 (법정동코드 전체자료에서 생성, 전남광주통합특별시 12xxx·화성 구 반영, 옛 코드 0건 확인)
   - 테스트: `MolitDealItemTest` 8개, `MolitResponseParseTest` 5개(1건 객체, 배열, 숫자 → 문자열, 빈 달, XML 에러). 전체 `./gradlew test` 통과
   - 심장 ③ 작성 방식 변경: 대화창 소스 제시 → 개발자 입력 (045 보강)
+- 실거래가 배치 PR B: upsert 저장·매일 수집 (2026-11-11, `feat/apt-deal-batch`, `decisions/052`)
+  - `apartment/SigunguCodes`: `sigungu.csv` → 읽기 전용 Map (코드 → 지역명)
+  - `AptDealBatchService.saveDeals`(쓰기 트랜잭션 = 시군구·월 1단위): 단지 찾기 또는 저장(`orElseGet`) → 거래 찾기(유니크 키 5개) → 있으면 해제 여부만 갱신(`AptDeal.updateCanceled`, 변경 감지), 없으면 저장. 코드표에 없는 시군구·변환 실패 거래는 건너뜀
+  - `AptDealBatchScheduler`: 매일 4시(KST) 이번 달 + 지난달, 비어 있으면 7개월. 첫 적재는 `ApplicationReadyEvent`에서 별도 스레드(`apt-deal-initial`), `AtomicBoolean`으로 동시 실행 방지. API 호출은 트랜잭션 밖, 단위별 실패는 로그 후 계속
+  - `apt-deal-batch.enabled`(테스트 yaml false, `@ConditionalOnProperty`), `spring.task.scheduling.pool.size: 2`
+  - 테스트 `AptDealBatchServiceTest` 8개(H2, `@SpringBootTest` + `@Transactional` 롤백): 신규 저장·지역명, 중복 1건, 면적 반올림 후 같은 거래, 해제 갱신, 처음부터 해제, 같은 단지 2건, 코드표에 없는 시군구, 변환 실패만 건너뜀. 전체 `./gradlew test` 통과
+  - 로컬 첫 적재 (11/11): 248,133건, 시군구 255개(52800까지), 2026-05~11, 최저가 800만 원
+  - 로컬 메모: `show-sql`·`format_sql`(local 프로필)로 쿼리 70만 개 이상이 콘솔에 찍혀 IntelliJ "Low memory" 경고. 서버 동작과는 무관, 마지막 집계 로그는 못 봄
+  - 못 확인한 것: "시세 저장" 로그의 스레드 이름(풀 2개 적용 여부), 실서버 첫 적재(RDS)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 실거래가 배치 (`@Scheduled`)
 - 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
@@ -234,7 +242,7 @@
 6. 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
 7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
 8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
-9. 스케줄러 스레드 풀 분리: 0시 평가액 기록이 시세 갱신과 같은 스레드 1개 사용, 회원이 늘면 시세 갱신이 밀림 (`decisions/049`)
+9. (2026-11-11 해결, `decisions/052`) 스케줄러 스레드 풀 분리: `spring.task.scheduling.pool.size: 2`. 실서버 로그의 스레드 이름으로 적용 확인 필요 (WebSocket 브로커 스케줄러와의 관계)
 10. 정리: 종목 검색 최근 검색 저장(지금은 빈 상태로 시작), `OrderPanel` components 분리(주문 동작을 `OrderPage`로 올리고 props `onSubmit`·`isSubmitting`·`message`로 내리기)
 - MVP 밖 (런칭 후에도 미정): 빌딩, 랭킹·친구 비교, 집 팔기, 집값 하락 표시, 네이티브 앱
 
