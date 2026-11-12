@@ -61,7 +61,8 @@ export function HomePage() {
   const goalTitle = (myHouses?.houseCount ?? 0) === 0 ? '첫 집 목표' : '다음 집 목표'
   const goalLeft = goal ? Math.max(0, goal.ownAmount - totalAsset) : 0
   const isGoalReached = goalLeft === 0
-  const goalPct = goal ? `${Math.min(100, (totalAsset / goal.ownAmount) * 100).toFixed(1)}%` : '100.0%'
+  // 소수 1자리 내림 (반올림하면 99.99%가 100.0%로 보임, 다 모으기 전에는 99.9%까지)
+  const goalPct = goal ? `${(Math.floor(Math.min(1, totalAsset / goal.ownAmount) * 1000) / 10).toFixed(1)}%` : '100.0%'
 
   // 차트 칸: 기간 첫날 ~ 오늘. 지난 날은 일별 기록, 마지막 칸은 WebSocket 평가액(5초마다 갱신)
   const pastDays = CHART_PAST_DAYS[chartPeriod]
