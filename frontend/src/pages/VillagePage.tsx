@@ -5,6 +5,7 @@ import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { useMemberQuery } from '../hooks/useMemberQuery'
 import type { SpriteId } from '../components/PixelDefs'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { toSeedMultiple } from '../utils/portfolio'
 import tier3 from '../assets/sprites/kkumi-tier3.svg'
 import './VillagePage.css'
 
@@ -16,6 +17,9 @@ type OwnedHouse = {
   priceManwon: number
   sprite: { id: SpriteId; viewBox: string; width: number; height: number; roof?: string }
 }
+
+// 목업 데이터 (API 연동 전): 자랑 줄 시드 대비 배수 (ADR 054)
+const MOCK_SEED_RESULT = { initialCash: 5_000_000, netWorth: 45_418_500 }
 
 // 목업 데이터 (API 연동 전)
 const MOCK_HOUSES: OwnedHouse[] = [
@@ -51,6 +55,7 @@ export function VillagePage() {
   const avgManwon = houseCount > 0 ? totalManwon / houseCount : 0
   const progressPct = Math.min(100, (houseCount / NEXT_TIER_GOAL) * 100)
   const nextOrdinal = ORDINALS[houseCount] ?? `${houseCount + 1}번째`
+  const seedMultiple = toSeedMultiple(MOCK_SEED_RESULT.netWorth, MOCK_SEED_RESULT.initialCash)
 
   const hudChips = (
     <>
@@ -133,6 +138,18 @@ export function VillagePage() {
                   <div className="village-progress-text">{houseCount}/{NEXT_TIER_GOAL}채</div>
                 </div>
                 <Link to="/tiers" className="village-tiers-link">변신 4단계 보기</Link>
+              </div>
+            </section>
+
+            <section className="k-px village-result" aria-label="시드머니 대비 결과">
+              <div className="village-row-between">
+                <div className="village-total-lab">
+                  시드 {formatManwon(MOCK_SEED_RESULT.initialCash / 10_000)} → 순자산 {formatManwon(MOCK_SEED_RESULT.netWorth / 10_000)}
+                </div>
+                <div className="k-lab" style={{ color: '#FFC93C' }}>RESULT</div>
+              </div>
+              <div className={`village-result-num${seedMultiple.isUp ? ' village-result-num--up' : ''}`}>
+                {seedMultiple.text} {seedMultiple.isUp ? '인생역전' : '인생여전'}
               </div>
             </section>
 

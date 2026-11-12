@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 
 import com.kkumi.global.error.BusinessException;
 import com.kkumi.global.error.ErrorCode;
+import com.kkumi.house.HouseService;
 import com.kkumi.member.Member;
 import com.kkumi.member.MemberRepository;
 import com.kkumi.member.SeedMoney;
@@ -43,6 +44,9 @@ class PortfolioSnapshotServiceTest {
     private HoldingService holdingService;
 
     @Mock
+    private HouseService houseService;
+
+    @Mock
     private PortfolioSnapshotRepository snapshotRepository;
 
     @Test
@@ -64,8 +68,31 @@ class PortfolioSnapshotServiceTest {
         ArgumentCaptor<PortfolioSnapshot> saved = ArgumentCaptor.forClass(PortfolioSnapshot.class);
         verify(snapshotRepository).save(saved.capture());
         assertThat(saved.getValue().getTotalAsset()).isEqualTo(5_020_000);
+        assertThat(saved.getValue().getHouseEquity()).isZero();
         assertThat(saved.getValue().getSnapshotDate()).isEqualTo(DATE);
         assertThat(saved.getValue().getMember()).isSameAs(member);
+    }
+
+    @Test
+    @DisplayName("집이 있으면 평가액과 내 집 지분을 따로 저장, 순자산은 합")
+    void recordSnapshot_withHouse() {
+        // given: 시드 500만, 1,000만 원 집 사서 현금 400만 차감 → 현금 100만, 주식 없음
+        Member member = Member.join("kakao-1", "꿈이", SeedMoney.SMALL);
+        member.withdraw(4_000_000);
+        given(snapshotRepository.existsByMemberIdAndSnapshotDate(MEMBER_ID, DATE)).willReturn(false);
+        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+        given(holdingService.findHoldings(MEMBER_ID)).willReturn(List.of());
+        given(houseService.findPurchasePrices(MEMBER_ID)).willReturn(List.of(10_000_000L));
+
+        // when
+        snapshotService.recordSnapshot(MEMBER_ID, DATE);
+
+        // then: 평가액 1,000,000 + 지분 4,000,000 = 순자산 5,000,000 (집 사기 전과 같음)
+        ArgumentCaptor<PortfolioSnapshot> saved = ArgumentCaptor.forClass(PortfolioSnapshot.class);
+        verify(snapshotRepository).save(saved.capture());
+        assertThat(saved.getValue().getTotalAsset()).isEqualTo(1_000_000);
+        assertThat(saved.getValue().getHouseEquity()).isEqualTo(4_000_000);
+        assertThat(saved.getValue().getNetWorth()).isEqualTo(5_000_000);
     }
 
     @Test

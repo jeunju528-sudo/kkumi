@@ -60,7 +60,7 @@ SeedPick
 Home
   PixelTownScene
   HudChips            # CASH, 오늘 마감 시계(다음 0시까지, ADR 050)
-  ValuationCard       # 내 평가액(롤링), 손익, 내 거래 링크(→/trade/history)
+  ValuationCard       # 내 순자산(롤링), 오늘 증감, 자산 구성 막대(NetWorthSummary), 내 거래 링크(→/trade/history) (ADR 054)
   GoalPanel           # 첫 집 목표 + 진행 바
   ValuationChart
   HoldingList > HoldingRow*
@@ -88,7 +88,7 @@ Apartments
 ### Contract / Village
 ```
 Contract : ContractPaper, StampArea(도장 칸 클릭), StampConfirm(YES/NO, 계약 후 남은 현금), TierUpToast, ShareButton, RetryButton
-Village  : TierProgress, HouseCollection > HouseSlot*, EmptySlot*
+Village  : TierProgress, SeedResult(시드 대비 배수, ADR 054), HouseCollection > HouseSlot*, EmptySlot*
 ```
 
 ## 4. API 타입

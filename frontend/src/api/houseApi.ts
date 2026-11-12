@@ -1,4 +1,4 @@
-import type { BuyHouseRequest, BuyHouseResponse } from "../types/api";
+import type { BuyHouseRequest, BuyHouseResponse, MyHousesResponse } from "../types/api";
 import { toApiError } from "./apiError";
 
 export async function buyHouse(request: BuyHouseRequest): Promise<BuyHouseResponse> {
@@ -13,4 +13,12 @@ export async function buyHouse(request: BuyHouseRequest): Promise<BuyHouseRespon
     }
     
     return res.json() as Promise<BuyHouseResponse>
+}
+
+export async function getMyHouses(): Promise<MyHousesResponse> {
+    const res = await fetch('/api/houses')
+    if(!res.ok) {
+        throw await toApiError(res)
+    }
+    return res.json() as Promise<MyHousesResponse>
 }

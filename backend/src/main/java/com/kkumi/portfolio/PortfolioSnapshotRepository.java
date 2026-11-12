@@ -2,6 +2,7 @@ package com.kkumi.portfolio;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +11,9 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
     // 같은 날 기록 여부 (재실행 시 건너뛰기용)
     boolean existsByMemberIdAndSnapshotDate(Long memberId, LocalDate snapshotDate);
+
+    // 어제 마감 기록 (오늘 증감 기준, ADR 054)
+    Optional<PortfolioSnapshot> findByMemberIdAndSnapshotDate(Long memberId, LocalDate snapshotDate);
 
     // 기간 기록, 오래된 날부터 (차트 왼쪽 → 오른쪽)
     @Query("""

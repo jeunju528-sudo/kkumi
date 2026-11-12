@@ -59,4 +59,9 @@ public class HouseService {
             .toList();
         return new MyHousesResponse(houses, houses.size(), Tier.of(houses.size()));
     }
+
+    // 산 집 구매가 목록 (순자산의 내 집 지분 계산용, ADR 054)
+    public List<Long> findPurchasePrices(Long memberId) {
+        return houseRepository.findPurchasePricesByMemberId(memberId);
+    }
 }
