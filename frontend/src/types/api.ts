@@ -36,6 +36,21 @@ export type StockResponse = {
   changeRate: number // 0.0123 = +1.23%
 }
 
+// GET /api/stocks/{code}/prices: 분봉 차트 점 (최근 24시간 1분 간격, 오래된 순)
+export type StockPriceResponse = {
+  time: string // 'YYYY-MM-DDTHH:mm:ss' (KST)
+  price: number
+}
+
+// GET /api/stocks/{code}/candles: 일봉 (오늘 포함 최근 30일, 오래된 순, 오늘 일봉은 1분마다 바뀜)
+export type StockCandleResponse = {
+  date: string // 'YYYY-MM-DD'
+  open: number
+  high: number
+  low: number
+  close: number
+}
+
 export type HoldingResponse = {
   code: string
   name: string

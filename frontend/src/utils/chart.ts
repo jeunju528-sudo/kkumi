@@ -82,3 +82,33 @@ export function toChartCoords(
     baselineY: toY(baseline),
   }
 }
+
+// 차트 칸 수: 데이터 수를 [최소, 최대]로 자름 (모자라면 최소 폭에 오른쪽 정렬, 많으면 꽉 채움)
+export function toSlotCount(dataCount: number, minSlots: number, maxSlots: number): number {
+  return Math.min(maxSlots, Math.max(minSlots, dataCount))
+}
+
+// 축 3칸(왼쪽·가운데·오른쪽) 문구: 데이터 있는 칸은 그 데이터 문구, 빈 칸은 "N분 전" 같은 상대 문구
+// dataLabels는 오른쪽 정렬로 놓인다고 보고 계산
+export function toThreeAxisLabels(
+  slotCount: number,
+  dataLabels: string[],
+  toEmptyLabel: (slotsAgo: number) => string,
+): string[] {
+  const offset = slotCount - dataLabels.length
+  const labelAt = (slot: number) => {
+    const index = slot - offset
+    return index >= 0 ? dataLabels[index] : toEmptyLabel(slotCount - 1 - slot)
+  }
+  return [labelAt(0), labelAt(Math.floor((slotCount - 1) / 2)), labelAt(slotCount - 1)]
+}
+
+// '2026-11-12T22:10:00' → "22:10"
+export function toClockLabel(time: string): string {
+  return time.slice(11, 16)
+}
+
+// '2026-11-12' → "11/12"
+export function toMonthDayLabel(date: string): string {
+  return `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`
+}

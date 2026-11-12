@@ -268,6 +268,12 @@
   - 프론트 모양: `HomePage` 목업 `MOCK_GOAL`(응답 타입 그대로, null = 404), 0채 "첫 집 목표"·1채 이상 "다음 집 목표", 다 모으면 "계약금 모았어요!" + 부동산 링크(`.k-quest-link`)
   - 데이터 연결 완료: `aptApi.getAptGoal`(404 `GOAL_NOT_FOUND` → `null`), `useAptGoalQuery`, `queryKeys.aptGoal`(`['apartments', 'goal']`, 집 사기 무효화에 포함). `undefined`(로딩)와 `null`(목표 없음) 구분, 목업 `MOCK_GOAL` 삭제
   - 확인: `./gradlew test` 통과(로컬), `npm run lint`·`npm run build` 통과, 로컬 `GET /api/apartments/goal` 200(`/{dealId}`와 경로 충돌 없음)
+- 종목 상세 분봉·일봉 차트 (2026-11-12, `feat/stock-price-history`, `decisions/056`)
+  - 문제: 상세 차트가 화면 진입 후 가격만(최대 30개) 찍어 무엇을 살지 판단할 재료가 없음 (플레이 중 개발자 발견)
+  - 백엔드: `StockPriceHistory`(1분 기록, 인덱스 (stock_code, recorded_at)), `StockDailyCandle`(일봉 OHLC, 유니크 (stock_code, trade_date), `open`·`update`), `StockPriceSnapshotService.savePrices`가 1분 저장 때 기록 1행 추가 + 오늘 일봉 upsert(날짜별 일봉 한 번에 조회), `GET /api/stocks/{code}/prices`(최근 24시간), `GET /api/stocks/{code}/candles`(최근 30일), `StockPriceHistoryScheduler`(매일 3:30 24시간 지난 1분 기록 벌크 delete, 일봉은 삭제 없음). 1분 기록은 분 단위 시각 + 같은 분 중복 생략, 시세 갱신·평가액 푸시는 `fixedDelay`(절전 후 밀린 실행 몰림 방지)
+  - 테스트: `StockPriceHistoryTest` 7개(H2): 스냅샷 있는 종목만 기록, since 이후·오래된 순·다른 종목 제외, before 이전만 삭제(경계 남김), 같은 날 일봉 고가·저가·종가 갱신(시가 = 오늘 시작가), 날짜 바뀌면 새 일봉, 같은 분 두 번이면 기록 1행, 없는 종목 404. `StockDailyCandleTest` 2개: 첫 기록 고가·저가, 갱신은 넓히기만
+  - 프론트(045 예외, 개발자 요청으로 에이전트 작성): `stockApi.getStockPrices`·`getStockCandles`, `useStockPricesQuery`·`useStockCandlesQuery`(1분마다), `queryKeys.stockPrices`·`stockCandles`, `components/CandleChart`(심지 + 몸통, 오늘 캔들에 실시간 가격), `OrderPage` 탭 "분봉 | 일봉", 칸 수는 데이터에 맞춤(분봉 최소 1시간·일봉 최소 7일 폭, 넘으면 꽉 채움, `utils/chart.toSlotCount`), 선 아래 옅은 채움, 축 3칸은 실제 시각·날짜(`toThreeAxisLabels`), 탭 기준 최고·최저가, 일봉 3개 미만이면 "일봉은 하루에 1개씩 쌓여요". 화면 진입 후 기록 state(`hist`)는 삭제
+  - 운영: 배포 후 RDS에 `stock_price_history`·`stock_daily_candle` 테이블 생성(`ddl-auto: update`) 확인. 분봉은 24시간, 일봉은 30일 뒤에 꽉 참
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
@@ -279,11 +285,11 @@
 기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능 순서는 9월 확정 순서(필터 JSON → 골든셋 → ES) 유지
 0. Kafka (`decisions/053`): 11/15~16. 매수·매도 체결 이벤트(커밋 후 발행, 키 = 회원 ID) → 컨슈머가 그 회원 평가액 즉시 푸시. 브로커 1대(KRaft) Compose 추가, 도입일에 EC2 t3.small → t3.medium. AWS Budgets 알림 설정(크레딧 $98.97, 2027-01-10 만료)
 0-1. AI 자산 코치 (`decisions/051`, 노션 "9. AI 자산 코치 설계"): Kafka 다음 착수, 약 2주. Spring AI + Gemini, 조회 전용 tool 3개, Redis 호출 한도
-1. 자연어 아파트 검색 (필터 JSON, `decisions/023`): 11/11 게이트 통과 시 11/13에 런칭 전으로 당김, 아니면 런칭 직후 1순위. LLM은 필터 JSON만 추출, 쿼리는 코드(추천 API 조회 재사용)
+1. 자연어 아파트 검색 (필터 JSON, `decisions/023`): 11/11 게이트 미통과(내 마을 연결 전) → 런칭 후로 확정 (2026-11-12 개발자 결정). LLM 연동이 AI 코치와 같은 Spring AI + Gemini라 0-1과 같은 시기에 진행. LLM은 필터 JSON만 추출, 쿼리는 코드(추천 API 조회 재사용)
 2. 시세 실시간 방송 `/topic/stocks`: 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지 중. 모두에게 같은 값이라 공용 채널 방송이 맞음(평가액은 개인 큐 `/user/queue`, `decisions/046`). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
 3. AI 응답 평가 골든셋: 자연어 검색 질문 50~100개 + 기대 필터, 정확도 리포트. CI 포함 여부(PR마다 vs 수동) 결정 필요
 4. Elasticsearch 자동완성: 단지 마스터만 인덱싱(거래 행 제외). `decisions/024` 기술 상한선 변경 ADR + EC2 메모리(t3.small 2GB) 검토 선행. "DB 내장 검색으로 충분하지만 오버킬임을 알고 붙였다"로 설명
-5. 시세 기록 API: 주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요 (엔진은 현재가만 보관)
+5. (2026-11-12 `feat/stock-price-history`, `decisions/056`) 시세 기록 API: 1분 기록 하루 보관, 주문 화면 차트 최근 1시간
 6. 무한 스크롤: 내 거래(PR B)와 집 찾기 목록(지금은 첫 20건만, 2026-11-12 개발자 결정으로 런칭 후). 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
 7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
 8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
@@ -300,7 +306,7 @@
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`) → 런칭 후 과제 7
 - 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27) → 런칭 후 과제 8
-- 자연어 아파트 검색: 조건부 포함 (`decisions/038`, `039`). 11/11 게이트 통과 시 11/13에 추가 (`decisions/023` 필터 JSON)
+- 자연어 아파트 검색: 런칭 후로 확정 (2026-11-12, 게이트 미통과, 런칭 후 과제 1)
 - 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인 → 11/12 처리
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
@@ -315,10 +321,10 @@
 6. (11/4 오전 완료) 평가액 계산 (심장 ②) API(PR A #51, 작성 분담 045) → 홈 화면 연결 + 내 거래 총손익 카드 + 종목 목록 "내 종목 평가액" 교체 (PR B). 계획보다 반나절 초과
 7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
 8. (11/6 앞당겨 작성) 일별 평가액 기록 + 손익 차트 (심장 ④, `decisions/049`). 집 사기 API + 변신 단계 + 내 마을 조회 백엔드는 11/6 완료(#56). 11/7: 로컬 확인 후 merge
-9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
+9. (11/11 완료) 실거래가 배치 (심장 ③). 도메인·HTTPS (Secure 쿠키 켜기)는 11/13로 이동 (2026-11-12 개발자 결정)
 10. 11/10 → 11/12 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서, 11/12 완료) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
-12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
+12. 11/12 통합 테스트·버그 수정, 11/13 도메인·HTTPS + 버퍼 (자연어 검색은 런칭 후)
   - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
     1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
     2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일

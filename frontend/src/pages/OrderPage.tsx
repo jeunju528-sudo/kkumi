@@ -8,6 +8,10 @@ import { useStocksQuery } from '../hooks/useStocksQuery'
 import { useHoldingsQuery } from '../hooks/useHoldingsQuery'
 import { useBuyStockMutation } from '../hooks/useBuyStockMutation'
 import { useSellStockMutation } from '../hooks/useSellStockMutation'
+import { useStockPricesQuery } from '../hooks/useStockPricesQuery'
+import { useStockCandlesQuery } from '../hooks/useStockCandlesQuery'
+import { CandleChart } from '../components/CandleChart'
+import { toClockLabel, toMonthDayLabel, toSlotCount, toThreeAxisLabels } from '../utils/chart'
 import { OrderHeader } from '../components/OrderHeader'
 import { formatKRW, formatNumber } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
@@ -21,7 +25,16 @@ type OrderPanelProps = {
   cash: number
 }
 
-const HIST_MAX = 30 // 차트에 남길 가격 기록 최대 갯수
+type ChartView = 'MINUTE' | 'DAY'
+
+// 차트 탭: 분봉(최근 24시간 1분 기록) / 일봉(오늘 포함 최근 30일) (ADR 056)
+const CHART_VIEWS: { value: ChartView; label: string }[] = [
+  { value: 'MINUTE', label: '분봉' },
+  { value: 'DAY', label: '일봉' },
+]
+// 칸 수 범위: 데이터가 적으면 최소 폭(분봉 1시간, 일봉 7일)에 오른쪽 정렬, 많으면 꽉 채움
+const MINUTE_SLOTS = { min: 61, max: 1441 } // 1분 기록 + 지금 가격 1칸
+const DAY_SLOTS = { min: 7, max: 30 }
 
 // 사용자가 볼 에러 규칙
 function toOrderErrorText(error: Error): string {
@@ -46,21 +59,18 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const [mode, setMode] = useState<OrderMode>('buy') // 매수/매도, 담기/팔기 버튼 누를때 setMode
   const [qty, setQty] = useState(1) // 사용자가 고른 수량, +/- 버튼 누를 때 setQty
   const [message, setMessage] = useState<string | null>(null) // 말풍선에 띄울 결과 문구
-  const [hist, setHist] = useState<number[]>([stock.price]) // 이 화면에서 본 가격 기록, 가격이 바뀔 때마다 1개 추가
   const [lastPrice, setLastPrice] = useState(stock.price) // 직전 렌더의 가격, 가격이 바뀔때 setLastPrice
   const [flash, setFlash] = useState(0) // 방금 올랐는지 내렸는지 체크, 가격 바뀔 때 setFlash
+  const [chartView, setChartView] = useState<ChartView>('MINUTE') // 차트 탭 (분봉 / 일봉)
   const buyMutation = useBuyStockMutation() // 주문 버튼 눌렀을 때 사용(매수)
   const sellMutation = useSellStockMutation() // 주문 버튼 눌렀을 때 사용(매도)
+  const { data: history = [] } = useStockPricesQuery(stock.code) // 분봉: 최근 24시간 1분 기록 (1분마다 다시 받음)
+  const { data: candles = [] } = useStockCandlesQuery(stock.code) // 일봉: 최근 30일 (오늘 일봉도 1분마다 바뀜)
 
   const { price } = stock // 종목에서 현재가를 꺼내서 ( 5초마다 새 값이 props 로 들어옴)
 
   if(price !== lastPrice){ // 현재가와 직전에 기억한 가격과 다르면 => 시세가 바뀌었으면
     setLastPrice(price) // 새 가격을 기억하고
-    // prev : 지금까지 저장된 배열 통째로
-    // ...prev, price 지금까지 저장된 배열 통쨰로 다시 복사하고, price 붙임
-    // .slice(-30) 뒤에서부터 30개만 남김, - 는 뒤에서부터 센다는 것
-    // 30개가 안되면 그대로 둠
-    setHist((prev) => [...prev, price].slice(-HIST_MAX))  // 30개보다 많으면 오래된거 버림
     setFlash(price > lastPrice ? 1 : -1) // 올랐으면 빨강, 내렸으면 파랑
   }
 
@@ -74,16 +84,43 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const isSubmitting = buyMutation.isPending || sellMutation.isPending // 주문 요청 중인지~
   const canSubmit = max > 0 && !isSubmitting // 버튼 눌러도 되는지~ max가 0보다 크고 주문 요청 중이 아닌지~
 
+  const isMinuteView = chartView === 'MINUTE'
+
+  // 분봉 값: 1분 기록 + 지금 가격(5초마다 갱신)을 오른쪽 끝에 (홈 순자산 차트와 같은 방식)
+  const minuteHistory = history.slice(-(MINUTE_SLOTS.max - 1))
+  const chartValues = [...minuteHistory.map((h) => h.price), price]
+  const chartSlots = toSlotCount(chartValues.length, MINUTE_SLOTS.min, MINUTE_SLOTS.max)
+
   // 차트 계산을 위해, 가격 기록을 300 X 100 그림 안의 점 좌표로 바꾸는 것
   // 싼 값은 아래에
   // 비싼 값은 위로 가게 설정
-  const lo = Math.min(...hist)
-  const hi = Math.max(...hist)
+  const lo = Math.min(...chartValues) // 분봉 최저가 (지금 가격 포함)
+  const hi = Math.max(...chartValues) // 분봉 최고가
   const span = Math.max(price * 0.02, hi - lo)   // 세로 폭 최소 2% (작은 흔들림은 작게)
-  const step = 300 / (HIST_MAX - 1)              // 점 간격 고정 (왼쪽부터 자라남)
-  const chartPoints = hist
-        .map((v, i) => `${(i * step).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`)
+  const step = 300 / (chartSlots - 1)            // 1칸 = 1분
+  const offset = chartSlots - chartValues.length // 1시간보다 적으면 오른쪽 정렬 (지금 가격은 항상 오른쪽 끝)
+  const chartPoints = chartValues
+        .map((v, i) => `${((offset + i) * step).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`)
         .join(' ')
+  // 선 아래 옅은 채움: 선 끝점에서 바닥으로 내려 닫은 다각형
+  const areaPoints = `${chartPoints} 300.0,100 ${(offset * step).toFixed(1)},100`
+
+  // 일봉 칸 수: 7일보다 적으면 오른쪽 정렬, 많으면 꽉 채움
+  const dayCandles = candles.slice(-DAY_SLOTS.max)
+  const candleSlots = toSlotCount(dayCandles.length, DAY_SLOTS.min, DAY_SLOTS.max)
+
+  // 축 3칸: 데이터 있는 칸은 실제 시각·날짜, 빈 칸은 "N분 전"·"N일 전"
+  const axisLabels = isMinuteView
+    ? toThreeAxisLabels(chartSlots, [...minuteHistory.map((h) => toClockLabel(h.time)), '지금'], (ago) => `${ago}분 전`)
+    : toThreeAxisLabels(
+        candleSlots,
+        dayCandles.map((c, i) => (i === dayCandles.length - 1 ? '오늘' : toMonthDayLabel(c.date))),
+        (ago) => `${ago}일 전`,
+      )
+
+  // 최고·최저: 보고 있는 탭 기준 (일봉은 고가·저가 + 지금 가격)
+  const rangeHigh = isMinuteView ? hi : Math.max(price, ...dayCandles.map((c) => c.high))
+  const rangeLow = isMinuteView ? lo : Math.min(price, ...dayCandles.map((c) => c.low))
 
   // 화면 그릴 때 사용
   const deltaText = `${isUp ? '▲ +' : '▼ -'}${pct}% 오늘`
@@ -144,34 +181,66 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
         <div className="k-delta" style={{ color: deltaColor }}>
           {deltaText}
         </div>
-        <svg
-          viewBox="0 0 300 100"
-          width="100%"
-          role="img"
-          aria-label="실시간 가격 추이 그래프"
-          preserveAspectRatio="none"
-          className="k-chart"
-        >
-          <line
-            x1="0"
-            y1="99"
-            x2="300"
-            y2="99"
-            stroke="#E6E8F0"
-            strokeWidth="1.5"
-            strokeDasharray="4 4"
-            vectorEffect="non-scaling-stroke"
-          />
-          <polyline
-            points={chartPoints}
-            fill="none"
-            stroke={deltaColor}
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
+        <div className="k-chart-tabs">
+          {CHART_VIEWS.map((v) => (
+            <button
+              key={v.value}
+              type="button"
+              className={`k-chart-tab${chartView === v.value ? ' k-chart-tab--on' : ''}`}
+              aria-pressed={chartView === v.value}
+              onClick={() => setChartView(v.value)}
+            >
+              <span>{v.label}</span>
+            </button>
+          ))}
+        </div>
+        {isMinuteView ? (
+          <svg
+            viewBox="0 0 300 100"
+            width="100%"
+            role="img"
+            aria-label="최근 24시간 분봉 그래프"
+            preserveAspectRatio="none"
+            className="k-chart"
+          >
+            <line
+              x1="0"
+              y1="99"
+              x2="300"
+              y2="99"
+              stroke="#E6E8F0"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+              vectorEffect="non-scaling-stroke"
+            />
+            <polygon points={areaPoints} fill={deltaColor} fillOpacity="0.08" />
+            <polyline
+              points={chartPoints}
+              fill="none"
+              stroke={deltaColor}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        ) : (
+          <CandleChart candles={dayCandles} livePrice={price} slots={candleSlots} />
+        )}
+        <div className="k-chart-axis">
+          {axisLabels.map((label, i) => (
+            <span key={i}>{label}</span>
+          ))}
+        </div>
+        {!isMinuteView && candles.length < 3 && <div className="k-chart-hint">일봉은 하루에 1개씩 쌓여요.</div>}
+        <div className="k-chart-range">
+          <span>
+            최고 <b className="k-chart-hi">{formatNumber(rangeHigh)}원</b>
+          </span>
+          <span>
+            최저 <b className="k-chart-lo">{formatNumber(rangeLow)}원</b>
+          </span>
+        </div>
       </section>
 
       <section className="k-card k-order" aria-label="주문">

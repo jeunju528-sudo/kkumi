@@ -11,6 +11,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +84,8 @@ public class VirtualPriceProvider implements StockPriceProvider {
         return new PriceState(stock.getType(), base, dayOpen, current, current);
     }
 
-    @Scheduled(fixedRateString = "${virtual-price.tick-interval}")
+    // fixedDelay: 이전 갱신이 끝나고 5초 뒤 (서버가 멈췄다 풀려도 밀린 갱신을 몰아서 하지 않음, ADR 056)
+    @Scheduled(fixedDelayString = "${virtual-price.tick-interval}")
     // 모든 종목에 대해서 한 번만 tick 함수를 실행해서 나온 값이라
     // 모든 종목이 같은 장 분위기를 씀
     public void tick() {
@@ -125,7 +128,8 @@ public class VirtualPriceProvider implements StockPriceProvider {
         Map<String, PriceSnapshot> snapshots = new HashMap<>();
         states.forEach((code, state) ->
                 snapshots.put(code, new PriceSnapshot(state.price(), state.dayOpenPrice(), date)));
-        snapshotService.savePrices(snapshots);
+        // 분 단위로 잘라 저장 (멈췄다 풀려 몰아서 실행돼도 같은 분은 기록 1번, ADR 056)
+        snapshotService.savePrices(snapshots, LocalDateTime.now(KST).truncatedTo(ChronoUnit.MINUTES));
         log.info("시세 저장: {}개 종목", snapshots.size());
     }
 
