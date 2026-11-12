@@ -26,6 +26,9 @@ export const queryKeys = {
     portfolioHistory: (period: ChartPeriod) => ['portfolio', 'history', period] as const,
     // 검색어·토글(살 수 있는 집)을 키에 넣어야 값이 바뀔 때 다른 캐시로 보고 새로 요청함
     aptRecommendations: (q: string, isAffordableOnly: boolean) => ['apartments', 'list', q, isAffordableOnly] as const,
+    apartments: () => ['apartments'] as const,
+    aptDeal: (dealId: number) => ['apartments', 'deal', dealId] as const,
+    myHouses: () => ['houses', 'me'] as const,
 }
 
 /**

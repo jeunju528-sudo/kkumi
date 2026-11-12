@@ -95,11 +95,11 @@ export function ApartmentsPage() {
         <div className="k-top2">
           <section className="k-px" aria-label="대출 안내">
             <div className="k-px-head">
-              <div className="k-px-label">대출 60% 자동 적용</div>
+              <div className="k-px-label">주택담보대출 60% 자동 적용</div>
               <div className="k-lab">LOAN</div>
             </div>
             <div className="k-px-body">
-              집값의 40%만 현금에서 나가요.
+              집값의 40%만 현금에서 나가요. 금리는 연 3.7%, 30년 원리금균등 기준이에요.
               추천은 평가액으로, 계약은 현금으로 해요.
             </div>
           </section>
@@ -122,7 +122,7 @@ export function ApartmentsPage() {
                 id="q"
                 type="text"
                 className="k-input"
-                placeholder="동네나 단지 이름 입력 후 Enter"
+                placeholder="서울, 강남구, 단지 이름 입력 후 Enter"
                 value={query}
                 onChange={handleQueryChange}
               />
@@ -163,10 +163,10 @@ export function ApartmentsPage() {
                   <div className="k-home-info">
                     <div className="k-home-name-row">
                       <div className="k-home-name">{apt.complexName}</div>
-                      {isOnlyOk && index === 0 && <div className="k-badge">가장 가까워요</div>}
+                      {isOnlyOk && index === 0 && <div className="k-badge">영끌</div>}
                     </div>
                     <div className="k-home-meta">
-                      {apt.region} · 전용 {apt.area}㎡
+                      {apt.region} · 전용 {apt.area}㎡ · {apt.floor}층
                     </div>
                     <div className="k-home-price">{formatManwon(apt.price / 10000)}</div>
                   </div>
@@ -177,13 +177,13 @@ export function ApartmentsPage() {
                     <span className="k-split-own">{formatManwon(apt.ownAmount / 10000)}</span>
                   </div>
                   <div className="k-split-row">
-                    <span className="k-split-label">대출 60%</span>
+                    <span className="k-split-label">대출 60% (연 3.7%, 원리금균등)</span>
                     <span className="k-split-loan">{formatManwon(apt.loanAmount / 10000)}</span>
                   </div>
                 </div>
                 {apt.affordability === 'OK' && (
                   <Link to={`/contract/${apt.dealId}`} className="k-btn">
-                    계약하기
+                    부동산 방문
                   </Link>
                 )}
                 {apt.affordability === 'NEED_SELL' && (

@@ -59,7 +59,6 @@
 
 /* 버튼 */
 .page-contract .contract-actions{display:flex;flex-direction:column;gap:12px}
-.page-contract .contract-btn-stamp{display:flex;min-height:56px;border:3px solid #0F0B1F;border-radius:0;background:#D32F36;box-shadow:0 4px 0 #0F0B1F;color:#FFFFFF;font-size:20px;font-weight:800;align-items:center;justify-content:center}
 .page-contract .contract-btn-share{display:flex;min-height:56px;border:3px solid #0F0B1F;border-radius:0;background:#FFC93C;box-shadow:0 4px 0 #0F0B1F;color:#231B3A;font-size:16px;font-weight:800;align-items:center;justify-content:center}
 .page-contract .contract-btn-village{display:flex;min-height:48px;box-sizing:border-box;border:2px solid #231B3A;background:#FFFFFF;color:#231B3A;font-size:15px;font-weight:800;align-items:center;justify-content:center}
 .page-contract .contract-btn-reset{display:flex;min-height:44px;border:0;background:transparent;color:#6B6F80;font-size:14px;text-decoration:underline;align-items:center;justify-content:center}
@@ -71,3 +70,23 @@
 .page-contract .k-link{flex-direction:column;justify-content:center;gap:4px;min-height:60px;padding:0;border:0;font-size:11px}
 .page-contract .k-top{padding:0 16px}
 }
+
+/* 도장 칸 버튼 (도장 전) */
+.page-contract .contract-stamp-btn{display:flex;width:96px;height:96px;box-sizing:border-box;padding:0;border:3px dashed #D32F36;border-radius:50%;background:#FFF5F5;color:#D32F36;font:inherit;font-size:13px;font-weight:800;line-height:1.3;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;animation:contract-wiggle 1.6s ease-in-out infinite}
+.page-contract .contract-stamp-btn span{font-size:20px}
+.page-contract .contract-stamp-btn:hover{background:#FFE3E3}
+.page-contract .contract-stamp-btn:disabled{border-color:#8D90A8;background:transparent;color:#6B6F80;cursor:not-allowed;animation:none}
+@keyframes contract-wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-8deg)}90%{transform:rotate(8deg)}95%{transform:rotate(-4deg)}}
+.page-contract .contract-stamp-hint{margin:0;color:#6B6F80;font-size:14px;text-align:center}
+
+/* 도장 확인창 */
+.page-contract .contract-confirm{position:fixed;inset:0;z-index:100;display:flex;padding:16px;background:rgba(15,11,31,.6);align-items:center;justify-content:center}
+.page-contract .contract-confirm-box{width:100%;max-width:340px;box-sizing:border-box;padding:24px;border:3px solid #0F0B1F;background:#FFFFFF;box-shadow:0 6px 0 #0F0B1F;text-align:center}
+.page-contract .contract-confirm-title{color:#231B3A;font-size:20px;font-weight:800}
+.page-contract .contract-confirm-body{margin-top:12px;color:#6B6F80;font-size:14px;line-height:1.6}
+.page-contract .contract-confirm-body b{color:#231B3A;font-size:18px}
+.page-contract .contract-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.page-contract .contract-confirm-no,.page-contract .contract-confirm-yes{min-height:48px;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.page-contract .contract-confirm-no{background:#FFFFFF;color:#231B3A}
+.page-contract .contract-confirm-yes{background:#D32F36;color:#FFFFFF}
+@media (prefers-reduced-motion:reduce){.page-contract .contract-stamp-btn{animation:none}}

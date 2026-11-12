@@ -27,3 +27,10 @@ export function formatRate(rate: number): string {
 export function formatSignedKRW(won: number): string {
   return `${won > 0 ? '+' : won < 0 ? '-' : ''}${formatKRW(Math.abs(won))}`
 }
+
+// Date → "2026.11.11" (계약서 날짜)
+export function formatDotDate(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}.${m}.${d}`
+}
