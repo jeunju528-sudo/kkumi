@@ -87,7 +87,7 @@ Apartments
 
 ### Contract / Village
 ```
-Contract : ContractPaper, StampArea, TierUpToast, ShareButton, RetryButton
+Contract : ContractPaper, StampArea(도장 칸 클릭), StampConfirm(YES/NO, 계약 후 남은 현금), TierUpToast, ShareButton, RetryButton
 Village  : TierProgress, HouseCollection > HouseSlot*, EmptySlot*
 ```
 
@@ -101,7 +101,7 @@ Village  : TierProgress, HouseCollection > HouseSlot*, EmptySlot*
 
 | affordability | 버튼 | 동작 |
 |---|---|---|
-| OK | 계약하기 | /contract/:dealId |
+| OK | 부동산 방문 | /contract/:dealId |
 | NEED_SELL | 현금 {shortage}원 부족 · 주식 팔러 가기 | /trade |
 | SHORT | {shortage}원 모자라요 (disabled) | 없음 |
 

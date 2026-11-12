@@ -1,32 +1,84 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import type { BuyHouseResponse, Tier } from '../types/api'
+import { ApiError } from '../api/apiError'
 import { Sprite } from '../components/Sprite'
-import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { useAptDealQuery } from '../hooks/useAptDealQuery'
+import { useBuyHouseMutation } from '../hooks/useBuyHouseMutation'
+import { useMemberQuery } from '../hooks/useMemberQuery'
+import { formatDotDate, formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { calculateMonthlyPayment } from '../utils/loan'
 import tier2 from '../assets/sprites/kkumi-tier2.svg'
+import tier3 from '../assets/sprites/kkumi-tier3.svg'
+import tier4 from '../assets/sprites/kkumi-tier4.svg'
 import './ContractPage.css'
 
-// 목업 데이터 (API 연동 전)
-const MOCK_CONTRACT = {
-  contractNo: 'NO. KKUM-0001',
-  nickname: '[닉네임]',
-  complexName: '태백 [단지명]',
-  region: '강원 태백시',
-  area: 39,
-  priceManwon: 1800,
-  contractDate: '2026.10.03',
-  cashBefore: 8_300_000,
+type TierUpInfo = { title: string, sub: string, image: string }
+
+const TIER_UP_INFO: Partial<Record<Tier, TierUpInfo>> = {
+  SEOMIN: { title: '걸뱅이 → 서민으로 변신!', sub: '집 1채 달성!', image: tier2 },
+  JOKBU: { title: '서민 → 졸부로 변신!', sub: '집 2채 달성!', image: tier3 },
+  GAPBU: { title: '졸부 → 갑부로 변신!', sub: '집 5채 달성!', image: tier4 },
 }
 
-const PRICE_WON = MOCK_CONTRACT.priceManwon * 10_000
-const OWN_WON = PRICE_WON * 0.4
-const LOAN_WON = PRICE_WON - OWN_WON
-const CASH_AFTER = MOCK_CONTRACT.cashBefore - OWN_WON
+type SignedContract = {
+  response: BuyHouseResponse,
+  cashBefore: number,
+  signedAt: Date
+}
+
+function toBuyHouseErrorMessage(error: Error): string {
+  if (error instanceof ApiError) {
+    if (error.code === 'INSUFFICIENT_CASH') return '현금이 모자라요. 주식을 팔고 다시 와요.'
+    if (error.code === 'ALREADY_OWNED_DEAL') return '이미 산 집이에요. 내 마을에서 확인해요.'
+    if (error.code === 'DEAL_NOT_AVAILABLE') return '지금은 살 수 없는 거래예요.'
+  }
+  return '계약 중에 문제가 생겼어요. 다시 눌러 주세요.'
+}
 
 export function ContractPage() {
-  const [isSigned, setIsSigned] = useState(true)
 
-  const handleSign = () => setIsSigned(true)
-  const handleReset = () => setIsSigned(false)
+  // useParams() 는 { dealId: '123' } 같은 객체를 돌려주고 URL은 글자라 항상 문자열, 없으면 undefined
+  // 객체의 dealId 값을 꺼내서 dealIdParam이라는 이름으로 받아라 는 뜻
+  const { dealId: dealIdParam } = useParams()
+  // URL에서 꺼낸 문자열을 숫자로 변경
+  const dealId = Number(dealIdParam)
+  const { data: deal, isPending, isError } = useAptDealQuery(dealId)
+  const { data: member } = useMemberQuery()
+  const buyHouseMutation = useBuyHouseMutation()
+  const [signed, setSigned] = useState<SignedContract | null>(null)
+  const [message, setMessage] = useState('')
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
+  const cash = member?.cash ?? 0
+  const isSigned = signed !== null
+  const ownAmount = deal?.ownAmount ?? 0
+  const cashBefore = signed?.cashBefore ?? cash
+  const cashAfter = cashBefore - ownAmount
+  const tierUp = signed?.response.isTierUp ? TIER_UP_INFO[signed.response.tier] : undefined
+  const contractNo = signed ? `NO. KKUM-${String(signed.response.houseId).padStart(4, '0')}` : 'NO. KKUM-____'
+  const contractDate = formatDotDate(signed?.signedAt ?? new Date())
+
+  const handleSign = () => {
+    if (!deal) return
+    setMessage('')
+    buyHouseMutation.mutate(
+      { dealId: deal.dealId },
+      {
+        onSuccess: (response) => setSigned({ response, cashBefore: cash, signedAt: new Date() }),
+        onError: (error) => setMessage(toBuyHouseErrorMessage(error)),
+      },
+    )
+  }
+
+  const canSign = deal?.affordability === 'OK' && !buyHouseMutation.isPending
+
+  const handleStampClick = () => setIsConfirmOpen(true)
+  const handleConfirmNo = () => setIsConfirmOpen(false)
+  const handleConfirmYes = () => {
+    setIsConfirmOpen(false)
+    handleSign()
+  }
 
   return (
     <div className="page-contract k-page">
@@ -44,84 +96,117 @@ export function ContractPage() {
           <div>
             <div className="k-lab">CASH</div>
             <div className="k-num" style={{ color: '#FFC93C' }}>
-              {formatNumber(isSigned ? CASH_AFTER : MOCK_CONTRACT.cashBefore)}
+              {formatNumber(cash)}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="k-wrap">
-        <div className="k-cols">
-          <div className="contract-paper-wrap">
-            <div className="contract-paper">
-              <div className="contract-watermark" aria-hidden="true">FAKE</div>
-              <div className="contract-fake-banner">이 계약서는 전부 가짜입니다 (법적 효력 0%)</div>
-              <div className="contract-head">
-                <h1 className="contract-title">부동산 매매 계약서</h1>
-                <div className="k-lab" style={{ color: '#6B6F80' }}>{MOCK_CONTRACT.contractNo}</div>
-              </div>
-              <div className="contract-table">
-                <div className="k-tr"><div className="k-th">매도인</div><div className="k-td">꿈이 부동산 (가짜)</div></div>
-                <div className="k-tr"><div className="k-th">매수인</div><div className="k-td">{MOCK_CONTRACT.nickname} (인생역전 중)</div></div>
-                <div className="k-tr"><div className="k-th">물건</div><div className="k-td">{MOCK_CONTRACT.complexName} · {MOCK_CONTRACT.region} · 전용 {MOCK_CONTRACT.area}㎡</div></div>
-                <div className="k-tr"><div className="k-th">매매대금</div><div className="k-td"><b className="contract-price">{formatManwon(MOCK_CONTRACT.priceManwon)}</b></div></div>
-                <div className="k-tr"><div className="k-th">내 돈 40%</div><div className="k-td"><b>{formatManwon(OWN_WON / 10_000)}</b> (내 지갑에서 차감)</div></div>
-                <div className="k-tr"><div className="k-th">대출 60%</div><div className="k-td">{formatManwon(LOAN_WON / 10_000)} (가짜 대출, 이자 0원)</div></div>
-                <div className="k-tr"><div className="k-th">계약일</div><div className="k-td">{MOCK_CONTRACT.contractDate}</div></div>
-              </div>
-              <div className="contract-terms">
-                <div className="contract-terms-title">특약사항</div>
-                1. 이 집은 가짜 돈으로 샀으므로 이사는 불가합니다.<br />
-                2. 집들이 초대는 친구가 알아서 받아가시오.<br />
-                3. 자랑은 캡처로 하되, 놀림은 감수해야 합니다.
-              </div>
-              <div className="contract-sign-row">
-                <div className="contract-sign-text">위 계약을 증명하기 위해 매수인은 서명 날인한다.</div>
-                <div className="contract-stamp-box">
-                  {isSigned ? (
-                    <div className="contract-stamp">꿈이<span>가짜 계약 완료</span></div>
-                  ) : (
-                    <div className="contract-stamp-empty">(인)</div>
-                  )}
-                </div>
-              </div>
+      {isConfirmOpen && deal && (
+        <div className="contract-confirm" role="dialog" aria-modal="true" aria-labelledby="contract-confirm-title">
+          <div className="contract-confirm-box">
+            <div id="contract-confirm-title" className="contract-confirm-title">도장을 찍으시겠습니까?</div>
+            <div className="contract-confirm-body">
+              내 돈 40% {formatKRW(deal.ownAmount)}이 빠져나가요<br />
+              계약 후 남은 현금 <b>{formatKRW(cashAfter)}</b>
             </div>
-          </div>
-
-          <div className="k-col">
-            <section className="k-card" aria-label="계약 요약">
-              <div className="contract-summary-title">계약 요약</div>
-              <div className="contract-summary-body">
-                <div className="contract-summary-row"><span>계약 전 지갑</span><span className="contract-tnum">{formatKRW(MOCK_CONTRACT.cashBefore)}</span></div>
-                <div className="contract-summary-row"><span>내 돈 40%</span><span className="contract-minus">- {formatKRW(OWN_WON)}</span></div>
-                <div className="contract-summary-row contract-summary-total"><span className="contract-bold">계약 후 지갑</span><span className="contract-total-num">{formatKRW(CASH_AFTER)}</span></div>
-              </div>
-            </section>
-
-            {isSigned && (
-              <section className="contract-tierup" aria-label="변신">
-                <div className="contract-tierup-img"><img src={tier2} alt="서민 꿈이" /></div>
-                <div className="contract-tierup-text">
-                  <div className="contract-tierup-title">걸뱅이 → 서민으로 변신!</div>
-                  <div className="contract-tierup-sub">집 1채 달성!</div>
-                </div>
-              </section>
-            )}
-
-            <div className="contract-actions">
-              {isSigned ? (
-                <>
-                  <button type="button" className="contract-btn-share">계약서 캡처해서 자랑하기</button>
-                  <Link to="/village" className="contract-btn-village">내 마을 보러 가기</Link>
-                  <button type="button" className="contract-btn-reset" onClick={handleReset}>다시 해보기</button>
-                </>
-              ) : (
-                <button type="button" className="contract-btn-stamp" onClick={handleSign}>도장 쾅! 찍기</button>
-              )}
+            <div className="contract-confirm-actions">
+              <button type="button" className="contract-confirm-no" onClick={handleConfirmNo}>NO</button>
+              <button type="button" className="contract-confirm-yes" onClick={handleConfirmYes}>YES</button>
             </div>
-            <p className="k-note">※ 돈을 더 불린 뒤를 가정한 샘플이에요.</p>
           </div>
         </div>
+      )}
+
+      <main className="k-wrap">
+        {isPending && <p className="k-note">계약서 준비 중...</p>}
+        {isError && (
+          <p className="k-note">
+            그런 집은 없어요. <Link to="/apartments">집 찾기로 가기</Link>
+          </p>
+        )}
+        {deal && (
+          <div className="k-cols">
+            <div className="contract-paper-wrap">
+              <div className="contract-paper">
+                <div className="contract-watermark" aria-hidden="true">FAKE</div>
+                <div className="contract-head">
+                  <h1 className="contract-title">부동산 매매 계약서</h1>
+                  <div className="k-lab" style={{ color: '#6B6F80' }}>{contractNo}</div>
+                </div>
+                <div className="contract-table">
+                  <div className="k-tr"><div className="k-th">매도인</div><div className="k-td">꿈이</div></div>
+                  <div className="k-tr"><div className="k-th">매수인</div><div className="k-td">{member?.nickname}</div></div>
+                  <div className="k-tr"><div className="k-th">물건</div><div className="k-td">{deal.complexName} · {deal.region} · 전용 {deal.area}㎡ · {deal.floor}층</div></div>
+                  <div className="k-tr"><div className="k-th">매매대금</div><div className="k-td"><b className="contract-price">{formatManwon(deal.price / 10_000)}</b></div></div>
+                  <div className="k-tr"><div className="k-th">내 돈 40%</div><div className="k-td"><b>{formatKRW(deal.ownAmount)}</b> (내 지갑에서 차감)</div></div>
+                  <div className="k-tr"><div className="k-th">대출 60%</div><div className="k-td">{formatKRW(deal.loanAmount)} (연 3.7%, 30년 원리금균등)</div></div>
+                  <div className="k-tr"><div className="k-th">월 상환액</div><div className="k-td">{formatKRW(calculateMonthlyPayment(deal.loanAmount))} (예상)</div></div>
+                  <div className="k-tr"><div className="k-th">계약일</div><div className="k-td">{contractDate}</div></div>
+                </div>
+                <div className="contract-terms">
+                  <div className="contract-terms-title">특약사항</div>
+                  1. 본 계약은 매수인의 투자 실력을 담보로 체결한다. <br />
+                  2. 매도인은 매수인이 머지않아 현실에서도 실물 자산을 갖게 될 것을 굳게 신뢰한다.<br />
+                  3. 꿈은 이루어진다. 본 특약은 그날 자동 갱신된다.
+                </div>
+                <div className="contract-sign-row">
+                  <div className="contract-sign-text">위 계약을 증명하기 위해 매수인은 서명 날인한다.</div>
+                  <div className="contract-stamp-box">
+                    {isSigned ? (
+                      <div className="contract-stamp">꿈이<span>계약 완료</span></div>
+                    ) : (
+                      <button type="button" className="contract-stamp-btn" onClick={handleStampClick} disabled={!canSign} aria-label="도장 찍기">
+                        <span>(인)</span>
+                        {buyHouseMutation.isPending ? '찍는 중...' : '여기 쾅!'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="k-col">
+              <section className="k-card" aria-label="계약 요약">
+                <div className="contract-summary-title">계약 요약</div>
+                <div className="contract-summary-body">
+                  <div className="contract-summary-row"><span>계약 전 지갑</span><span className="contract-tnum">{formatKRW(cashBefore)}</span></div>
+                  <div className="contract-summary-row"><span>내 돈 40%</span><span className="contract-minus">- {formatKRW(ownAmount)}</span></div>
+                  <div className="contract-summary-row contract-summary-total"><span className="contract-bold">계약 후 지갑</span><span className="contract-total-num">{formatKRW(cashAfter)}</span></div>
+                </div>
+              </section>
+
+              {tierUp && (
+                <section className="contract-tierup" aria-label="변신">
+                  <div className="contract-tierup-img"><img src={tierUp.image} alt="변신한 꿈이" /></div>
+                  <div className="contract-tierup-text">
+                    <div className="contract-tierup-title">{tierUp.title}</div>
+                    <div className="contract-tierup-sub">{tierUp.sub}</div>
+                  </div>
+                </section>
+              )}
+
+              <div className="contract-actions">
+                {isSigned ? (
+                  <>
+                    <button type="button" className="contract-btn-share">계약서 캡처해서 자랑하기</button>
+                    <Link to="/village" className="contract-btn-village">내 마을 보러 가기</Link>
+                    <Link to="/apartments" className="contract-btn-reset">다른 집 보러 가기</Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="contract-stamp-hint">계약서의 도장 칸을 눌러 계약해요</p>
+                    <Link to="/apartments" className="contract-btn-village">집 목록으로</Link>
+                  </>
+                )}
+              </div>
+              {!isSigned && deal.affordability !== 'OK' && (
+                <p className="k-note">{formatKRW(deal.shortage)} 모자라요. 돈을 불려서 다시 와요.</p>
+              )}
+              {message && <p className="k-note">{message}</p>}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

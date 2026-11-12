@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-11
+## 기준일: 2026-11-12
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -234,9 +234,19 @@
 - 집 찾기 화면 연결 (2026-11-11, `feat/apt-list-connect`, 아파트·집 사기 연결 PR A)
   - `api/aptApi.getAptRecommendations`(q 빈 문자열이면 생략, `affordableOnly`는 항상 전송: 서버 기본값 true), `queryKeys.aptRecommendations`(`['apartments', 'list', q, isAffordableOnly]`), `hooks/useAptRecommendationsQuery`(첫 20건, page 0)
   - `ApartmentsPage`: 목업 6채·화면 40% 계산 삭제 → 서버 `affordability`·`shortage`로 버튼 3종, MAX는 응답 `maxPrice`(카드 판정과 같은 시점 값). 검색은 Enter 때 요청(`form onSubmit` + `preventDefault`, 24만 건 LIKE를 글자마다 보내지 않음)
-  - "살 수 있는 집만" 토글: 기본 켜짐, `sessionStorage`(`apartments.isOnlyOk`)로 탭 안에서 유지(화면 이동 시 `useState` 초기화 문제). 켜짐이면 첫 카드에 "가장 가까워요"
+  - "살 수 있는 집만" 토글: 기본 켜짐, `sessionStorage`(`apartments.isOnlyOk`)로 탭 안에서 유지(화면 이동 시 `useState` 초기화 문제). 켜짐이면 첫 카드에 "가장 가까워요"(11/12 "영끌"로 변경)
   - "가짜" 문구 정리 (`ui-spec.md` §8, `design.md` §11): 시작·시드 선택·계약서 연출에만 남김. LOAN 카드 "대출 60% 자동 적용", 투자·검색·변신·내 마을 하단 안내에서 삭제
   - 로컬 확인 (11/11): 전체 목록 응답 229ms, NEED_SELL 부족액 검산(내 돈 320만 − 현금 3,077,550 = 122,450), 버튼 3종, 검색 + Enter, 토글 유지(투자 화면 갔다 오기). `tsc -b` 통과
+  - 못 확인한 것: ESLint(작업 환경 시간 초과, 커밋 훅에서 확인), 실서버
+
+- 계약서·집 사기 화면 연결 (2026-11-12, `feat/house-purchase-connect`, 아파트·집 사기 연결 PR B1)
+  - `api/aptApi.getAptDeal`(거래 1건 + 카드 상태), `api/houseApi.buyHouse`, `queryKeys` `apartments`(앞부분 무효화용)·`aptDeal`·`myHouses`, `hooks/useAptDealQuery`(`retry: false`, 없는 거래 재시도 방지), `hooks/useBuyHouseMutation`(회원·평가액·내 마을·집 목록 invalidate)
+  - `ContractPage`: `useParams`로 dealId(문자열 → `Number`), 목업 삭제. 도장 칸 클릭 → 확인창(내 돈 40%, 계약 후 남은 현금, YES/NO) → YES면 `POST /api/houses` → 도장 + 변신 알림(`isTierUp`, 1·2·5채째). 계약 전 현금은 클릭 시점 값을 state에 저장(invalidate 후 회원 현금이 바뀌므로)
+  - 현금 부족이면 도장 칸 잠김 + 부족액, 에러 코드별 문구(`INSUFFICIENT_CASH`, `ALREADY_OWNED_DEAL`, `DEAL_NOT_AVAILABLE`). "다시 해보기" → "다른 집 보러 가기", 도장 전에는 "집 목록으로"
+  - 문구: 집 찾기 버튼 "계약하기" → "부동산 방문"(`ui-spec`, `design`, `domain/glossary`·`workflows`), 배지 "영끌", 카드에 층, 검색 안내 "서울, 강남구, 단지 이름", 매도인 "꿈이", 특약사항 교체
+  - 대출 안내 표시: 주택담보대출 연 3.7%(고정), 30년 원리금균등 월 상환액(`utils/loan.ts`). 표시만, 현금 차감 없음(`domain/glossary`)
+  - `utils/format.formatDotDate`, `ContractPage.css` 도장 칸 버튼(흔들림, reduced-motion이면 끔)·확인창
+  - 로컬 확인 (11/12): 도장 칸 흔들림 → 확인창, NO 닫힘, YES 도장·서민 변신·CASH 감소, 응답 키 `isTierUp`, 같은 거래 재구매 "이미 산 집", 현금 부족 잠김. `tsc -b` 통과
   - 못 확인한 것: ESLint(작업 환경 시간 초과, 커밋 훅에서 확인), 실서버
 
 ### 아직 안 한 것
@@ -254,7 +264,7 @@
 3. AI 응답 평가 골든셋: 자연어 검색 질문 50~100개 + 기대 필터, 정확도 리포트. CI 포함 여부(PR마다 vs 수동) 결정 필요
 4. Elasticsearch 자동완성: 단지 마스터만 인덱싱(거래 행 제외). `decisions/024` 기술 상한선 변경 ADR + EC2 메모리(t3.small 2GB) 검토 선행. "DB 내장 검색으로 충분하지만 오버킬임을 알고 붙였다"로 설명
 5. 시세 기록 API: 주문 화면 차트가 들어오자마자 오늘 흐름을 보이려면 필요 (엔진은 현재가만 보관)
-6. 내 거래 무한 스크롤 (PR B): 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
+6. 무한 스크롤: 내 거래(PR B)와 집 찾기 목록(지금은 첫 20건만, 2026-11-12 개발자 결정으로 런칭 후). 바닥 도달 시 다음 20건. `useInfiniteQuery` + IntersectionObserver, 백엔드 `Slice` 그대로
 7. SSM 전환: 22번 포트 닫기 (`decisions/027`)
 8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
 9. (2026-11-11 해결, `decisions/052`) 스케줄러 스레드 풀 분리: `SchedulingConfigurer`로 `@Scheduled` 전용 풀 2개 (yaml 설정은 WebSocket 브로커 스케줄러 때문에 효과 없었음)
@@ -286,7 +296,7 @@
 7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
 8. (11/6 앞당겨 작성) 일별 평가액 기록 + 손익 차트 (심장 ④, `decisions/049`). 집 사기 API + 변신 단계 + 내 마을 조회 백엔드는 11/6 완료(#56). 11/7: 로컬 확인 후 merge
 9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
-10. 11/10 → 11/11 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서) → 내 마을 화면 연결
+10. 11/10 → 11/12 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서, 11/12 완료) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
 12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
   - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
