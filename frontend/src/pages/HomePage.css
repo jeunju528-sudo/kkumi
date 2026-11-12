@@ -65,6 +65,8 @@
 .page-home .k-quest-head .k-lab{margin-left:auto}
 .page-home .k-quest-info{margin-top:8px;font-size:13px;color:#6B6F80}
 .page-home .k-quest-left{margin-top:4px;font-size:15px;font-weight:700;line-height:1.4}
+.page-home .k-quest-link{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin-top:12px;padding:0 12px;background:#FFC93C;border:2px solid #231B3A;box-shadow:0 3px 0 #231B3A;font-size:14px;font-weight:800;color:#231B3A;text-decoration:none}
+.page-home .k-quest-link-arrow{color:#231B3A}
 .page-home .k-bar-row{margin-top:12px;display:flex;align-items:center;gap:10px}
 .page-home .k-bar{position:relative;flex-grow:1;height:14px;background:#E6E8F0;border:2px solid #231B3A}
 .page-home .k-bar-fill{position:absolute;left:0;top:0;bottom:0;background:#FFC93C}

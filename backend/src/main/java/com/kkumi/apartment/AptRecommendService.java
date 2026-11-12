@@ -8,6 +8,8 @@ import com.kkumi.portfolio.PortfolioService;
 import com.kkumi.portfolio.dto.PortfolioResponse;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Optional;
+import org.springframework.data.domain.Limit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,17 @@ public class AptRecommendService {
             throw new BusinessException(ErrorCode.DEAL_NOT_AVAILABLE);
         }
         return toResponse(deal, portfolioService.getMyPortfolio(memberId));
+    }
+
+    // 목표 집: 아직 못 사는 집 중 가장 싼 1건, 없으면 empty (기준은 추천과 같은 평가액, ADR 055)
+    public Optional<AptRecommendResponse> findGoal(Long memberId) {
+        PortfolioResponse portfolio = portfolioService.getMyPortfolio(memberId);
+        long maxPrice = HousePriceRule.maxAffordablePrice(portfolio.totalAsset());
+        LocalDate since = AptDeal.marketPriceSince(LocalDate.now(KST));
+
+        return aptDealRepository.findGoalCandidates(since, maxPrice, memberId, Limit.of(1)).stream()
+            .findFirst()
+            .map(deal -> toResponse(deal, portfolio));
     }
 
     private AptRecommendResponse toResponse(AptDeal deal, PortfolioResponse portfolio) {

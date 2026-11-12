@@ -29,6 +29,7 @@ export const queryKeys = {
     apartments: () => ['apartments'] as const,
     aptDeal: (dealId: number) => ['apartments', 'deal', dealId] as const,
     myHouses: () => ['houses', 'me'] as const,
+    aptGoal: () => ['apartments', 'goal'] as const,
 }
 
 /**

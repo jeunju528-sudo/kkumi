@@ -23,3 +23,15 @@ export async function getAptDeal(dealId: number): Promise<AptRecommendResponse> 
     }
     return res.json() as Promise<AptRecommendResponse>
 }
+
+export async function getAptGoal(): Promise<AptRecommendResponse | null> {
+    const res = await fetch('/api/apartments/goal')
+    if(!res.ok) {
+        const error = await toApiError(res)
+        if(error.code === 'GOAL_NOT_FOUND'){
+            return null
+        }
+        throw error
+    }
+    return res.json() as Promise<AptRecommendResponse>
+}
