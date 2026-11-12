@@ -4,6 +4,7 @@ import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { usePortfolioHistoryQuery } from '../hooks/usePortfolioHistoryQuery'
 import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
+import { useAptGoalQuery } from '../hooks/useAptGoalQuery'
 import { ValuationChart } from '../components/ValuationChart'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
@@ -14,9 +15,6 @@ import type { ChartPoint } from '../utils/chart'
 import type { ChartPeriod } from '../types/api'
 import { TIER_INFO } from '../utils/tier'
 import './HomePage.css'
-
-// 목업 데이터
-const GOAL = { region: '태백', complexName: '[단지명]', area: 39, priceManwon: 1800 }
 
 // 손익 차트 기간: 1일 탭 없음, 일별 기록 + 오늘 현재값 (ADR 049)
 const CHART_PERIODS: { value: ChartPeriod; label: string }[] = [
@@ -46,6 +44,7 @@ export function HomePage() {
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('WEEK')
   const { data: portfolio, isError } = usePortfolioQuery()
   const { data: myHouses } = useMyHousesQuery()
+  const { data: goal, isError: isGoalError } = useAptGoalQuery()
   const { data: history = [] } = usePortfolioHistoryQuery(chartPeriod)
   // 0시에 오늘 시작가·상하한·일별 기록이 바뀜 → 장 시간 대신 하루 마감 (ADR 050)
   const dayCloseLeft = useMidnightCountdown()
@@ -57,9 +56,12 @@ export function HomePage() {
   const tier = myHouses?.tier ?? 'GEOLBAENGI'
   const tierInfo = TIER_INFO[tier]
 
-  const goalOwnAmount = (GOAL.priceManwon * 10000 * 4) / 10
-  const goalLeft = Math.max(0, goalOwnAmount - totalAsset)
-  const goalPct = `${Math.min(100, (totalAsset / goalOwnAmount) * 100).toFixed(1)}%`
+  // 목표 패널: 0채면 첫 집, 1채 이상이면 다음 집. 진행 바 = 평가액 / 목표 집 계약금(40%)
+  const isGoalLoaded = goal !== undefined
+  const goalTitle = (myHouses?.houseCount ?? 0) === 0 ? '첫 집 목표' : '다음 집 목표'
+  const goalLeft = goal ? Math.max(0, goal.ownAmount - totalAsset) : 0
+  const isGoalReached = goalLeft === 0
+  const goalPct = goal ? `${Math.min(100, (totalAsset / goal.ownAmount) * 100).toFixed(1)}%` : '100.0%'
 
   // 차트 칸: 기간 첫날 ~ 오늘. 지난 날은 일별 기록, 마지막 칸은 WebSocket 평가액(5초마다 갱신)
   const pastDays = CHART_PAST_DAYS[chartPeriod]
@@ -181,21 +183,41 @@ export function HomePage() {
                 <svg width="16" height="16" viewBox="0 0 8 8" style={{ shapeRendering: 'crispEdges' }} aria-hidden="true">
                   <path d="M3 0h2v5h-2zM3 6h2v2h-2z" style={{ fill: '#E0A800' }} />
                 </svg>
-                <div className="k-quest-title">첫 집 목표</div>
+                <div className="k-quest-title">{goalTitle}</div>
                 <div className="k-lab k-lab--sub">QUEST</div>
               </div>
-              <div className="k-quest-info">
-                {GOAL.region} {GOAL.complexName} {GOAL.area}㎡ · {formatManwon(GOAL.priceManwon)} · 내 돈 40%{' '}
-                {formatManwon((GOAL.priceManwon * 4) / 10)}
-              </div>
-              <div className="k-quest-left">계약금까지 {formatKRW(goalLeft)} 남았습니다. 조금만 더 존버!</div>
-              <div className="k-bar-row">
-                <div className="k-bar">
-                  <div className="k-bar-fill" style={{ width: goalPct }} />
-                  <div className="k-stripe k-bar-stripe" />
-                </div>
-                <div className="k-bar-pct">{goalPct}</div>
-              </div>
+              {isGoalLoaded ? (
+                <>
+                  {goal && (
+                    <div className="k-quest-info">
+                      {goal.region} {goal.complexName} {goal.area}㎡ · {formatManwon(goal.price / 10000)} · 내 돈 40%{' '}
+                      {formatKRW(goal.ownAmount)}
+                    </div>
+                  )}
+                  {isGoalReached ? (
+                    <>
+                      <div className="k-quest-left">계약금 모았어요! 집 사러 가요.</div>
+                      <Link to="/apartments" className="k-quest-link">
+                        <span>부동산 가기</span>
+                        <span className="k-quest-link-arrow">&gt;</span>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <div className="k-quest-left">계약금까지 {formatKRW(goalLeft)} 남았습니다. 조금만 더 존버!</div>
+                      <div className="k-bar-row">
+                        <div className="k-bar">
+                          <div className="k-bar-fill" style={{ width: goalPct }} />
+                          <div className="k-stripe k-bar-stripe" />
+                        </div>
+                        <div className="k-bar-pct">{goalPct}</div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className="k-quest-info">{isGoalError ? '목표를 못 불러왔어요.' : '불러오는 중...'}</div>
+              )}
             </section>
 
             <section className="k-card" aria-label="순자산 추이">

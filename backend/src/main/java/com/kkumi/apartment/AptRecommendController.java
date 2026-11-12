@@ -2,6 +2,8 @@ package com.kkumi.apartment;
 
 import com.kkumi.apartment.dto.AptRecommendPageResponse;
 import com.kkumi.apartment.dto.AptRecommendResponse;
+import com.kkumi.global.error.BusinessException;
+import com.kkumi.global.error.ErrorCode;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,13 @@ public class AptRecommendController {
                                                         @RequestParam(name = "affordableOnly", defaultValue = "true") boolean isAffordableOnly,
                                                         @RequestParam(defaultValue = "0") @Min(0) int page) {
         return aptRecommendService.findRecommendations(memberId, q, isAffordableOnly, page, PAGE_SIZE);
+    }
+
+    // 홈 목표 패널: 못 사는 집 중 가장 싼 집, 없으면 404 (/{dealId}보다 고정 경로 우선)
+    @GetMapping("/goal")
+    public AptRecommendResponse getGoal(@AuthenticationPrincipal Long memberId) {
+        return aptRecommendService.findGoal(memberId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.GOAL_NOT_FOUND));
     }
 
     // 계약서 화면: 거래 1건 + 카드 상태

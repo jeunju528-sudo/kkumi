@@ -39,6 +39,8 @@ public enum ErrorCode {
     STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다"),
     // 요청한 실거래 없음
     DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "거래를 찾을 수 없습니다"),
+    // 목표로 삼을 집 없음 (모든 집을 살 수 있음)
+    GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "목표로 삼을 집이 없습니다"),
     // 해제됐거나 시세 기간(6개월)이 지난 거래
     DEAL_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "지금은 살 수 없는 거래입니다"),
     // 같은 회원이 같은 거래를 다시 구매

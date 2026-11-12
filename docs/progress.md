@@ -262,10 +262,16 @@
   - 다음 PR: 목표 패널을 목업(태백 1,800만)에서 "아직 못 사는 집 중 가장 싼 집"으로 (0채 "첫 집 목표", 1채 이상 "다음 집 목표"), 백엔드 조회 1개 추가
   - 못 확인한 것: `./gradlew test`(작업 환경에서 Gradle·Maven 다운로드 차단), ESLint(작업 환경 시간 초과). `tsc -b` 통과
   - 운영: 배포 후 RDS `portfolio_snapshot.house_equity` 컬럼 추가·기존 행 0 확인
+- 목표 패널 A (2026-11-12, `feat/goal-apartment`, `decisions/055`)
+  - 백엔드: `AptDealRepository.findGoalCandidates`(집값 > maxPrice, 최근 6개월·해제 제외, 내가 산 거래 `not exists` 제외, 싼 순, `Limit`), `AptRecommendService.findGoal` → `Optional<AptRecommendResponse>`, `GET /api/apartments/goal`, 없으면 404 `GOAL_NOT_FOUND`
+  - 테스트: `AptDealRepositoryTest` 4개(H2): 집값 = maxPrice 제외·+1원 목표(계약금 4,000,001원), 산 거래 제외, 다른 회원이 산 거래는 목표, 후보 없으면 빈 결과
+  - 프론트 모양: `HomePage` 목업 `MOCK_GOAL`(응답 타입 그대로, null = 404), 0채 "첫 집 목표"·1채 이상 "다음 집 목표", 다 모으면 "계약금 모았어요!" + 부동산 링크(`.k-quest-link`)
+  - 데이터 연결 완료: `aptApi.getAptGoal`(404 `GOAL_NOT_FOUND` → `null`), `useAptGoalQuery`, `queryKeys.aptGoal`(`['apartments', 'goal']`, 집 사기 무효화에 포함). `undefined`(로딩)와 `null`(목표 없음) 구분, 목업 `MOCK_GOAL` 삭제
+  - 확인: `./gradlew test` 통과(로컬), `npm run lint`·`npm run build` 통과, 로컬 `GET /api/apartments/goal` 200(`/{dealId}`와 경로 충돌 없음)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 프론트 데이터 연결: 계약서·내 마을은 목업 상수, 홈은 목표 아파트만 목업
+- 프론트 데이터 연결: 계약서·내 마을은 목업 상수
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
 

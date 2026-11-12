@@ -2,7 +2,9 @@ package com.kkumi.apartment;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,6 +45,18 @@ public interface AptDealRepository extends JpaRepository<AptDeal, Long> {
             """)
     Slice<AptDeal> findRecentSlice(@Param("since") LocalDate since, @Param("keyword") String keyword,
                                    Pageable pageable);
+
+    // 목표 집: 못 사는 집 중 싼 순 (최근 6개월·해제 제외, 내가 산 거래 제외, ADR 055)
+    @Query("""
+            select d from AptDeal d join fetch d.complex
+            where d.canceled = false
+              and d.contractDate >= :since
+              and d.price > :maxPrice
+              and not exists (select 1 from House h where h.deal = d and h.member.id = :memberId)
+            order by d.price asc, d.id asc
+            """)
+    List<AptDeal> findGoalCandidates(@Param("since") LocalDate since, @Param("maxPrice") long maxPrice,
+                                     @Param("memberId") Long memberId, Limit limit);
 
     Optional<AptDeal> findByComplexAndAreaAndFloorAndPriceAndContractDate(AptComplex complex, BigDecimal area, int floor, long price, LocalDate contractDate);
 
