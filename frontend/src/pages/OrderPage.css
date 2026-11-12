@@ -209,6 +209,61 @@
   margin-top: 12px;
   height: 160px;
 }
+.page-order .k-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #6B6F80;
+}
+.page-order .k-chart-tabs {
+  display: flex;
+  margin-top: 8px;
+}
+.page-order .k-chart-tab {
+  min-height: 44px;
+  padding: 0 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.page-order .k-chart-tab span {
+  display: block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #6B6F80;
+  font-size: 12px;
+  font-weight: 700;
+}
+.page-order .k-chart-tab--on span {
+  background: #231B3A;
+  color: #FFFFFF;
+}
+.page-order .k-chart-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6B6F80;
+  text-align: right;
+}
+.page-order .k-chart-range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E6E8F0;
+  font-size: 12px;
+  color: #6B6F80;
+}
+.page-order .k-chart-range b {
+  margin-left: 4px;
+  font-weight: 800;
+}
+.page-order .k-chart-hi {
+  color: #D32F36;
+}
+.page-order .k-chart-lo {
+  color: #2563EB;
+}
 
 /* 주문 카드 */
 .page-order .k-order {

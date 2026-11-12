@@ -26,7 +26,8 @@ public class PortfolioPushScheduler {
     private final SimpMessagingTemplate messagingTemplate;
     private final PortfolioService portfolioService;
 
-    @Scheduled(fixedRateString = "${virtual-price.tick-interval}")
+    // fixedDelay: 시세 갱신과 같은 이유로 밀린 푸시를 몰아서 보내지 않음 (ADR 056)
+    @Scheduled(fixedDelayString = "${virtual-price.tick-interval}")
     public void pushPortfolios() {
         for (SimpUser user : simpUserRegistry.getUsers()) {
             // handshake 때 쿠키 필터가 넣어둔 인증 정보의 이름
