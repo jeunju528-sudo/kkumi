@@ -2,6 +2,7 @@ package com.kkumi.portfolio;
 
 import com.kkumi.global.error.BusinessException;
 import com.kkumi.global.error.ErrorCode;
+import com.kkumi.house.HouseService;
 import com.kkumi.member.Member;
 import com.kkumi.member.MemberRepository;
 import com.kkumi.portfolio.dto.PortfolioHistoryResponse;
@@ -23,6 +24,7 @@ public class PortfolioSnapshotService {
 
     private final MemberRepository memberRepository;
     private final HoldingService holdingService;
+    private final HouseService houseService;
     private final PortfolioSnapshotRepository snapshotRepository;
 
     // 기록 대상 회원 id 전체
@@ -40,10 +42,12 @@ public class PortfolioSnapshotService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         List<HoldingResponse> holdings = holdingService.findHoldings(memberId);
-        // 홈 평가액과 같은 계산 (ADR 044)
-        PortfolioValuation valuation = PortfolioCalculator.calculate(member.getCash(), member.getInitialCash(), holdings);
+        List<Long> housePurchasePrices = houseService.findPurchasePrices(memberId);
+        // 홈 순자산과 같은 계산 (ADR 044, 054)
+        PortfolioValuation valuation = PortfolioCalculator.calculate(
+            member.getCash(), member.getInitialCash(), holdings, housePurchasePrices);
 
-        snapshotRepository.save(PortfolioSnapshot.of(member, snapshotDate, valuation.totalAsset()));
+        snapshotRepository.save(PortfolioSnapshot.of(member, snapshotDate, valuation.totalAsset(), valuation.houseEquity()));
         return true;
     }
 

@@ -23,6 +23,11 @@ export function formatRate(rate: number): string {
   return `${rate > 0 ? '+' : ''}${pct}%`
 }
 
+// 소수 1자리 등락률: 0.0072 → "+0.7%"
+export function formatShortRate(rate: number): string {
+  return `${rate > 0 ? '+' : ''}${(rate * 100).toFixed(1)}%`
+}
+
 // 부호 포함 금액: 12000 → "+12,000원"
 export function formatSignedKRW(won: number): string {
   return `${won > 0 ? '+' : won < 0 ? '-' : ''}${formatKRW(Math.abs(won))}`

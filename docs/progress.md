@@ -249,6 +249,20 @@
   - 로컬 확인 (11/12): 도장 칸 흔들림 → 확인창, NO 닫힘, YES 도장·서민 변신·CASH 감소, 응답 키 `isTierUp`, 같은 거래 재구매 "이미 산 집", 현금 부족 잠김. `tsc -b` 통과
   - 못 확인한 것: ESLint(작업 환경 시간 초과, 커밋 훅에서 확인), 실서버
 
+- 순자산 카드 (2026-11-12, `feat/net-worth-card`, `decisions/054`)
+  - 문제: 집을 사면 현금만 줄고 집은 안 잡혀 홈 카드가 손실처럼 보임(시드 500만 → -69.2%)
+  - 백엔드: `PortfolioCalculator`에 내 집 지분(집마다 `HousePriceRule.ownAmount` 합)·순자산·오늘 증감(`DailyChange`), `PortfolioResponse`에 `houseEquity`·`netWorth`·`dailyChange`·`dailyChangeRate`, 총손익은 순자산 − 시드머니. `HouseService.findPurchasePrices`, `PortfolioSnapshot.houseEquity`(컬럼 추가)·`getNetWorth`, `PortfolioHistoryResponse.netWorth`. 평가액(`totalAsset`)은 추천·첫 집 목표용으로 유지
+  - 테스트: `PortfolioCalculatorTest` 6개 추가(지분 올림 합, 집 사기 전후 순자산 동일, 순자산·손익, 오늘 증감 ±, 기준 0), `PortfolioSnapshotServiceTest` 1개 추가(지분 저장)
+  - 프론트 모양: `types/api.ts`, `utils/portfolio.ts`(`toAssetShares` 최대 나머지 방식, `toSeedMultiple`), `utils/format.formatShortRate`, `components/NetWorthSummary`, `HomePage.css` 막대, `VillagePage` 자랑 줄(목업 상수 `MOCK_SEED_RESULT`)
+  - 데이터 연결(개발자): `HomePage` 카드에 `NetWorthSummary` 연결·차트 값 `netWorth`로, 내 마을 자랑 줄은 내 마을 API 연결 때 `usePortfolioQuery`로
+  - 홈 카드 데이터 연결 완료 (`NetWorthSummary`, 차트 값 `netWorth`, 첫 집 목표 변수 `totalAsset`)
+  - 홈 차트 제목 "내 손익" → "순자산 추이" (주식만이 아니라 현금 + 주식 + 집 지분)
+  - 변신 단계 그림·문구 `utils/tier.ts`(`TIER_INFO`). 홈 변신 카드·투자 응원 그림이 사용, 단계는 `api/houseApi.getMyHouses`(`GET /api/houses`) + `hooks/useMyHousesQuery`(`queryKeys.myHouses`, 집 사기 후 invalidate)로 연결, 불러오기 전·실패 시 걸뱅이
+  - 투자 응원 문구: 보유 0개면 "뭐라도 담아야 집을 사지!", 1개 이상이면 "존버는 승리한다!"
+  - 다음 PR: 목표 패널을 목업(태백 1,800만)에서 "아직 못 사는 집 중 가장 싼 집"으로 (0채 "첫 집 목표", 1채 이상 "다음 집 목표"), 백엔드 조회 1개 추가
+  - 못 확인한 것: `./gradlew test`(작업 환경에서 Gradle·Maven 다운로드 차단), ESLint(작업 환경 시간 초과). `tsc -b` 통과
+  - 운영: 배포 후 RDS `portfolio_snapshot.house_equity` 컬럼 추가·기존 행 0 확인
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 프론트 데이터 연결: 계약서·내 마을은 목업 상수, 홈은 목표 아파트만 목업

@@ -48,16 +48,20 @@ export type PortfolioResponse = {
   cash: number
   initialCash: number // 시드머니 (500만 / 5,000만)
   stockValue: number
-  totalAsset: number // 평가액 = 현금 + 주식 평가액
-  profit: number // 평가액 − 시드머니
+  totalAsset: number // 평가액 = 현금 + 주식 평가액 (집 추천·첫 집 목표 기준)
+  houseEquity: number // 내 집 지분 = 산 집 구매가 × 40% 합
+  netWorth: number // 순자산 = 평가액 + 내 집 지분 (홈 카드·차트 기준)
+  profit: number // 순자산 − 시드머니
   profitRate: number // 0.0123 = +1.23%
+  dailyChange: number | null // 순자산 − 어제 마감 순자산, 어제 기록 없으면 null (첫날)
+  dailyChangeRate: number | null // 0.0123 = +1.23%, 어제 기록 없으면 null
   holdings: HoldingResponse[]
 }
 
-// GET /api/portfolios/me/history, 그날 마감 평가액 (어제까지, 빈 날은 없음)
+// GET /api/portfolios/me/history, 그날 마감 순자산 (어제까지, 빈 날은 없음)
 export type PortfolioHistoryResponse = {
   date: string // 'YYYY-MM-DD'
-  totalAsset: number
+  netWorth: number
 }
 
 // POST /api/trades/buy, /api/trades/sell (엔드포인트 분리)

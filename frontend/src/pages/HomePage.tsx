@@ -3,14 +3,16 @@ import type { CSSProperties } from 'react'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { usePortfolioHistoryQuery } from '../hooks/usePortfolioHistoryQuery'
 import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
+import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
 import { ValuationChart } from '../components/ValuationChart'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
-import { formatKRW, formatManwon, formatNumber, formatSignedKRW } from '../utils/format'
+import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { NetWorthSummary } from '../components/NetWorthSummary'
 import { addDays, daysBetween, toAxisLabels, toDateKey } from '../utils/chart'
 import type { ChartPoint } from '../utils/chart'
 import type { ChartPeriod } from '../types/api'
-import tier1 from '../assets/sprites/kkumi-tier1.svg'
+import { TIER_INFO } from '../utils/tier'
 import './HomePage.css'
 
 // 목업 데이터
@@ -29,10 +31,6 @@ function toRateText(rate: number): string {
   return `${rate > 0 ? '+' : ''}${(rate * 100).toFixed(1)}%`
 }
 
-// 픽셀 화살표 (8x8)
-const ARROW_UP = 'M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM3 3h2v5h-2z'
-const ARROW_DOWN = 'M3 0h2v5h-2zM1 5h6v1h-6zM2 6h4v1h-4zM3 7h2v1h-2z'
-
 // 손익 부호 → 색 구분 (design.md --up / --down, 0은 회색)
 function toProfitTone(profit: number): 'up' | 'down' | 'flat' {
   if (profit > 0) return 'up'
@@ -47,17 +45,21 @@ function cssVars(vars: Record<string, string>): CSSProperties {
 export function HomePage() {
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('WEEK')
   const { data: portfolio, isError } = usePortfolioQuery()
+  const { data: myHouses } = useMyHousesQuery()
   const { data: history = [] } = usePortfolioHistoryQuery(chartPeriod)
   // 0시에 오늘 시작가·상하한·일별 기록이 바뀜 → 장 시간 대신 하루 마감 (ADR 050)
   const dayCloseLeft = useMidnightCountdown()
 
   const cash = portfolio?.cash ?? 0
-  const netWorth = portfolio?.totalAsset ?? 0
+  const totalAsset = portfolio?.totalAsset ?? 0
   const holdings = portfolio?.holdings ?? []
 
+  const tier = myHouses?.tier ?? 'GEOLBAENGI'
+  const tierInfo = TIER_INFO[tier]
+
   const goalOwnAmount = (GOAL.priceManwon * 10000 * 4) / 10
-  const goalLeft = Math.max(0, goalOwnAmount - netWorth)
-  const goalPct = `${Math.min(100, (netWorth / goalOwnAmount) * 100).toFixed(1)}%`
+  const goalLeft = Math.max(0, goalOwnAmount - totalAsset)
+  const goalPct = `${Math.min(100, (totalAsset / goalOwnAmount) * 100).toFixed(1)}%`
 
   // 차트 칸: 기간 첫날 ~ 오늘. 지난 날은 일별 기록, 마지막 칸은 WebSocket 평가액(5초마다 갱신)
   const pastDays = CHART_PAST_DAYS[chartPeriod]
@@ -65,8 +67,8 @@ export function HomePage() {
   const chartFrom = addDays(today, -pastDays)
   const chartPoints: ChartPoint[] = history
     .filter((h) => h.date >= chartFrom && h.date < today)
-    .map((h) => ({ slot: daysBetween(chartFrom, h.date), value: h.totalAsset }))
-  if (portfolio) chartPoints.push({ slot: pastDays, value: portfolio.totalAsset })
+    .map((h) => ({ slot: daysBetween(chartFrom, h.date), value: h.netWorth }))
+  if (portfolio) chartPoints.push({ slot: pastDays, value: portfolio.netWorth })
   const axisLabels = toAxisLabels(chartFrom, pastDays + 1)
   const chartPeriodLabel = chartPeriod === 'WEEK' ? '1주' : '1달'
 
@@ -149,29 +151,23 @@ export function HomePage() {
       <main className="k-wrap">
         <div className="k-cols">
           <div className="k-col">
-            <section className="k-px" aria-label="내 평가액">
+            <section className="k-px" aria-label="내 순자산">
               <div className="k-px-head">
-                <div className="k-px-label">내 평가액</div>
+                <div className="k-px-label">내 순자산</div>
                 <div className="k-lab k-lab--gold">NET WORTH</div>
               </div>
               {portfolio ? (
-                <>
-                  <div className="k-net">{formatKRW(portfolio.totalAsset)}</div>
-                  <div className={`k-profit k-profit--${toProfitTone(portfolio.profit)}`}>
-                    {portfolio.profit !== 0 && (
-                      <svg width="16" height="16" viewBox="0 0 8 8" style={{ shapeRendering: 'crispEdges' }} aria-hidden="true">
-                        <path d={portfolio.profit > 0 ? ARROW_UP : ARROW_DOWN} fill="currentColor" />
-                      </svg>
-                    )}
-                    <div className="k-profit-num">
-                      {formatSignedKRW(portfolio.profit)} ({toRateText(portfolio.profitRate)})
-                    </div>
-                    <div className="k-profit-cap">시드머니 대비</div>
-                  </div>
-                </>
+                <NetWorthSummary
+                  netWorth={portfolio.netWorth}
+                  dailyChange={portfolio.dailyChange}
+                  dailyChangeRate={portfolio.dailyChangeRate}
+                  houseEquity={portfolio.houseEquity}
+                  stockValue={portfolio.stockValue}
+                  cash={portfolio.cash}
+                />
               ) : (
                 <div className="k-profit-cap">
-                  {isError ? '평가액을 못 불러왔어요. 잠시 후 다시 시도해 주세요.' : '불러오는 중...'}
+                  {isError ? '순자산을 못 불러왔어요. 잠시 후 다시 시도해 주세요.' : '불러오는 중...'}
                 </div>
               )}
               <Link to="/trade/history" className="k-px-link">
@@ -202,9 +198,9 @@ export function HomePage() {
               </div>
             </section>
 
-            <section className="k-card" aria-label="내 손익">
+            <section className="k-card" aria-label="순자산 추이">
               <div className="k-card-head">
-                <div className="k-card-title">내 손익</div>
+                <div className="k-card-title">순자산 추이</div>
                 <div className="k-tabs">
                   {CHART_PERIODS.map((p) => (
                     <button
@@ -232,7 +228,7 @@ export function HomePage() {
                   slotCount={pastDays + 1}
                   baseline={portfolio.initialCash}
                   tone={toProfitTone(portfolio.profit)}
-                  label={`최근 ${chartPeriodLabel} 평가액 추이 그래프, 점선은 시드머니`}
+                  label={`최근 ${chartPeriodLabel} 순자산 추이 그래프, 점선은 시드머니`}
                 />
               )}
               {portfolio && history.length > 0 && (
@@ -277,12 +273,12 @@ export function HomePage() {
 
             <section className="k-card k-stage" aria-label="꿈이 변신 단계">
               <div className="k-avatar">
-                <img src={tier1} alt="걸뱅이 꿈이" />
+                <img src={tierInfo.image} alt={`${tierInfo.name} 꿈이`} />
               </div>
               <div className="k-stage-body">
-                <div className="k-lab k-lab--sub">STAGE 1 / 4</div>
-                <div className="k-stage-title">지금은 걸뱅이 꿈이</div>
-                <div className="k-stage-desc">집 1채만 사도 서민으로 변신해요.</div>
+                <div className="k-lab k-lab--sub">STAGE {tierInfo.stage} / 4</div>
+                <div className="k-stage-title">지금은 {tierInfo.name} 꿈이</div>
+                <div className="k-stage-desc">{tierInfo.nextText}</div>
                 <Link to="/tiers" className="k-stage-link">변신 4단계 보기</Link>
               </div>
             </section>

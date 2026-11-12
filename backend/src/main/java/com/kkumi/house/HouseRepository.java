@@ -19,4 +19,8 @@ public interface HouseRepository extends JpaRepository<House, Long> {
             order by h.purchasedAt asc, h.id asc
             """)
     List<House> findAllByMemberIdWithDeal(@Param("memberId") Long memberId);
+
+    // 내 집 지분 계산용 구매가만 (엔티티·연관 로딩 없이, ADR 054)
+    @Query("select h.purchasePrice from House h where h.member.id = :memberId")
+    List<Long> findPurchasePricesByMemberId(@Param("memberId") Long memberId);
 }

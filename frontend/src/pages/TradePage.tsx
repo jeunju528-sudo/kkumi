@@ -6,7 +6,8 @@ import { formatKRW, formatNumber } from "../utils/format"
 import { useMemberQuery } from "../hooks/useMemberQuery"
 import { useStocksQuery } from "../hooks/useStocksQuery"
 import { useHoldingsQuery } from "../hooks/useHoldingsQuery"
-import tier1 from '../assets/sprites/kkumi-tier1.svg'
+import { useMyHousesQuery } from "../hooks/useMyHousesQuery"
+import { TIER_INFO } from '../utils/tier'
 import './TradePage.css'
 
 type StockTab = 'MINE' | 'ALL'
@@ -23,6 +24,7 @@ export function TradePage() {
   const { data: stocks = [], isPending, isError } = useStocksQuery()
   const { data: holdings = [] } = useHoldingsQuery()
   const { data: portfolio } = usePortfolioQuery()
+  const { data: myHouses } = useMyHousesQuery()
 
   const cash = member?.cash ?? 0
   // 내가 가지고 있는 종목을 code랑 quantity로 배열사전을 하나 만들어서
@@ -38,6 +40,8 @@ export function TradePage() {
   const rows = isMineTab ? allRows.filter((s) => s.quantity > 0) : allRows
 
   const stockValue = portfolio?.stockValue ?? 0
+  const tier = myHouses?.tier ?? 'GEOLBAENGI'
+  const tierInfo = TIER_INFO[tier]
 
   const handleMineClick = () => setTab('MINE')
   const handleAllClick = () => setTab('ALL')
@@ -145,13 +149,18 @@ export function TradePage() {
             </section>
             <section className="k-card k-cheer">
               <div className="k-avatar">
-                <img src={tier1} alt="걸뱅이 꿈이" />
+                <img src={tierInfo.image} alt={`${tierInfo.name} 꿈이`} />
               </div>
-              <div className="k-cheer-text">
-                뭐라도 담아야
-                <br />
-                집을 사지!
-              </div>
+              {/* 보유 0개면 첫 매수 유도, 있으면 응원 */}
+              {holdings.length === 0 ? (
+                <div className="k-cheer-text">
+                  뭐라도 담아야
+                  <br />
+                  집을 사지!
+                </div>
+              ) : (
+                <div className="k-cheer-text">존버는 승리한다!</div>
+              )}
             </section>
           </div>
         </div>

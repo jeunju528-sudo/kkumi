@@ -82,6 +82,9 @@
 .page-village .village-empty-cta{display:flex;align-items:center;min-height:44px;font-size:13px;font-weight:800;color:#231B3A;flex-shrink:0}
 .page-village .village-footnote{margin-top:24px}
 
+/* 시드 대비 배수 (ADR 054): 역전은 골드, 여전은 흰색 (손익색 재사용 안 함) */
+.page-village .village-result-num{margin-top:4px;font-size:28px;font-weight:800;line-height:1.2;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.page-village .village-result-num--up{color:#FFC93C}
 @media (min-width:900px){
 .page-village .k-scene{height:380px}
 .page-village .k-low{width:96px;height:120px}

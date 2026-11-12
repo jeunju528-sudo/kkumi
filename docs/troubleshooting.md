@@ -49,3 +49,9 @@
 - 원인: `VirtualPriceProvider.today` 필드가 선언 때 null이고 `loadStocks`(`ApplicationReadyEvent`)에서만 채워짐. `@Scheduled` 첫 `tick`은 스케줄러 스레드에서 따로 돌아서 `loadStocks`보다 먼저 실행될 수 있음. 이때 `now.equals(null)`이 false라 날짜가 바뀐 것으로 판단. 그 시점엔 종목 상태(`states`)가 비어 있어 값 변화는 없음
 - 해결: `today`를 선언 때 `LocalDate.now(KST)`로 초기화. 객체가 만들어질 때부터 값이 있어 실행 순서와 상관없이 첫 `tick`의 비교가 맞게 됨 (`fix/price-today-init`)
 - 배운 점: `@Scheduled`와 이벤트 리스너는 서로 다른 스레드라 실행 순서가 보장되지 않음. 다른 스레드가 읽는 필드는 "아직 안 채워진 상태"에서도 안전한 초기값을 두기. `volatile`은 값이 보이는 것만 보장하고 순서는 보장하지 않음
+
+## [2026-11-12] utils에서 `types/api` 타입 import가 ESLint 레이어 규칙에 막힘
+- 증상: `utils/tier.ts`에 `import type { Tier } from '../types/api'`를 넣고 커밋하니 pre-commit lint에서 `'../types/api' import is restricted from being used by a pattern. utils는 순수 함수만 → 다른 레이어 참조 금지`로 커밋 중단
+- 원인: `eslint.config.js`의 utils·components 규칙이 REST 호출 레이어(`src/api`)를 막으려고 `'**/api'` 패턴을 씀. 이 패턴은 폴더 이름이 아니라 import 경로의 끝을 보므로 `../types/api`도 `/api`로 끝나 함께 막힘. 지금까지 utils·components에서 타입을 import한 파일이 없어 드러나지 않았음
+- 해결: 두 규칙의 `group`에 예외 `'!**/types/api'` 추가. 확인: 전체 `eslint .` 통과, utils·components에서 `../api/houseApi` import는 여전히 오류, components의 `../types/api` import는 허용
+- 배운 점: no-restricted-imports의 glob 패턴은 레이어 이름이 아니라 경로 문자열에 매칭됨. 막는 규칙을 만들면 "막혀야 할 것"과 "허용돼야 할 것" 둘 다 import해 보고 확인할 것

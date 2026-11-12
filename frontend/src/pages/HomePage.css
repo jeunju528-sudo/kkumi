@@ -106,6 +106,17 @@
 .page-home .k-stage-desc{margin-top:2px;font-size:13px;color:#6B6F80;line-height:1.4}
 .page-home .k-stage-link{display:inline-flex;align-items:center;min-height:44px;font-size:13px;font-weight:800;color:#231B3A;text-decoration:underline}
 
+/* 순자산 구성 막대 (ADR 054): 손익색 대신 골드·하늘·잔디 토큰 */
+.page-home .k-mix{margin-top:12px}
+.page-home .k-mix-bar{display:flex;height:12px;background:#0F0B1F;border:2px solid #0F0B1F;overflow:hidden}
+.page-home .k-mix-seg{height:100%}
+.page-home .k-mix--house{background:#FFC93C}
+.page-home .k-mix--stock{background:#1E90E6}
+.page-home .k-mix--cash{background:#6CC24A}
+.page-home .k-mix-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 0;padding:0;list-style:none}
+.page-home .k-mix-name{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#FFFFFF}
+.page-home .k-mix-dot{width:8px;height:8px;flex:none}
+.page-home .k-mix-amt{margin-top:2px;font-size:11px;color:#B9BCD0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 @media (min-width:900px){
 .page-home .k-scene{height:260px}
 .page-home .k-low{width:80px;height:100px}

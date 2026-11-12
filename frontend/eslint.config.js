@@ -98,7 +98,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': restrictImports([
         {
-          group: ['**/api', '**/api/*', '**/ws', '**/ws/*', '**/pages', '**/pages/*'],
+          group: ['**/api', '**/api/*', '**/ws', '**/ws/*', '**/pages', '**/pages/*', '!**/types/api'],
           message: 'components에서 api / ws / pages 참조 금지 → 데이터는 props로 받기',
         },
       ], [noQueryOutsideHooks]),
@@ -122,7 +122,7 @@ export default defineConfig([
       'no-restricted-imports': restrictImports(
         [
           {
-            group: [...uiLayers, '**/api', '**/api/*', '**/ws', '**/ws/*'],
+            group: [...uiLayers, '**/api', '**/api/*', '**/ws', '**/ws/*', '!**/types/api'],
             message: 'utils는 순수 함수만 → 다른 레이어 참조 금지',
           },
         ],
