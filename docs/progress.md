@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-10
+## 기준일: 2026-11-11
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -231,9 +231,17 @@
   - `AptDealBatchProperties`(`enabled`, `forceInitial`), `APT_DEAL_BATCH_FORCE_INITIAL`(yaml, compose)로 강제 재실행. 시작 로그 `실거래가 수집 시작: N개월, 시군구 256개`
   - 운영 순서: EC2 `.env`에 true → 배포 → 끝날 때까지 배포 금지 → false로 되돌리고 `docker compose up -d`
 
+- 집 찾기 화면 연결 (2026-11-11, `feat/apt-list-connect`, 아파트·집 사기 연결 PR A)
+  - `api/aptApi.getAptRecommendations`(q 빈 문자열이면 생략, `affordableOnly`는 항상 전송: 서버 기본값 true), `queryKeys.aptRecommendations`(`['apartments', 'list', q, isAffordableOnly]`), `hooks/useAptRecommendationsQuery`(첫 20건, page 0)
+  - `ApartmentsPage`: 목업 6채·화면 40% 계산 삭제 → 서버 `affordability`·`shortage`로 버튼 3종, MAX는 응답 `maxPrice`(카드 판정과 같은 시점 값). 검색은 Enter 때 요청(`form onSubmit` + `preventDefault`, 24만 건 LIKE를 글자마다 보내지 않음)
+  - "살 수 있는 집만" 토글: 기본 켜짐, `sessionStorage`(`apartments.isOnlyOk`)로 탭 안에서 유지(화면 이동 시 `useState` 초기화 문제). 켜짐이면 첫 카드에 "가장 가까워요"
+  - "가짜" 문구 정리 (`ui-spec.md` §8, `design.md` §11): 시작·시드 선택·계약서 연출에만 남김. LOAN 카드 "대출 60% 자동 적용", 투자·검색·변신·내 마을 하단 안내에서 삭제
+  - 로컬 확인 (11/11): 전체 목록 응답 229ms, NEED_SELL 부족액 검산(내 돈 320만 − 현금 3,077,550 = 122,450), 버튼 3종, 검색 + Enter, 토글 유지(투자 화면 갔다 오기). `tsc -b` 통과
+  - 못 확인한 것: ESLint(작업 환경 시간 초과, 커밋 훅에서 확인), 실서버
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 프론트 데이터 연결: 아파트·계약서·내 마을은 목업 상수, 홈은 목표 아파트·장 마감 시계·손익 차트만 목업
+- 프론트 데이터 연결: 계약서·내 마을은 목업 상수, 홈은 목표 아파트만 목업
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
 
@@ -251,6 +259,7 @@
 8. 무중단 배포(blue-green): 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저
 9. (2026-11-11 해결, `decisions/052`) 스케줄러 스레드 풀 분리: `SchedulingConfigurer`로 `@Scheduled` 전용 풀 2개 (yaml 설정은 WebSocket 브로커 스케줄러 때문에 효과 없었음)
 10. 정리: 종목 검색 최근 검색 저장(지금은 빈 상태로 시작), `OrderPanel` components 분리(주문 동작을 `OrderPage`로 올리고 props `onSubmit`·`isSubmitting`·`message`로 내리기)
+11. 대출 한도 조정: 지금은 60% 고정. 사용자가 대출 비율을 고르는 기능 (2026-11-11 개발자 아이디어, LOAN 카드 문구는 기능 도입 때 "대출 한도"로 변경)
 - MVP 밖 (런칭 후에도 미정): 빌딩, 랭킹·친구 비교, 집 팔기, 집값 하락 표시, 네이티브 앱
 
 ### 외부 대기 · 결정 필요
@@ -277,7 +286,7 @@
 7. (11/6 완료) WebSocket 평가액 푸시 (PR 1 #53 백엔드 → PR 2 프론트, `decisions/046`). 병렬: 추천 API 백엔드 (#54, Claude, `decisions/045`), 집 사기 API 백엔드 (Claude, 11/7 몫을 미리)
 8. (11/6 앞당겨 작성) 일별 평가액 기록 + 손익 차트 (심장 ④, `decisions/049`). 집 사기 API + 변신 단계 + 내 마을 조회 백엔드는 11/6 완료(#56). 11/7: 로컬 확인 후 merge
 9. 11/8~9 실거래가 배치 (심장 ③), 11/9 오후 도메인·HTTPS (Secure 쿠키 켜기)
-10. 11/10 아파트 화면 연결(추천 API) + 집 사기(계약서) → 내 마을 화면 연결
+10. 11/10 → 11/11 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
 12. 11/12 통합 테스트·버그 수정, 11/13 버퍼 겸 자연어 아파트 검색(게이트 통과 시)
   - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)

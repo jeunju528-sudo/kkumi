@@ -179,7 +179,7 @@ export function VillagePage() {
             </Link>
           </div>
         </div>
-        <p className="k-note village-footnote">※ 집을 2채 산 뒤를 가정한 샘플이에요. 전부 가짜 돈이에요.</p>
+        <p className="k-note village-footnote">※ 집을 2채 산 뒤를 가정한 샘플이에요.</p>
       </main>
     </div>
   )
