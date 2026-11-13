@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { BuyHouseResponse, Tier } from '../types/api'
 import { ApiError } from '../api/apiError'
@@ -7,6 +7,7 @@ import { useAptDealQuery } from '../hooks/useAptDealQuery'
 import { useBuyHouseMutation } from '../hooks/useBuyHouseMutation'
 import { useMemberQuery } from '../hooks/useMemberQuery'
 import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
+import { useShareImage } from '../hooks/useShareImage'
 import { formatDotDate, formatKRW, formatManwon, formatNumber } from '../utils/format'
 import { calculateMonthlyPayment } from '../utils/loan'
 import tier2 from '../assets/sprites/kkumi-tier2.svg'
@@ -51,6 +52,8 @@ export function ContractPage() {
   const [signed, setSigned] = useState<SignedContract | null>(null)
   const [message, setMessage] = useState('')
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const paperRef = useRef<HTMLDivElement>(null)
+  const shareImage = useShareImage()
 
   const cash = member?.cash ?? 0
   const ownedHouse = myHouses?.houses.find((h) => h.dealId === dealId)
@@ -84,6 +87,12 @@ export function ContractPage() {
   const handleConfirmYes = () => {
     setIsConfirmOpen(false)
     handleSign()
+  }
+
+  const shareFileName = `kkumi-contract-${houseId ?? dealId}.png`
+  // 계약서 종이 영역만 이미지로
+  const handleShareClick = () => {
+    if (paperRef.current) shareImage.share(paperRef.current, shareFileName, '꿈이 부동산 매매 계약서')
   }
 
   return (
@@ -124,6 +133,19 @@ export function ContractPage() {
         </div>
       )}
 
+      {shareImage.previewUrl && (
+        <div className="contract-confirm" role="dialog" aria-modal="true" aria-label="계약서 이미지">
+          <div className="contract-confirm-box contract-share-box">
+            <img src={shareImage.previewUrl} alt="계약서 이미지" className="contract-share-img" />
+            <div className="contract-confirm-body">이미지를 길게 눌러 사진에 저장해요</div>
+            <div className="contract-confirm-actions">
+              <a href={shareImage.previewUrl} download={shareFileName} className="contract-confirm-no contract-share-download">내려받기</a>
+              <button type="button" className="contract-confirm-yes" onClick={shareImage.closePreview}>닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="k-wrap">
         {isPending && <p className="k-note">계약서 준비 중...</p>}
         {isError && (
@@ -134,7 +156,7 @@ export function ContractPage() {
         {deal && (
           <div className="k-cols">
             <div className="contract-paper-wrap">
-              <div className="contract-paper">
+              <div className="contract-paper" ref={paperRef}>
                 <div className="contract-watermark" aria-hidden="true">FAKE</div>
                 <div className="contract-head">
                   <h1 className="contract-title">부동산 매매 계약서</h1>
@@ -196,7 +218,9 @@ export function ContractPage() {
               <div className="contract-actions">
                 {isSigned ? (
                   <>
-                    <button type="button" className="contract-btn-share">계약서 캡처해서 자랑하기</button>
+                    <button type="button" className="contract-btn-share" onClick={handleShareClick} disabled={shareImage.isSharing}>
+                      {shareImage.isSharing ? '이미지 만드는 중...' : '계약서 캡처해서 자랑하기'}
+                    </button>
                     <Link to="/village" className="contract-btn-village">내 마을 보러 가기</Link>
                     <Link to="/apartments" className="contract-btn-reset">다른 집 보러 가기</Link>
                   </>
@@ -211,6 +235,7 @@ export function ContractPage() {
                 <p className="k-note">{formatKRW(deal.shortage)} 모자라요. 돈을 불려서 다시 와요.</p>
               )}
               {message && <p className="k-note">{message}</p>}
+              {shareImage.errorMessage && <p className="k-note">{shareImage.errorMessage}</p>}
             </div>
           </div>
         )}

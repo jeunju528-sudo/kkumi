@@ -296,6 +296,12 @@
 
 - README (2026-11-13, #76 → `docs/readme-screenshots`): 게임 규칙, 기술 스택, 아키텍처(Mermaid), 핵심 설계·트레이드오프(ADR 링크), 트러블슈팅, 개발·AI 협업 방식, 로컬 실행. 스크린샷 6장 `docs/images/`(홈, 종목 상세 분봉, 집 찾기, 계약서, 내 거래 실현손익, 내 마을)
 
+- 계약서 공유 이미지 (2026-11-13, `feat/contract-share`, `decisions/058`)
+  - "계약서 캡처해서 자랑하기": 계약서 종이 영역 → `html-to-image` PNG → `navigator.share` 공유 시트, 못 쓰면 미리보기(길게 눌러 저장, 내려받기). `hooks/useShareImage`
+  - 내 마을 "친구한테 자랑하기" 버튼 삭제
+  - 확인: 작업 환경에서 `eslint`, `npm run build`(tsc 포함) 통과
+  - 못 확인한 것: 아이폰 공유 시트·저장, 이미지 속 글꼴, PC 내려받기
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 
