@@ -12,8 +12,9 @@ export function useShareImage() {
     setErrorMessage('')
     try {
       // 사파리 첫 변환에서 폰트·이미지가 빠지는 경우가 있어 한 번 더 변환
-      await toBlob(node, { pixelRatio: 2 })
-      const blob = await toBlob(node, { pixelRatio: 2 })
+      // 웹폰트 수집 생략: 외부 CSS 읽기 차단 + 한글 폰트 수백 개 다운로드로 느림. 결과는 기기 기본 폰트
+      await toBlob(node, { pixelRatio: 2, skipFonts: true })
+      const blob = await toBlob(node, { pixelRatio: 2, skipFonts: true })
       if (!blob) throw new Error('이미지 변환 실패')
 
       const file = new File([blob], fileName, { type: 'image/png' })
