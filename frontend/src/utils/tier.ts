@@ -9,12 +9,13 @@ export type TierInfo = {
   name: string
   image: string
   nextText: string // 다음 변신 안내 (갑부는 최종 단계 문구)
+  nextGoal: number | null // 다음 단계 집 수 (갑부는 없음)
 }
 
 // 변신 4단계 그림·문구 (집 0 / 1 / 2~4 / 5채 이상, 단계 판정은 서버 Tier)
 export const TIER_INFO: Record<Tier, TierInfo> = {
-  GEOLBAENGI: { stage: 1, name: '걸뱅이', image: tier1, nextText: '집 1채만 사도 서민으로 변신해요.' },
-  SEOMIN: { stage: 2, name: '서민', image: tier2, nextText: '집 2채면 졸부로 변신해요.' },
-  JOKBU: { stage: 3, name: '졸부', image: tier3, nextText: '집 5채 모으면 갑부 꿈이 해금!' },
-  GAPBU: { stage: 4, name: '갑부', image: tier4, nextText: '최종 단계 달성! 인생역전 완료.' },
+  GEOLBAENGI: { stage: 1, name: '걸뱅이', image: tier1, nextText: '집 1채만 사도 서민으로 변신해요.', nextGoal: 1 },
+  SEOMIN: { stage: 2, name: '서민', image: tier2, nextText: '집 2채면 졸부로 변신해요.', nextGoal: 2 },
+  JOKBU: { stage: 3, name: '졸부', image: tier3, nextText: '집 5채 모으면 갑부 꿈이 해금!', nextGoal: 5 },
+  GAPBU: { stage: 4, name: '갑부', image: tier4, nextText: '최종 단계 달성! 인생역전 완료.', nextGoal: null },
 }

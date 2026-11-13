@@ -3,44 +3,39 @@ import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
 import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { useMemberQuery } from '../hooks/useMemberQuery'
+import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
+import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import type { SpriteId } from '../components/PixelDefs'
 import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { toLoanAmount } from '../utils/loan'
 import { toSeedMultiple } from '../utils/portfolio'
-import tier3 from '../assets/sprites/kkumi-tier3.svg'
+import { TIER_INFO } from '../utils/tier'
 import './VillagePage.css'
 
-type OwnedHouse = {
-  dealId: number
-  complexName: string
-  region: string
-  area: number
-  priceManwon: number
-  sprite: { id: SpriteId; viewBox: string; width: number; height: number; roof?: string }
+type HouseSprite = {
+  id: SpriteId
+  viewBox: string
+  sceneClass: string // 마을 그림 크기 (CSS k-low / k-mid)
+  sceneWidth: number
+  sceneHeight: number
+  thumbWidth: number
+  thumbHeight: number
+  roof: string
 }
 
-// 목업 데이터 (API 연동 전): 자랑 줄 시드 대비 배수 (ADR 054)
-const MOCK_SEED_RESULT = { initialCash: 5_000_000, netWorth: 45_418_500 }
-
-// 목업 데이터 (API 연동 전)
-const MOCK_HOUSES: OwnedHouse[] = [
-  {
-    dealId: 1,
-    complexName: '태백 [단지명]',
-    region: '강원 태백시',
-    area: 39,
-    priceManwon: 1800,
-    sprite: { id: 'px-apt-low', viewBox: '0 0 16 20', width: 48, height: 60, roof: '#3B82F6' },
-  },
-  {
-    dealId: 2,
-    complexName: '군산 [단지명]',
-    region: '전북 군산시',
-    area: 45,
-    priceManwon: 2400,
-    sprite: { id: 'px-apt-mid', viewBox: '0 0 14 26', width: 28, height: 52 },
-  },
+// 집 순서별 그림 (응답에 그림 정보 없음, 순서대로 돌려 씀)
+const HOUSE_SPRITES: HouseSprite[] = [
+  { id: 'px-apt-low', viewBox: '0 0 16 20', sceneClass: 'k-low', sceneWidth: 80, sceneHeight: 100, thumbWidth: 48, thumbHeight: 60, roof: '#3B82F6' },
+  { id: 'px-apt-mid', viewBox: '0 0 14 26', sceneClass: 'k-mid', sceneWidth: 70, sceneHeight: 130, thumbWidth: 28, thumbHeight: 52, roof: '#D64545' },
+  { id: 'px-apt-low', viewBox: '0 0 16 20', sceneClass: 'k-low', sceneWidth: 80, sceneHeight: 100, thumbWidth: 48, thumbHeight: 60, roof: '#FFC93C' },
+  { id: 'px-apt-mid', viewBox: '0 0 14 26', sceneClass: 'k-mid', sceneWidth: 70, sceneHeight: 130, thumbWidth: 28, thumbHeight: 52, roof: '#7A4B3A' },
 ]
-const NEXT_TIER_GOAL = 5
+const toHouseSprite = (index: number): HouseSprite => HOUSE_SPRITES[index % HOUSE_SPRITES.length]
+
+// 마을 그림 집터 칸 수 (모바일은 앞 3칸만, 위치는 CSS village-lot-N)
+const LOT_COUNT = 5
+const MOBILE_LOT_COUNT = 3
+
 const ORDINALS = ['첫', '두', '세', '네', '다섯', '여섯']
 
 const roofStyle = (roof: string): CSSProperties => ({ '--roof': roof }) as CSSProperties
@@ -49,13 +44,21 @@ export function VillagePage() {
   const dayCloseLeft = useMidnightCountdown()
   // HUD는 다른 화면과 같은 현금 (마을 총 가치는 아래 카드)
   const { data: member } = useMemberQuery()
-  const houseCount = MOCK_HOUSES.length
-  const totalManwon = MOCK_HOUSES.reduce((sum, h) => sum + h.priceManwon, 0)
-  const totalWon = totalManwon * 10_000
-  const avgManwon = houseCount > 0 ? totalManwon / houseCount : 0
-  const progressPct = Math.min(100, (houseCount / NEXT_TIER_GOAL) * 100)
-  const nextOrdinal = ORDINALS[houseCount] ?? `${houseCount + 1}번째`
-  const seedMultiple = toSeedMultiple(MOCK_SEED_RESULT.netWorth, MOCK_SEED_RESULT.initialCash)
+  // 캐시에 값 있으면 바로 표시, 뒤에서 재조회 (staleTime 0)
+  const { data: myHouses, isError: isHousesError } = useMyHousesQuery()
+  // 순자산은 WebSocket이 5초마다 캐시 갱신
+  const { data: portfolio } = usePortfolioQuery()
+  const houses = myHouses?.houses ?? []
+  const houseCount = myHouses?.houseCount ?? 0
+  const tier = myHouses?.tier ?? 'GEOLBAENGI'
+  const tierInfo = TIER_INFO[tier]
+  const totalWon = houses.reduce((sum, h) => sum + h.purchasePrice, 0)
+  const avgWon = houseCount > 0 ? totalWon / houseCount : 0
+  // 갑부는 다음 단계 없음 → 진행바 가득
+  const progressPct = tierInfo.nextGoal === null ? 100 : Math.min(100, (houseCount / tierInfo.nextGoal) * 100)
+  const progressText = tierInfo.nextGoal === null ? `${houseCount}채` : `${houseCount}/${tierInfo.nextGoal}채`
+  const nextOrdinal = ORDINALS[houseCount] ?? `${houseCount + 1}`
+  const seedMultiple = portfolio ? toSeedMultiple(portfolio.netWorth, portfolio.initialCash) : null
 
   const hudChips = (
     <>
@@ -69,6 +72,38 @@ export function VillagePage() {
       </div>
     </>
   )
+
+  // 집터: 산 집 → 집 그림, 바로 다음 칸 → NEXT, 나머지 → 빈 칸
+  const lots = Array.from({ length: LOT_COUNT }, (_, i) => {
+    const lotClass = `village-lot-${i}${i >= MOBILE_LOT_COUNT ? ' k-wide' : ''}`
+    if (i < houseCount) {
+      const sprite = toHouseSprite(i)
+      return (
+        <Sprite
+          key={i}
+          id={sprite.id}
+          viewBox={sprite.viewBox}
+          width={sprite.sceneWidth}
+          height={sprite.sceneHeight}
+          className={`sp ${sprite.sceneClass} ${lotClass}`}
+          style={{ bottom: 34, ...roofStyle(sprite.roof) }}
+        />
+      )
+    }
+    if (i === houseCount) {
+      return (
+        <div key={i} className={`k-slot ${lotClass}`} role="img" aria-label="다음 집 자리">
+          <svg width="16" height="16" viewBox="0 0 8 8" className="village-plus" aria-hidden="true"><path d="M3 0h2v8h-2zM0 3h8v2h-8z" /></svg>
+          <div className="k-lab village-lab-white">NEXT</div>
+        </div>
+      )
+    }
+    return (
+      <div key={i} className={`k-slot ${lotClass}`} style={{ opacity: 0.55 }} role="img" aria-label="빈 집 자리">
+        <div className="k-lab village-lab-white">?</div>
+      </div>
+    )
+  })
 
   return (
     <div className="page-village k-page">
@@ -92,15 +127,7 @@ export function VillagePage() {
         <Sprite id="px-cloud" viewBox="0 0 16 6" width={64} height={24} className="sp k-cloud k-wide" style={{ left: '26%', top: 80, opacity: 0.9 }} />
 
         <Sprite id="px-tree" viewBox="0 0 10 12" width={50} height={60} className="sp k-tree" style={{ left: 0, bottom: 38 }} />
-        <Sprite id="px-apt-low" viewBox="0 0 16 20" width={80} height={100} className="sp k-low" style={{ left: '7%', bottom: 34, ...roofStyle('#3B82F6') }} />
-        <Sprite id="px-apt-mid" viewBox="0 0 14 26" width={70} height={130} className="sp k-mid" style={{ left: '33%', bottom: 34 }} />
-        <Sprite id="px-tree" viewBox="0 0 10 12" width={50} height={60} className="sp k-tree" style={{ left: '56%', bottom: 38 }} />
-        <div className="k-slot k-next" role="img" aria-label="다음 집 자리">
-          <svg width="16" height="16" viewBox="0 0 8 8" className="village-plus" aria-hidden="true"><path d="M3 0h2v8h-2zM0 3h8v2h-8z" /></svg>
-          <div className="k-lab village-lab-white">NEXT</div>
-        </div>
-        <div className="k-slot k-wide" style={{ left: '66%', opacity: 0.55 }} role="img" aria-label="빈 집 자리"><div className="k-lab village-lab-white">?</div></div>
-        <div className="k-slot k-wide" style={{ left: '82%', opacity: 0.55 }} role="img" aria-label="빈 집 자리"><div className="k-lab village-lab-white">?</div></div>
+        {lots}
         <div className="k-grass" />
         <div className="k-soil" />
 
@@ -121,36 +148,42 @@ export function VillagePage() {
                 <div className="k-lab" style={{ color: '#FFC93C' }}>HOUSES {houseCount}</div>
               </div>
               <div className="village-total">{formatKRW(totalWon)}</div>
-              <div className="village-total-sub">보유 {houseCount}채 · 평균 {formatManwon(avgManwon)}</div>
+              <div className="village-total-sub">보유 {houseCount}채 · 평균 {formatManwon(avgWon / 10_000)}</div>
             </section>
 
             <section className="k-card village-stage" aria-label="꿈이 변신 단계">
-              <div className="village-stage-img"><img src={tier3} alt="졸부 꿈이" /></div>
+              <div className="village-stage-img"><img src={tierInfo.image} alt={`${tierInfo.name} 꿈이`} /></div>
               <div className="village-stage-text">
-                <div className="k-lab" style={{ color: '#6B6F80' }}>STAGE 3 / 4</div>
-                <div className="village-stage-name">졸부 꿈이</div>
-                <div className="village-stage-desc">집 {NEXT_TIER_GOAL}채 모으면 갑부 꿈이 해금!</div>
+                <div className="k-lab" style={{ color: '#6B6F80' }}>STAGE {tierInfo.stage} / 4</div>
+                <div className="village-stage-name">{tierInfo.name} 꿈이</div>
+                <div className="village-stage-desc">{tierInfo.nextText}</div>
                 <div className="village-progress-row">
                   <div className="village-progress">
                     <div className="village-progress-fill" style={{ width: `${progressPct}%` }} />
                     <div className="k-stripe village-progress-stripe" />
                   </div>
-                  <div className="village-progress-text">{houseCount}/{NEXT_TIER_GOAL}채</div>
+                  <div className="village-progress-text">{progressText}</div>
                 </div>
                 <Link to="/tiers" className="village-tiers-link">변신 4단계 보기</Link>
               </div>
             </section>
 
             <section className="k-px village-result" aria-label="시드머니 대비 결과">
-              <div className="village-row-between">
-                <div className="village-total-lab">
-                  시드 {formatManwon(MOCK_SEED_RESULT.initialCash / 10_000)} → 순자산 {formatManwon(MOCK_SEED_RESULT.netWorth / 10_000)}
-                </div>
-                <div className="k-lab" style={{ color: '#FFC93C' }}>RESULT</div>
-              </div>
-              <div className={`village-result-num${seedMultiple.isUp ? ' village-result-num--up' : ''}`}>
-                {seedMultiple.text} {seedMultiple.isUp ? '인생역전' : '인생여전'}
-              </div>
+              {portfolio && seedMultiple ? (
+                <>
+                  <div className="village-row-between">
+                    <div className="village-total-lab">
+                      시드 {formatManwon(portfolio.initialCash / 10_000)} → 순자산 {formatManwon(portfolio.netWorth / 10_000)}
+                    </div>
+                    <div className="k-lab" style={{ color: '#FFC93C' }}>RESULT</div>
+                  </div>
+                  <div className={`village-result-num${seedMultiple.isUp ? ' village-result-num--up' : ''}`}>
+                    {seedMultiple.text} {seedMultiple.isUp ? '인생역전' : '인생여전'}
+                  </div>
+                </>
+              ) : (
+                <div className="village-total-lab">불러오는 중...</div>
+              )}
             </section>
 
             <button type="button" className="village-share">친구한테 자랑하기</button>
@@ -161,42 +194,51 @@ export function VillagePage() {
               <h2 className="village-dex-title">내 도감</h2>
               <div className="village-dex-sub">모은 집이 곧 인생역전 기록이에요</div>
             </div>
-
-            {MOCK_HOUSES.map((house) => (
-              <article key={house.dealId} className="k-card village-house">
-                <div className="village-thumb">
-                  <div className="village-thumb-grass" />
-                  <Sprite
-                    id={house.sprite.id}
-                    viewBox={house.sprite.viewBox}
-                    width={house.sprite.width}
-                    height={house.sprite.height}
-                    className="village-thumb-sprite"
-                    style={house.sprite.roof ? roofStyle(house.sprite.roof) : undefined}
-                  />
-                </div>
-                <div className="village-house-info">
-                  <div className="village-house-name">{house.complexName}</div>
-                  <div className="village-house-meta">{house.region} · 전용 {house.area}㎡</div>
-                  <div className="village-house-price">
-                    매수가 <b>{formatManwon(house.priceManwon)}</b> · 대출 {formatManwon(house.priceManwon * 0.6)}
-                  </div>
-                </div>
-                <Link to={`/contract/${house.dealId}`} className="village-contract-link">계약서</Link>
-              </article>
-            ))}
-
-            <Link to="/apartments" className="k-card village-empty">
-              <div className="village-empty-box">?</div>
-              <div className="village-empty-text">
-                <div className="village-house-name">다음 집은?</div>
-                <div className="village-empty-sub">{nextOrdinal} 번째 칸이 비어 있어요</div>
+            {!myHouses ? (
+              <div className="village-dex-sub">
+                {isHousesError ? '내 마을을 못 불러왔어요. 잠시 후 다시 시도해 주세요.' : '불러오는 중...'}
               </div>
-              <div className="village-empty-cta">집 찾기 &gt;</div>
-            </Link>
+            ) : (
+              <>
+                {houses.map((house, i) => {
+                  const sprite = toHouseSprite(i)
+                  return (
+                    <article key={house.houseId} className="k-card village-house">
+                      <div className="village-thumb">
+                        <div className="village-thumb-grass" />
+                        <Sprite
+                          id={sprite.id}
+                          viewBox={sprite.viewBox}
+                          width={sprite.thumbWidth}
+                          height={sprite.thumbHeight}
+                          className="village-thumb-sprite"
+                          style={roofStyle(sprite.roof)}
+                        />
+                      </div>
+                      <div className="village-house-info">
+                        <div className="village-house-name">{house.complexName}</div>
+                        <div className="village-house-meta">{house.region} · 전용 {house.area}㎡ · {house.floor}층</div>
+                        <div className="village-house-price">
+                          매수가 <b>{formatManwon(house.purchasePrice / 10_000)}</b> · 대출 {formatManwon(toLoanAmount(house.purchasePrice) / 10_000)}
+                        </div>
+                      </div>
+                      <Link to={`/contract/${house.dealId}`} className="village-contract-link">계약서</Link>
+                    </article>
+                  )
+                })}
+
+                <Link to="/apartments" className="k-card village-empty">
+                  <div className="village-empty-box">?</div>
+                  <div className="village-empty-text">
+                    <div className="village-house-name">다음 집은?</div>
+                    <div className="village-empty-sub">{nextOrdinal} 번째 칸이 비어 있어요</div>
+                  </div>
+                  <div className="village-empty-cta">집 찾기 &gt;</div>
+                </Link>
+              </>
+            )}
           </div>
         </div>
-        <p className="k-note village-footnote">※ 집을 2채 산 뒤를 가정한 샘플이에요.</p>
       </main>
     </div>
   )
