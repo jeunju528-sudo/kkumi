@@ -275,11 +275,15 @@
   - 프론트(045 예외, 개발자 요청으로 에이전트 작성): `stockApi.getStockPrices`·`getStockCandles`, `useStockPricesQuery`·`useStockCandlesQuery`(1분마다), `queryKeys.stockPrices`·`stockCandles`, `components/CandleChart`(심지 + 몸통, 오늘 캔들에 실시간 가격), `OrderPage` 탭 "분봉 | 일봉", 칸 수는 데이터에 맞춤(분봉 최소 1시간·일봉 최소 7일 폭, 넘으면 꽉 채움, `utils/chart.toSlotCount`), 선 아래 옅은 채움, 축 3칸은 실제 시각·날짜(`toThreeAxisLabels`), 탭 기준 최고·최저가, 일봉 3개 미만이면 "일봉은 하루에 1개씩 쌓여요". 화면 진입 후 기록 state(`hist`)는 삭제
   - 운영: 배포 후 RDS에 `stock_price_history`·`stock_daily_candle` 테이블 생성(`ddl-auto: update`) 확인. 분봉은 24시간, 일봉은 30일 뒤에 꽉 참
 
+- 런칭 전 점검 4개 (2026-11-13, `fix/prelaunch-checks`)
+  - `GlobalExceptionHandler`: JSON 형식 오류(`HttpMessageNotReadableException`), `@RequestParam` 검증 실패(`HandlerMethodValidationException`), 파라미터 타입 오류(`MethodArgumentTypeMismatchException`, 예: `period=FOO`)도 `INVALID_REQUEST`(400) + `{code, message}`. 응답 생성은 `invalidRequest()`로 모음
+  - 401 응답의 `JSESSIONID`: 원인은 RequestCache(막힌 요청을 세션에 저장). `SecurityConfig`에 `NullRequestCache`, 세션 자체는 카카오 로그인 state 보관용으로 유지 (`troubleshooting.md`)
+  - KIS 설정 삭제: `application.yaml`(main·test), `docker-compose.yml`, `.env.example` (`decisions/020`)
+  - 로컬 확인 (11/13): 쿠키 없는 `/api/members/me` 401에 `Set-Cookie` 없음, 로그인 상태 브라우저 콘솔에서 수량 문자열 매수·`page=-1`·`period=FOO` 모두 400 `{code: INVALID_REQUEST, message}`
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 - 프론트 데이터 연결: 계약서·내 마을은 목업 상수
-- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
-- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
 
 ### 런칭 후 과제 (우선순위)
 기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능 순서는 9월 확정 순서(필터 JSON → 골든셋 → ES) 유지
@@ -302,12 +306,12 @@
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`)
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
   - 현재가 저장·복구(`decisions/040`), 종목 유형 배치·시작가·호가 단위·`market` 삭제(`decisions/041`) 확정 (2026-10-27)
-  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR) → 11/12 처리
+  - KIS 키 설정 삭제 완료 (2026-11-13, `fix/prelaunch-checks`)
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`) → 런칭 후 과제 7
 - 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27) → 런칭 후 과제 8
 - 자연어 아파트 검색: 런칭 후로 확정 (2026-11-12, 게이트 미통과, 런칭 후 과제 1)
-- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인 → 11/12 처리
+- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 발견) → 원인 RequestCache, 2026-11-13 해결 (`troubleshooting.md`)
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
   - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
@@ -325,7 +329,7 @@
 10. 11/10 → 11/12 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서, 11/12 완료) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
 12. 11/12 통합 테스트·버그 수정, 11/13 도메인·HTTPS + 버퍼 (자연어 검색은 런칭 후)
-  - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
+  - 런칭 전 점검 4개 (작은 PR로 묶음, 11/12 예정 → 11/13 완료 `fix/prelaunch-checks`)
     1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
     2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일
     3. 쿠키 없는 401에 `JSESSIONID` 쿠키가 발급되는 원인 확인 (2026-10-27 발견)

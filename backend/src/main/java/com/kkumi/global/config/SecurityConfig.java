@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
 public class SecurityConfig {
@@ -57,8 +58,11 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health/**").permitAll()
                 .requestMatchers("/error").permitAll()
 				.anyRequest().authenticated())
-            // AuthenticationEntryPoint: 인증 안 된 요청이 막혔을 때 "어떻게 응답할지" 정하는 곳
-            .exceptionHandling(e -> e
+                // 원래 주소를 기억해놨다가(세션에) 로그인 끝나면 거기로 보내줘야지 하는 기능을 끔
+                // 우리는 /seed 나 /home 으로 무조건 보내주기 때문에 필요없는 기능
+                .requestCache(c -> c.requestCache(new NullRequestCache()))
+                // AuthenticationEntryPoint: 인증 안 된 요청이 막혔을 때 "어떻게 응답할지" 정하는 곳
+                .exceptionHandling(e -> e
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
         return http.build();
     }
