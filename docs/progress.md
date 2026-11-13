@@ -287,6 +287,13 @@
   - KIS 설정 삭제: `application.yaml`(main·test), `docker-compose.yml`, `.env.example` (`decisions/020`)
   - 로컬 확인 (11/13): 쿠키 없는 `/api/members/me` 401에 `Set-Cookie` 없음, 로그인 상태 브라우저 콘솔에서 수량 문자열 매수·`page=-1`·`period=FOO` 모두 400 `{code: INVALID_REQUEST, message}`
 
+- HTTPS (2026-11-13, `chore/acme-challenge` #73 → `feat/https`, `decisions/057`)
+  - DuckDNS `kkumi.duckdns.org` → 탄력적 IP, EC2 보안 그룹 443 허용
+  - #73: nginx 80에 `/.well-known/acme-challenge/` + compose `/var/www/certbot` 볼륨. EC2 호스트 certbot(snap) webroot 발급, 만료 2027-02-11, `certbot renew --dry-run` 통과
+  - `feat/https`: nginx 80은 시험 파일 + 나머지 `https://kkumi.duckdns.org`로 301, 443(TLS 1.2·1.3, http2)에 기존 location 이동, `/ws`에 `X-Forwarded-Proto` 추가, `server_tokens off`, compose 443 포트·`/etc/letsencrypt` 읽기 전용, `AUTH_COOKIE_SECURE=true`, CI `nginx -t`는 일회용 자체 서명 인증서
+  - 운영: 갱신 deploy 훅 `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh`(`nginx -s reload`), 카카오 Redirect URI·사이트 도메인에 https 주소 추가
+  - 못 확인한 것: 배포 후 https 접속·카카오 로그인·wss 연결·쿠키 Secure, 80 → 443 리다이렉트, deploy 훅 수동 실행
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 
@@ -319,7 +326,7 @@
 - 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 발견) → 원인 RequestCache, 2026-11-13 해결 (`troubleshooting.md`)
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
-  - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
+  - 실서버 접속은 `https://kkumi.duckdns.org` (2026-11-13 HTTPS 전환, `decisions/057`). 전환 전에는 `http://`를 붙여야 했음(Chrome이 https로 먼저 시도해 타임아웃)
 
 ### 다음 할 일 (순서)
 1. (10/27 완료) 매수·매도 (심장 ①): PR #38 merge, 실서버 확인

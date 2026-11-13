@@ -18,6 +18,7 @@ services:
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:?KAKAO_CLIENT_ID 필요 (.env 확인)} # :? 값이 비어있으면 error로 멈추는 문법
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?KAKAO_CLIENT_SECRET 필요 (.env 확인)}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 필요 (.env 확인, 32자 이상)}
+      AUTH_COOKIE_SECURE: "true" # 인증 쿠키 https 전용 (auth.cookie.secure)
     # 호스트에 노출 X, nginx만 접근
     expose:
       - "8080"
@@ -38,9 +39,12 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       # certbot 시험 파일 폴더 (호스트 → 컨테이너, 읽기 전용)
       - /var/www/certbot:/var/www/certbot:ro
+      # 인증서 (live/ 안 파일이 archive/ 심볼릭 링크라 폴더 전체 연결)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       backend:
         condition: service_healthy

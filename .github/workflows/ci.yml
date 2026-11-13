@@ -88,5 +88,11 @@ jobs:
         run: docker build -t kkumi-nginx:ci frontend
 
       # 변수 proxy_pass라 backend 컨테이너 없이도 문법 검사 가능
+      # nginx -t는 인증서 파일 존재·형식·키 짝만 확인 → 일회용 자체 서명 인증서로 대체 (진짜 키는 CI에 안 둠)
       - name: nginx 설정 문법 검사
-        run: docker run --rm kkumi-nginx:ci nginx -t
+        run: |
+          mkdir -p le/live/kkumi.duckdns.org
+          openssl req -x509 -nodes -newkey rsa:2048 -days 1 -subj "/CN=ci" \
+            -keyout le/live/kkumi.duckdns.org/privkey.pem \
+            -out le/live/kkumi.duckdns.org/fullchain.pem
+          docker run --rm -v "$PWD/le:/etc/letsencrypt:ro" kkumi-nginx:ci nginx -t
