@@ -25,7 +25,10 @@
 .page-village .k-tree{width:50px;height:60px}
 .page-village .k-cloud{width:64px;height:24px}
 .page-village .k-slot{position:absolute;bottom:40px;width:80px;height:80px;box-sizing:border-box;border:3px dashed #FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#FFFFFF}
-.page-village .k-next{left:74%}
+/* 집터 위치: 모바일 3칸, 데스크톱 5칸 */
+.page-village .village-lot-0{left:10%}
+.page-village .village-lot-1{left:39%}
+.page-village .village-lot-2{left:68%}
 .page-village .k-grass{position:absolute;left:0;right:0;bottom:16px;height:24px;background:#6CC24A}
 .page-village .k-soil{position:absolute;left:0;right:0;bottom:0;height:16px;background:#7A4B3A}
 .page-village .k-wide{display:none}
@@ -92,7 +95,11 @@
 .page-village .k-tree{width:60px;height:72px}
 .page-village .k-cloud{width:80px;height:30px}
 .page-village .k-slot{width:96px;height:96px}
-.page-village .k-next{left:44%}
+.page-village .village-lot-0{left:7%}
+.page-village .village-lot-1{left:25%}
+.page-village .village-lot-2{left:44%}
+.page-village .village-lot-3{left:63%}
+.page-village .village-lot-4{left:82%}
 .page-village .k-wide{display:block}
 .page-village .k-wide.k-slot{display:flex}
 }
