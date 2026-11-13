@@ -13,7 +13,7 @@ import { useStockCandlesQuery } from '../hooks/useStockCandlesQuery'
 import { CandleChart } from '../components/CandleChart'
 import { toClockLabel, toMonthDayLabel, toSlotCount, toThreeAxisLabels } from '../utils/chart'
 import { OrderHeader } from '../components/OrderHeader'
-import { formatKRW, formatNumber } from '../utils/format'
+import { formatKRW, formatNumber, formatSignedKRW, formatAbsRate } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './OrderPage.css'
 
@@ -22,6 +22,7 @@ type OrderMode = 'buy' | 'sell'
 type OrderPanelProps = {
   stock: StockResponse,
   held: number,
+  avgPrice?: number,
   cash: number
 }
 
@@ -48,7 +49,7 @@ function toOrderErrorText(error: Error): string {
 
 // 종목별 시세·주문 패널 (종목 바뀌면 key로 리셋)
 // props : 종목, 보유수량, 현금
-function OrderPanel({ stock, held, cash }: OrderPanelProps) {
+function OrderPanel({ stock, held, avgPrice, cash }: OrderPanelProps) {
   // useState값은 브라우저 탭의 메모리(js가 쓰는 ram)에 저장됨, 서버는 전혀 모름
   // 컴포넌트가 화면에서 빠질 때 값이 사라짐
   // tanStack캐시도 탭 메모리 안에 저장되고, 새로고침이나 탭 닫기하면 사라지지만 페이지를 옮겨도 남아있음
@@ -69,7 +70,7 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
 
   const { price } = stock // 종목에서 현재가를 꺼내서 ( 5초마다 새 값이 props 로 들어옴)
 
-  if(price !== lastPrice){ // 현재가와 직전에 기억한 가격과 다르면 => 시세가 바뀌었으면
+  if (price !== lastPrice) { // 현재가와 직전에 기억한 가격과 다르면 => 시세가 바뀌었으면
     setLastPrice(price) // 새 가격을 기억하고
     setFlash(price > lastPrice ? 1 : -1) // 올랐으면 빨강, 내렸으면 파랑
   }
@@ -81,6 +82,12 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const maxBuy = Math.floor(cash / price) // 현금으로 살 수 있는 최대 수량
   const max = isBuy ? maxBuy : held // 지금 모드의 최대 수량, 매수면 maxBuy만큼 매도면 held(보유수량만큼)
   const q = Math.min(Math.max(1, qty), Math.max(1, max)) // 실제 주문 수량, 1이상 최대 이하
+
+  const hasAvg = avgPrice !== undefined             // 평단이 있는지 (avgPrice가 undefined가 아님)
+  const avgDiff = hasAvg ? Math.round(price - avgPrice) : 0         // 지금가 - 평단 (원 단위로 반올림)
+  const avgRate = hasAvg ? avgDiff / avgPrice : 0             // 평단 대비 비율 (0.05 = +5%)
+  const sellProfit = hasAvg ? avgDiff * q : 0         // 이대로 팔면 손익 = 차이 × 주문 수량
+
   const isSubmitting = buyMutation.isPending || sellMutation.isPending // 주문 요청 중인지~
   const canSubmit = max > 0 && !isSubmitting // 버튼 눌러도 되는지~ max가 0보다 크고 주문 요청 중이 아닌지~
 
@@ -100,8 +107,8 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const step = 300 / (chartSlots - 1)            // 1칸 = 1분
   const offset = chartSlots - chartValues.length // 1시간보다 적으면 오른쪽 정렬 (지금 가격은 항상 오른쪽 끝)
   const chartPoints = chartValues
-        .map((v, i) => `${((offset + i) * step).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`)
-        .join(' ')
+    .map((v, i) => `${((offset + i) * step).toFixed(1)},${(92 - ((v - lo) / span) * 84).toFixed(1)}`)
+    .join(' ')
   // 선 아래 옅은 채움: 선 끝점에서 바닥으로 내려 닫은 다각형
   const areaPoints = `${chartPoints} 300.0,100 ${(offset * step).toFixed(1)},100`
 
@@ -113,10 +120,10 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const axisLabels = isMinuteView
     ? toThreeAxisLabels(chartSlots, [...minuteHistory.map((h) => toClockLabel(h.time)), '지금'], (ago) => `${ago}분 전`)
     : toThreeAxisLabels(
-        candleSlots,
-        dayCandles.map((c, i) => (i === dayCandles.length - 1 ? '오늘' : toMonthDayLabel(c.date))),
-        (ago) => `${ago}일 전`,
-      )
+      candleSlots,
+      dayCandles.map((c, i) => (i === dayCandles.length - 1 ? '오늘' : toMonthDayLabel(c.date))),
+      (ago) => `${ago}일 전`,
+    )
 
   // 최고·최저: 보고 있는 탭 기준 (일봉은 고가·저가 + 지금 가격)
   const rangeHigh = isMinuteView ? hi : Math.max(price, ...dayCandles.map((c) => c.high))
@@ -147,10 +154,10 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
   const handleSubmit = () => {
     const request = { code: stock.code, quantity: q }
     const onError = (error: Error) => setMessage(toOrderErrorText(error))
-    if(isBuy){
+    if (isBuy) {
       // mutate : 쓰기 요청을 지금 보내라고 함
       // mutationFn(buyStock)에 request 값을 넣어서 실행하라고 한것
-      buyMutation.mutate(request, { onSuccess: () => setMessage(`${q}주 샀어! 부자가 될거야!`), onError})
+      buyMutation.mutate(request, { onSuccess: () => setMessage(`${q}주 샀어! 부자가 될거야!`), onError })
     }
     else {
       sellMutation.mutate(request, { onSuccess: () => setMessage(`${q}주 팔았어! 치킨 각`), onError })
@@ -232,7 +239,9 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
             <span key={i}>{label}</span>
           ))}
         </div>
-        {!isMinuteView && candles.length < 3 && <div className="k-chart-hint">일봉은 하루에 1개씩 쌓여요.</div>}
+        {candles.length < 3 && (
+          <div className={`k-chart-hint${isMinuteView ? ' k-chart-hint--off' : ''}`}>일봉은 하루에 1개씩 쌓여요.</div>
+        )}
         <div className="k-chart-range">
           <span>
             최고 <b className="k-chart-hi">{formatNumber(rangeHigh)}원</b>
@@ -293,6 +302,16 @@ function OrderPanel({ stock, held, cash }: OrderPanelProps) {
               {isBuy ? `${formatKRW(cash)} (최대 ${maxBuy}주)` : `${held}주`}
             </span>
           </div>
+          {hasAvg && (
+            <div className="k-sum-row">
+              <span className="k-sum-label">{isBuy ? `내 평단 ${formatKRW(avgPrice)}` : '이대로 팔면'}</span>
+              <span className={`k-sum-val ${avgDiff > 0 ? 'k-up' : avgDiff < 0 ? 'k-down' : ''}`}>
+                {isBuy
+                  ? avgDiff === 0 ? '평단이랑 같아요' : `평단보다 ${formatAbsRate(avgRate)} ${avgDiff > 0 ? '높아요' : '낮아요'}`
+                  : `${formatSignedKRW(sellProfit)} ${sellProfit >= 0 ? '이득' : '손해'}`}
+              </span>
+            </div>
+          )}
           <div className="k-sum-row">
             <span className="k-sum-label">주문 금액 (지금 시세)</span>
             <span className="k-sum-total">{formatKRW(price * q)}</span>
@@ -317,7 +336,9 @@ export function OrderPage() {
 
   const cash = member?.cash ?? 0 // 사용자 현금 가지고 있는 값
   const stock = stocks.find((s) => s.code === code) // 주식 종목 중 이 종목 하나
-  const held = holdings.find((h) => h.code === code)?.quantity ?? 0 // 그 종목의 보유수량
+  const holding = holdings.find((h) => h.code === code)
+  const held = holding?.quantity ?? 0 // 그 종목의 보유수량
+  const avgPrice = holding?.avgPrice
   // return (...) 안에 있는 html 처럼 생긴 것은 JSX : 화면을 이렇게 그려줘 하는 설계도
   // react가 이걸 보고 실제 브라우저 화면을 만듦
   // <소문자태그> ex) <main /> : HTML 태그 (이 페이지의 본문 영역을 뜻함)
@@ -337,7 +358,7 @@ export function OrderPage() {
         {isPending && <p className="k-note">불러오는 중...</p>}
         {isError && <p className="k-note">종목을 못 불러왔어요. 잠시 후 다시 시도해 주세요.</p>}
         {!isPending && !isError && !stock && <p className="k-note">그런 종목은 없어요.</p>}
-        {stock && <OrderPanel key={stock.code} stock={stock} held={held} cash={cash} />}
+        {stock && <OrderPanel key={stock.code} stock={stock} held={held} avgPrice={avgPrice} cash={cash} />}
       </main>
     </div>
   )
@@ -345,6 +366,6 @@ export function OrderPage() {
 
 // 컴포넌트 : 대문자로 시작하고, JSX를 return 하는 함수
 // 컴포넌트를 호출할 때 붙은 key는 react가 이 컴포넌트가 아까 컴포넌트랑 같은 놈인가를 판단하는 이름표
-// <OrderPanel key = {} 
+// <OrderPanel key = {}
 // 같은 값이면 state를 그대로 유지함, 다른 값이면 기존걸 다 버리고 새로 만들어서 state가 다 처음값으로 돌아감
 // rows.map 의 <Link key={s.code} 이것도 줄마다 이름표를 붙여서 목록이 바뀌어도 줄 구분을 react가 하게 해줌

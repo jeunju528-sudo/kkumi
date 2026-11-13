@@ -245,6 +245,10 @@
   color: #6B6F80;
   text-align: right;
 }
+/* 분봉에선 글자만 숨기고 자리는 유지 (탭 전환 시 높이 고정) */
+.page-order .k-chart-hint--off {
+  visibility: hidden;
+}
 .page-order .k-chart-range {
   display: flex;
   justify-content: space-between;
@@ -369,6 +373,13 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+/* 평단보다 비쌈·이득 = 빨강, 쌈·손해 = 파랑 */
+.page-order .k-sum-val.k-up {
+  color: #d32f36;
+}
+.page-order .k-sum-val.k-down {
+  color: #2563eb;
+}
 .page-order .k-sum-total {
   font-size: 24px;
   font-weight: 800;
@@ -406,6 +417,21 @@
 @media (min-width: 900px) {
   .page-order .k-price {
     font-size: 48px;
+  }
+  /* 시세 카드·주문 카드 높이 맞춤, 남는 높이는 차트가 채움 */
+  .page-order .k-cols {
+    align-items: stretch;
+  }
+  .page-order .k-cols > .k-card:first-child {
+    display: flex;
+    flex-direction: column;
+  }
+  .page-order .k-cols > .k-card:first-child .k-chart {
+    flex: 1 0 auto;
+  }
+  /* flex 안에서 가로로 늘어나지 않게, 금액 폭만 칠함 */
+  .page-order .k-cols > .k-card:first-child .k-price {
+    align-self: flex-start;
   }
 }
 @media (max-width: 899px) {

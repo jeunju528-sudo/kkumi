@@ -23,6 +23,11 @@ export function formatRate(rate: number): string {
   return `${rate > 0 ? '+' : ''}${pct}%`
 }
 
+// 부호 없는 비율: -0.0023 → "0.23%"
+export function formatAbsRate(rate: number): string {
+  return `${(Math.abs(rate) * 100).toFixed(2)}%`
+}
+
 // 소수 1자리 등락률: 0.0072 → "+0.7%"
 export function formatShortRate(rate: number): string {
   return `${rate > 0 ? '+' : ''}${(rate * 100).toFixed(1)}%`
