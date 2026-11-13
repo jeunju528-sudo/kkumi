@@ -300,7 +300,8 @@
   - "계약서 캡처해서 자랑하기": 계약서 종이 영역 → `html-to-image` PNG → `navigator.share` 공유 시트, 못 쓰면 미리보기(길게 눌러 저장, 내려받기). `hooks/useShareImage`
   - 내 마을 "친구한테 자랑하기" 버튼 삭제
   - 확인: 작업 환경에서 `eslint`, `npm run build`(tsc 포함) 통과
-  - 못 확인한 것: 아이폰 공유 시트·저장, 이미지 속 글꼴, PC 내려받기
+  - 확인 (11/13): 아이폰 공유 시트·저장, 글꼴 표시, PC 내려받기
+  - 공유 이미지 속도·콘솔 에러 수정 (2026-11-13, `fix/share-image-skip-fonts`): `skipFonts: true` (`troubleshooting.md`)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO

@@ -69,3 +69,12 @@
 - 배운 점
   - TIMED_OUT(응답 없음)은 방화벽·보안 그룹이 패킷을 버리는 경우, REFUSED(즉시 거절)는 서버에 도착했지만 그 포트를 듣는 프로세스가 없는 경우. 에러 종류로 네트워크 층과 애플리케이션 층을 먼저 가름
   - 포트를 새로 여는 배포는 체크리스트에 보안 그룹 변경을 포함. 확인은 `Test-NetConnection 호스트 -Port 443`
+
+## [2026-11-13] 계약서 공유 이미지 생성이 느리고 콘솔에 SecurityError 반복
+- 증상: "계약서 캡처해서 자랑하기" 클릭 후 공유 창까지 수 초. 클릭마다 콘솔에 `Failed to read the 'cssRules' property from 'CSSStyleSheet'` 에러 반복
+- 원인: html-to-image가 웹폰트를 넣으려고 `document.styleSheets`를 읽음. Google Fonts `<link>`에 `crossorigin`이 없어 브라우저가 다른 출처 CSS의 `cssRules` 접근 차단 → 라이브러리가 CSS를 직접 받아 안의 폰트 URL을 전부 base64로 변환(Noto Sans KR 굵기 4개 × 한글 조각 파일 다수) → 결과를 첫 스타일시트(Google 시트)에 넣다가 다시 SecurityError. 다 받고도 이미지에는 못 들어감. `toBlob` 2회 호출로 매번 두 번 반복
+- 해결: `toBlob` 옵션 `skipFonts: true`로 스타일시트 탐색 생략. 기존에도 웹폰트가 안 들어가던 상태라 결과 이미지 변화 없음(기기 기본 한글 폰트)
+- 배운 점
+  - 다른 출처 CSS는 `crossorigin` + CORS 헤더가 있어야 JS에서 규칙을 읽을 수 있음
+  - 에러 호출 경로(`getCSSRules` → `fetchCSS` → `embedFonts`)를 라이브러리 소스에서 따라가 원인 확정
+  - `crossorigin`을 붙이는 대안은 에러는 없애도 한글 폰트 조각을 실제로 전부 넣게 되어 더 느려서 제외
