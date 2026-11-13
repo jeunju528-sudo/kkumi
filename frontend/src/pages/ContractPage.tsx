@@ -6,6 +6,7 @@ import { Sprite } from '../components/Sprite'
 import { useAptDealQuery } from '../hooks/useAptDealQuery'
 import { useBuyHouseMutation } from '../hooks/useBuyHouseMutation'
 import { useMemberQuery } from '../hooks/useMemberQuery'
+import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
 import { formatDotDate, formatKRW, formatManwon, formatNumber } from '../utils/format'
 import { calculateMonthlyPayment } from '../utils/loan'
 import tier2 from '../assets/sprites/kkumi-tier2.svg'
@@ -45,19 +46,24 @@ export function ContractPage() {
   const dealId = Number(dealIdParam)
   const { data: deal, isPending, isError } = useAptDealQuery(dealId)
   const { data: member } = useMemberQuery()
+  const { data: myHouses } = useMyHousesQuery()
   const buyHouseMutation = useBuyHouseMutation()
   const [signed, setSigned] = useState<SignedContract | null>(null)
   const [message, setMessage] = useState('')
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   const cash = member?.cash ?? 0
-  const isSigned = signed !== null
+  const ownedHouse = myHouses?.houses.find((h) => h.dealId === dealId)
+  const isOwnedBefore = signed === null && ownedHouse !== undefined
+  const isSigned = signed !== null || ownedHouse !== undefined
   const ownAmount = deal?.ownAmount ?? 0
   const cashBefore = signed?.cashBefore ?? cash
   const cashAfter = cashBefore - ownAmount
   const tierUp = signed?.response.isTierUp ? TIER_UP_INFO[signed.response.tier] : undefined
-  const contractNo = signed ? `NO. KKUM-${String(signed.response.houseId).padStart(4, '0')}` : 'NO. KKUM-____'
-  const contractDate = formatDotDate(signed?.signedAt ?? new Date())
+
+  const houseId = signed?.response.houseId ?? ownedHouse?.houseId
+  const contractNo = houseId !== undefined ? `NO. KKUM-${String(houseId).padStart(4, '0')}` : 'NO. KKUM-____'
+  const contractDate = formatDotDate(signed?.signedAt ?? (ownedHouse ? new Date(ownedHouse.purchasedAt) : new Date()))
 
   const handleSign = () => {
     if (!deal) return
@@ -71,7 +77,7 @@ export function ContractPage() {
     )
   }
 
-  const canSign = deal?.affordability === 'OK' && !buyHouseMutation.isPending
+  const canSign = deal?.affordability === 'OK' && myHouses !== undefined && !buyHouseMutation.isPending
 
   const handleStampClick = () => setIsConfirmOpen(true)
   const handleConfirmNo = () => setIsConfirmOpen(false)
@@ -167,15 +173,16 @@ export function ContractPage() {
             </div>
 
             <div className="k-col">
-              <section className="k-card" aria-label="계약 요약">
-                <div className="contract-summary-title">계약 요약</div>
-                <div className="contract-summary-body">
-                  <div className="contract-summary-row"><span>계약 전 지갑</span><span className="contract-tnum">{formatKRW(cashBefore)}</span></div>
-                  <div className="contract-summary-row"><span>내 돈 40%</span><span className="contract-minus">- {formatKRW(ownAmount)}</span></div>
-                  <div className="contract-summary-row contract-summary-total"><span className="contract-bold">계약 후 지갑</span><span className="contract-total-num">{formatKRW(cashAfter)}</span></div>
-                </div>
-              </section>
-
+              {!isOwnedBefore && (
+                <section className="k-card" aria-label="계약 요약">
+                  <div className="contract-summary-title">계약 요약</div>
+                  <div className="contract-summary-body">
+                    <div className="contract-summary-row"><span>계약 전 지갑</span><span className="contract-tnum">{formatKRW(cashBefore)}</span></div>
+                    <div className="contract-summary-row"><span>내 돈 40%</span><span className="contract-minus">- {formatKRW(ownAmount)}</span></div>
+                    <div className="contract-summary-row contract-summary-total"><span className="contract-bold">계약 후 지갑</span><span className="contract-total-num">{formatKRW(cashAfter)}</span></div>
+                  </div>
+                </section>
+              )}
               {tierUp && (
                 <section className="contract-tierup" aria-label="변신">
                   <div className="contract-tierup-img"><img src={tierUp.image} alt="변신한 꿈이" /></div>

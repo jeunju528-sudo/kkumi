@@ -8,3 +8,8 @@ export function calculateMonthlyPayment(principal: number): number {
   const months = LOAN_YEARS * 12
   return Math.round((principal * monthlyRate) / (1 - (1 + monthlyRate) ** -months))
 }
+
+// 대출 = 집값 - 내 돈(집값 × 40%, 원 미만 올림). 서버 HousePriceRule과 같은 계산
+export function toLoanAmount(price: number): number {
+  return price - Math.ceil((price * 4) / 10)
+}

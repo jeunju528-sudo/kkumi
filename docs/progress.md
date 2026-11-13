@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-12
+## 기준일: 2026-11-13
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -275,9 +275,14 @@
   - 프론트(045 예외, 개발자 요청으로 에이전트 작성): `stockApi.getStockPrices`·`getStockCandles`, `useStockPricesQuery`·`useStockCandlesQuery`(1분마다), `queryKeys.stockPrices`·`stockCandles`, `components/CandleChart`(심지 + 몸통, 오늘 캔들에 실시간 가격), `OrderPage` 탭 "분봉 | 일봉", 칸 수는 데이터에 맞춤(분봉 최소 1시간·일봉 최소 7일 폭, 넘으면 꽉 채움, `utils/chart.toSlotCount`), 선 아래 옅은 채움, 축 3칸은 실제 시각·날짜(`toThreeAxisLabels`), 탭 기준 최고·최저가, 일봉 3개 미만이면 "일봉은 하루에 1개씩 쌓여요". 화면 진입 후 기록 state(`hist`)는 삭제
   - 운영: 배포 후 RDS에 `stock_price_history`·`stock_daily_candle` 테이블 생성(`ddl-auto: update`) 확인. 분봉은 24시간, 일봉은 30일 뒤에 꽉 참
 
+- 내 마을 화면 연결 (2026-11-13, `feat/village-connect`)
+  - 모양: `utils/tier.ts` `TierInfo.nextGoal`(걸뱅이 1·서민 2·졸부 5·갑부 null), `utils/loan.toLoanAmount`(집값 − 집값 × 40% 원 미만 올림, 서버 `HousePriceRule`과 같은 계산, 응답에 대출액 없음), `VillagePage.css` 집터 `village-lot-0~4`(모바일 3칸, 데스크톱 5칸)
+  - `VillagePage`: 목업 삭제 → `useMyHousesQuery`(집 목록·집 수·변신 단계), `usePortfolioQuery`(시드 대비 순자산). 마을 그림은 산 집 수만큼 집 → 다음 칸 NEXT → 나머지 빈 칸, 집 그림은 순서대로 돌려 씀(응답에 그림 정보 없음). 단계 카드는 `TIER_INFO`, 갑부면 진행바 가득. 도감에 층 추가, 하단 "샘플" 문구 삭제. 내 마을 조회 전·실패 시 도감 자리에 안내 문구
+  - `ContractPage`: 이미 산 집의 계약서(내 마을 링크, 새로고침)가 안 산 집처럼 보이던 문제. 내 집 목록에서 같은 dealId를 찾아 계약 완료 상태로 표시(NO 번호 = houseId, 계약일 = purchasedAt, 도장), 계약 요약 카드는 숨김(현재 현금 기준 값이라 틀림). 내 집 목록 조회 전에는 도장 칸 잠금
+  - 로컬 확인 (11/13): 도감 실제 집·층·대출, 마을 그림·단계 카드, 시드 결과, 이미 산 집 계약서 번호·도장·계약일. `tsc -b`, ESLint 통과
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- 프론트 데이터 연결: 계약서·내 마을은 목업 상수
 - JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
 - `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
 
@@ -325,6 +330,7 @@
 10. 11/10 → 11/12 아파트 화면 연결(추천 API, 11/11 완료) + 집 사기(계약서, 11/12 완료) → 내 마을 화면 연결
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
 12. 11/12 통합 테스트·버그 수정, 11/13 도메인·HTTPS + 버퍼 (자연어 검색은 런칭 후)
+  - 11/13 결정: 도메인 구매 안 함(단기 운영). 시간이 남으면 DuckDNS(무료) + Let's Encrypt로 HTTPS, 안 남으면 런칭 후. 런칭 순서는 내 마을 연결 → 점검 4개 → HTTPS
   - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
     1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
     2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일
