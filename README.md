@@ -7,7 +7,13 @@
 
 ## 스크린샷
 
-<!-- 캡처 이미지 추가 예정 (docs/images/) -->
+| 홈 | 종목 상세 (분봉) |
+| --- | --- |
+| <img src="docs/images/01-home.png" alt="홈" width="420"> | <img src="docs/images/02-stock-detail.png" alt="종목 상세 분봉" width="420"> |
+| 집 찾기 (추천) | 계약서 |
+| <img src="docs/images/03-apartments.png" alt="집 찾기 추천" width="420"> | <img src="docs/images/04-contract.png" alt="계약서" width="420"> |
+| 내 거래 (실현손익) | 내 마을 |
+| <img src="docs/images/05-trade-history.png" alt="내 거래 실현손익" width="420"> | <img src="docs/images/06-village.png" alt="내 마을" width="420"> |
 
 ## 게임 규칙
 
@@ -105,16 +111,14 @@ flowchart LR
 - 경계값 필수: 변신 단계 0·1·2·4·5채, 추천 조건 평가액 = 집값 × 40%, 1원 부족
 
 ### AI 협업 방식
-AI 코딩 에이전트와 같이 만들되, 면접에서 모든 코드를 직접 설명할 수 있는 것을 기준으로 분담 ([045](docs/decisions/045-work-split-react-focus.md))
+설계·결정·핵심 로직·검증은 직접, 반복 작업은 AI에게 맡김
 
-| 영역 | 방식 |
+| 직접 | AI |
 | --- | --- |
-| 매수·매도 잔액·보유량 계산 | 직접 작성 (AI는 방향 제시·교정만) |
-| 처음 나오는 개념 (WebSocket STOMP, 실거래가 배치, 프론트 데이터 연결) | AI가 대화창에 소스 제시 → 직접 입력 → AI 검토 |
-| 반복 로직 (평가액 계산, 추천·집 사기 API, 화면 레이아웃) | AI 작성 → 직접 리뷰 |
-
-- AI가 구현과 테스트를 모두 쓴 돈 계산은 테스트 1개 이상을 손으로 검산
-- 결정은 ADR, 실패한 시도는 `docs/failures/`, 규칙은 `CLAUDE.md`·`docs/conventions/`에 남겨 AI와 사람이 같은 기준으로 작업
+| 기획·도메인 규칙, 기술 결정(ADR) | 시안 → 화면 레이아웃 |
+| 매수·매도 등 핵심 로직 구현 | 반복 로직(DTO, 단순 API)과 테스트 |
+| AI 코드 리뷰, 돈 계산 손 검산 | 문서 초안 |
+| 배포·운영, 장애 대응 | 코드 리뷰 |
 
 ## 로컬 실행
 
