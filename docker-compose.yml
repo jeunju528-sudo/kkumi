@@ -38,6 +38,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      # certbot 시험 파일 폴더 (호스트 → 컨테이너, 읽기 전용)
+      - /var/www/certbot:/var/www/certbot:ro
     depends_on:
       backend:
         condition: service_healthy
