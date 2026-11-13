@@ -90,3 +90,9 @@
 .page-contract .contract-confirm-no{background:#FFFFFF;color:#231B3A}
 .page-contract .contract-confirm-yes{background:#D32F36;color:#FFFFFF}
 @media (prefers-reduced-motion:reduce){.page-contract .contract-stamp-btn{animation:none}}
+
+/* 계약서 공유 이미지 미리보기 */
+.page-contract .contract-share-box{max-width:420px;padding:16px}
+.page-contract .contract-share-img{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain;border:2px solid #0F0B1F}
+.page-contract .contract-share-download{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.page-contract .contract-btn-share:disabled{opacity:.6;cursor:default}

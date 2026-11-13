@@ -185,8 +185,6 @@ export function VillagePage() {
                 <div className="village-total-lab">불러오는 중...</div>
               )}
             </section>
-
-            <button type="button" className="village-share">친구한테 자랑하기</button>
           </div>
 
           <div className="k-col">

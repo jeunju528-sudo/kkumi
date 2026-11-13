@@ -63,7 +63,6 @@
 .page-village .village-progress-stripe{position:absolute;left:0;top:0;right:0;bottom:0}
 .page-village .village-progress-text{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .page-village .village-tiers-link{display:inline-flex;align-items:center;min-height:44px;font-size:13px;font-weight:800;color:#231B3A;text-decoration:underline}
-.page-village .village-share{min-height:56px;background:#FFC93C;color:#231B3A;border:3px solid #0F0B1F;box-shadow:0 4px 0 #0F0B1F;border-radius:0;font-size:16px;font-weight:800}
 
 /* 도감 */
 .page-village .village-dex-head{display:flex;align-items:baseline;justify-content:space-between}
