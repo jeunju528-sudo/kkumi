@@ -7,7 +7,13 @@
 
 ## 스크린샷
 
-<!-- 캡처 이미지 추가 예정 (docs/images/) -->
+| 홈 | 종목 상세 (분봉) |
+| --- | --- |
+| <img src="docs/images/01-home.png" alt="홈" width="420"> | <img src="docs/images/02-stock-detail.png" alt="종목 상세 분봉" width="420"> |
+| 집 찾기 (추천) | 계약서 |
+| <img src="docs/images/03-apartments.png" alt="집 찾기 추천" width="420"> | <img src="docs/images/04-contract.png" alt="계약서" width="420"> |
+| 내 거래 (실현손익) | 내 마을 |
+| <img src="docs/images/05-trade-history.png" alt="내 거래 실현손익" width="420"> | <img src="docs/images/06-village.png" alt="내 마을" width="420"> |
 
 ## 게임 규칙
 
