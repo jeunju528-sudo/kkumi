@@ -294,6 +294,8 @@
   - 운영: 갱신 deploy 훅 `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh`(`nginx -s reload`), 카카오 Redirect URI·사이트 도메인에 https 주소 추가
   - 실서버 확인 (11/13, #74): https 접속·카카오 로그인, `accessToken` Secure, wss 101·평가액 갱신, `http://IP` → 301 `https://kkumi.duckdns.org`, `Server: nginx`(버전 없음), deploy 훅 수동 실행. 첫 접속 타임아웃은 보안 그룹 443 누락(`troubleshooting.md`)
 
+- README (2026-11-13, #76 → `docs/readme-screenshots`): 게임 규칙, 기술 스택, 아키텍처(Mermaid), 핵심 설계·트레이드오프(ADR 링크), 트러블슈팅, 개발·AI 협업 방식, 로컬 실행. 스크린샷 6장 `docs/images/`(홈, 종목 상세 분봉, 집 찾기, 계약서, 내 거래 실현손익, 내 마을)
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
 
