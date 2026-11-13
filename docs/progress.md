@@ -292,7 +292,7 @@
   - #73: nginx 80에 `/.well-known/acme-challenge/` + compose `/var/www/certbot` 볼륨. EC2 호스트 certbot(snap) webroot 발급, 만료 2027-02-11, `certbot renew --dry-run` 통과
   - `feat/https`: nginx 80은 시험 파일 + 나머지 `https://kkumi.duckdns.org`로 301, 443(TLS 1.2·1.3, http2)에 기존 location 이동, `/ws`에 `X-Forwarded-Proto` 추가, `server_tokens off`, compose 443 포트·`/etc/letsencrypt` 읽기 전용, `AUTH_COOKIE_SECURE=true`, CI `nginx -t`는 일회용 자체 서명 인증서
   - 운영: 갱신 deploy 훅 `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh`(`nginx -s reload`), 카카오 Redirect URI·사이트 도메인에 https 주소 추가
-  - 못 확인한 것: 배포 후 https 접속·카카오 로그인·wss 연결·쿠키 Secure, 80 → 443 리다이렉트, deploy 훅 수동 실행
+  - 실서버 확인 (11/13, #74): https 접속·카카오 로그인, `accessToken` Secure, wss 101·평가액 갱신, `http://IP` → 301 `https://kkumi.duckdns.org`, `Server: nginx`(버전 없음), deploy 훅 수동 실행. 첫 접속 타임아웃은 보안 그룹 443 누락(`troubleshooting.md`)
 
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
