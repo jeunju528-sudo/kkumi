@@ -54,9 +54,6 @@ external:
   molit:
     base-url: http://localhost
     service-key: test
-  kis:
-    app-key: test
-    app-secret: test
 
 apt-deal-batch:
   enabled: false

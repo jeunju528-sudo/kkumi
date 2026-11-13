@@ -281,10 +281,14 @@
   - `ContractPage`: 이미 산 집의 계약서(내 마을 링크, 새로고침)가 안 산 집처럼 보이던 문제. 내 집 목록에서 같은 dealId를 찾아 계약 완료 상태로 표시(NO 번호 = houseId, 계약일 = purchasedAt, 도장), 계약 요약 카드는 숨김(현재 현금 기준 값이라 틀림). 내 집 목록 조회 전에는 도장 칸 잠금
   - 로컬 확인 (11/13): 도감 실제 집·층·대출, 마을 그림·단계 카드, 시드 결과, 이미 산 집 계약서 번호·도장·계약일. `tsc -b`, ESLint 통과
 
+- 런칭 전 점검 4개 (2026-11-13, `fix/prelaunch-checks`)
+  - `GlobalExceptionHandler`: JSON 형식 오류(`HttpMessageNotReadableException`), `@RequestParam` 검증 실패(`HandlerMethodValidationException`), 파라미터 타입 오류(`MethodArgumentTypeMismatchException`, 예: `period=FOO`)도 `INVALID_REQUEST`(400) + `{code, message}`. 응답 생성은 `invalidRequest()`로 모음
+  - 401 응답의 `JSESSIONID`: 원인은 RequestCache(막힌 요청을 세션에 저장). `SecurityConfig`에 `NullRequestCache`, 세션 자체는 카카오 로그인 state 보관용으로 유지 (`troubleshooting.md`)
+  - KIS 설정 삭제: `application.yaml`(main·test), `docker-compose.yml`, `.env.example` (`decisions/020`)
+  - 로컬 확인 (11/13): 쿠키 없는 `/api/members/me` 401에 `Set-Cookie` 없음, 로그인 상태 브라우저 콘솔에서 수량 문자열 매수·`page=-1`·`period=FOO` 모두 400 `{code: INVALID_REQUEST, message}`
+
 ### 아직 안 한 것
 - 회원·매매 외 도메인의 Service·Controller·DTO
-- JSON 형식 오류(`HttpMessageNotReadableException`, 예: 수량에 문자열)는 Spring 기본 바디 그대로. 화면은 숫자 스테퍼라 발생 경로 없음, 런칭 전 점검 → 11/12 처리
-- `@RequestParam` 검증 실패(`HandlerMethodValidationException`, 예: `page=-1`)도 Spring 기본 바디. 화면은 음수 page를 보내지 않음, 런칭 전 같이 점검 → 11/12 처리
 
 ### 런칭 후 과제 (우선순위)
 기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능 순서는 9월 확정 순서(필터 JSON → 골든셋 → ES) 유지
@@ -307,12 +311,12 @@
 - 주식 시세: KIS와 공공데이터 주식시세정보 모두 서비스 사용 불가 확인(2026-10-06) → 서버가 만드는 가상 시세로 결정 (`decisions/020`, `failures/001`, `failures/002`)
   - 변동 방식은 `decisions/029`로 확정, 초기값도 029에 기록(2026-10-07). 구현 후 플레이 테스트로 조정
   - 현재가 저장·복구(`decisions/040`), 종목 유형 배치·시작가·호가 단위·`market` 삭제(`decisions/041`) 확정 (2026-10-27)
-  - 정리 필요: `application.yaml`, `docker-compose.yml`의 KIS 키 설정 (별도 PR) → 11/12 처리
+  - KIS 키 설정 삭제 완료 (2026-11-13, `fix/prelaunch-checks`)
 - 국토부 실거래가 API: 활용신청 완료 (키는 `.env`의 `MOLIT_SERVICE_KEY`). 이용허락범위 제한 없음 확인 (2026-10-06)
 - AWS: EC2·RDS 운영 중. 후속 과제로 런칭 후 SSM 전환 검토 (22번 포트 닫기, `decisions/027`) → 런칭 후 과제 7
 - 무중단 배포(blue-green): 지금은 EC2 1대·backend 컨테이너 1개라 배포 때 Spring 기동 시간(수십 초) 동안 `/api` 중단. 런칭 후 과제로 검토. 메모리 시세(`decisions/029`, `040`)가 서버마다 따로 생기지 않도록 시세 생성을 한 곳으로 모으는 설계가 먼저 필요 (2026-10-27) → 런칭 후 과제 8
 - 자연어 아파트 검색: 런칭 후로 확정 (2026-11-12, 게이트 미통과, 런칭 후 과제 1)
-- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 로컬에서 발견). 원인 기록 없음, 런칭 전 확인 → 11/12 처리
+- 쿠키 없는 401 응답에 `JSESSIONID` 쿠키 발급 (2026-10-27 발견) → 원인 RequestCache, 2026-11-13 해결 (`troubleshooting.md`)
 - 운영 메모
   - EC2를 꺼 둔 동안 main에 merge하면 `deploy` 잡이 "서버 믿는다고 등록"(`ssh-keyscan`)에서 실패. EC2를 켠 뒤 마지막 deploy 실행의 실패한 잡만 다시 실행 (10/8~10/27 배포 공백 사례)
   - 실서버 접속은 `http://`를 붙여서. HTTPS 전환 전에는 Chrome이 https(443)로 먼저 시도해 타임아웃
@@ -331,7 +335,7 @@
 11. 11/11 변신 단계 화면 → 게이트 체크 + 플레이 테스트 (`decisions/029`, `050`): 시드 500만·5,000만 각각 30분 이상 플레이. 확인할 것: 5분 안에 캡처할 순간이 나오는지, 첫 집까지 필요한 배수(실거래가 배치 후 최저가 분포), 오른 종목 따라 사기 손실, 종목 성격을 가격 흐름만 보고 파악할 수 있는지. 필요하면 `virtual-price.*` 값 조정 → 029에 결과 기록
 12. 11/12 통합 테스트·버그 수정, 11/13 도메인·HTTPS + 버퍼 (자연어 검색은 런칭 후)
   - 11/13 결정: 도메인 구매 안 함(단기 운영). 시간이 남으면 DuckDNS(무료) + Let's Encrypt로 HTTPS, 안 남으면 런칭 후. 런칭 순서는 내 마을 연결 → 점검 4개 → HTTPS
-  - 11/12 런칭 전 점검 4개 (작은 PR로 묶음)
+  - 런칭 전 점검 4개 (작은 PR로 묶음, 11/12 예정 → 11/13 완료 `fix/prelaunch-checks`)
     1. JSON 형식 오류(`HttpMessageNotReadableException`) 응답을 `{code, message}`로 통일
     2. `@RequestParam` 검증 실패(`HandlerMethodValidationException`, `page=-1`) 응답 통일
     3. 쿠키 없는 401에 `JSESSIONID` 쿠키가 발급되는 원인 확인 (2026-10-27 발견)

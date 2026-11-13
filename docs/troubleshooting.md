@@ -55,3 +55,9 @@
 - 원인: `eslint.config.js`의 utils·components 규칙이 REST 호출 레이어(`src/api`)를 막으려고 `'**/api'` 패턴을 씀. 이 패턴은 폴더 이름이 아니라 import 경로의 끝을 보므로 `../types/api`도 `/api`로 끝나 함께 막힘. 지금까지 utils·components에서 타입을 import한 파일이 없어 드러나지 않았음
 - 해결: 두 규칙의 `group`에 예외 `'!**/types/api'` 추가. 확인: 전체 `eslint .` 통과, utils·components에서 `../api/houseApi` import는 여전히 오류, components의 `../types/api` import는 허용
 - 배운 점: no-restricted-imports의 glob 패턴은 레이어 이름이 아니라 경로 문자열에 매칭됨. 막는 규칙을 만들면 "막혀야 할 것"과 "허용돼야 할 것" 둘 다 import해 보고 확인할 것
+
+## [2026-11-13] 로그인 안 한 요청의 401 응답에 `JSESSIONID` 쿠키가 발급됨
+- 증상: `curl.exe -i http://localhost:8080/api/members/me`(쿠키 없음) → 401과 함께 `Set-Cookie: JSESSIONID=...`. 인증은 JWT 쿠키(`accessToken`)라 세션을 쓸 일이 없는데 세션이 만들어짐 (2026-10-27 처음 발견)
+- 원인: Spring Security의 RequestCache. 인증이 필요한 요청이 막히면 "로그인 후 원래 주소로 보내주기" 위해 요청을 세션에 저장(`HttpSessionRequestCache`, 기본값)하고, 세션이 없으면 새로 만듦. 우리는 로그인 성공 후 항상 `/home`·`/seed`로 보내서(`LoginSuccessHandler`) 저장한 요청을 쓰지 않음
+- 해결: `SecurityConfig`에 `.requestCache(c -> c.requestCache(new NullRequestCache()))`. 같은 curl로 401은 그대로, `Set-Cookie` 줄 사라짐 확인. 세션 정책을 `STATELESS`로 끄지 않은 이유는 카카오 로그인 중 state 값을 세션에 잠깐 보관하기 때문(돌아올 때 같은 값인지 비교해 위조 응답 차단)
+- 배운 점: JWT로 인증해도 Spring Security 기본 기능 중 세션을 쓰는 것이 남아 있을 수 있음. 세션을 통째로 끄기보다 필요한 세션(OAuth2 state)과 불필요한 세션(RequestCache)을 구분해서 끌 것. 로그인 안 한 요청마다 빈 세션이 서버 메모리에 쌓이므로(기본 30분 유지) 작은 서버일수록 의미 있음
