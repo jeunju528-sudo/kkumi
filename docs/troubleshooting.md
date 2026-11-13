@@ -61,3 +61,11 @@
 - 원인: Spring Security의 RequestCache. 인증이 필요한 요청이 막히면 "로그인 후 원래 주소로 보내주기" 위해 요청을 세션에 저장(`HttpSessionRequestCache`, 기본값)하고, 세션이 없으면 새로 만듦. 우리는 로그인 성공 후 항상 `/home`·`/seed`로 보내서(`LoginSuccessHandler`) 저장한 요청을 쓰지 않음
 - 해결: `SecurityConfig`에 `.requestCache(c -> c.requestCache(new NullRequestCache()))`. 같은 curl로 401은 그대로, `Set-Cookie` 줄 사라짐 확인. 세션 정책을 `STATELESS`로 끄지 않은 이유는 카카오 로그인 중 state 값을 세션에 잠깐 보관하기 때문(돌아올 때 같은 값인지 비교해 위조 응답 차단)
 - 배운 점: JWT로 인증해도 Spring Security 기본 기능 중 세션을 쓰는 것이 남아 있을 수 있음. 세션을 통째로 끄기보다 필요한 세션(OAuth2 state)과 불필요한 세션(RequestCache)을 구분해서 끌 것. 로그인 안 한 요청마다 빈 세션이 서버 메모리에 쌓이므로(기본 30분 유지) 작은 서버일수록 의미 있음
+
+## [2026-11-13] HTTPS 배포 후 https 접속 타임아웃
+- 증상: #74 배포 후 `https://kkumi.duckdns.org`가 `ERR_CONNECTION_TIMED_OUT`. `http://IP`는 https 도메인으로 301까지 정상
+- 원인: EC2 보안 그룹 인바운드에 443이 없어서, 443 패킷을 AWS가 응답 없이 버림. 80 → 301이 동작해서 새 nginx 설정 배포는 확인된 상태였음
+- 해결: 보안 그룹 인바운드에 HTTPS(443, 0.0.0.0/0) 추가. 재시작 없이 바로 적용
+- 배운 점
+  - TIMED_OUT(응답 없음)은 방화벽·보안 그룹이 패킷을 버리는 경우, REFUSED(즉시 거절)는 서버에 도착했지만 그 포트를 듣는 프로세스가 없는 경우. 에러 종류로 네트워크 층과 애플리케이션 층을 먼저 가름
+  - 포트를 새로 여는 배포는 체크리스트에 보안 그룹 변경을 포함. 확인은 `Test-NetConnection 호스트 -Port 443`
