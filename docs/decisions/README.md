@@ -63,8 +63,9 @@
 | 054 | [순자산: 평가액 + 내 집 지분(구매가 40%), 홈 카드는 오늘 증감과 자산 구성](054-net-worth-house-equity.md) | 확정 |
 | 055 | [홈 목표 아파트: 아직 못 사는 집 중 가장 싼 집](055-home-goal-apartment.md) | 확정 |
 | 056 | [종목 상세 차트: 분봉(1분 기록 24시간 보관) + 일봉(OHLC 영구 보관)](056-stock-price-history-chart.md) | 확정 |
+| 057 | [HTTPS: EC2 호스트 certbot(webroot) + nginx에서 TLS 종료](057-https-certbot-nginx.md) | 확정 |
 
-다음 번호: 057
+다음 번호: 058
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
