@@ -1,12 +1,10 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
-import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
-import { useMemberQuery } from '../hooks/useMemberQuery'
 import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import type { SpriteId } from '../components/PixelDefs'
-import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { formatKRW, formatManwon } from '../utils/format'
 import { toLoanAmount } from '../utils/loan'
 import { toSeedMultiple } from '../utils/portfolio'
 import { TIER_INFO } from '../utils/tier'
@@ -41,9 +39,6 @@ const ORDINALS = ['첫', '두', '세', '네', '다섯', '여섯']
 const roofStyle = (roof: string): CSSProperties => ({ '--roof': roof }) as CSSProperties
 
 export function VillagePage() {
-  const dayCloseLeft = useMidnightCountdown()
-  // HUD는 다른 화면과 같은 현금 (마을 총 가치는 아래 카드)
-  const { data: member } = useMemberQuery()
   // 캐시에 값 있으면 바로 표시, 뒤에서 재조회 (staleTime 0)
   const { data: myHouses, isError: isHousesError } = useMyHousesQuery()
   // 순자산은 WebSocket이 5초마다 캐시 갱신
@@ -59,19 +54,6 @@ export function VillagePage() {
   const progressText = tierInfo.nextGoal === null ? `${houseCount}채` : `${houseCount}/${tierInfo.nextGoal}채`
   const nextOrdinal = ORDINALS[houseCount] ?? `${houseCount + 1}`
   const seedMultiple = portfolio ? toSeedMultiple(portfolio.netWorth, portfolio.initialCash) : null
-
-  const hudChips = (
-    <>
-      <div className="k-chip">
-        <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
-        <div><div className="k-lab">CASH</div><div className="k-num" style={{ color: '#FFC93C' }}>{formatNumber(member?.cash ?? 0)}</div></div>
-      </div>
-      <div className="k-chip">
-        <Sprite id="px-clock" viewBox="0 0 8 8" width={16} height={16} />
-        <div><div className="village-clock-lab">오늘 마감까지</div><div className="k-num" style={{ color: '#FFFFFF' }}>{dayCloseLeft}</div></div>
-      </div>
-    </>
-  )
 
   // 집터: 산 집 → 집 그림, 바로 다음 칸 → NEXT, 나머지 → 빈 칸
   const lots = Array.from({ length: LOT_COUNT }, (_, i) => {
@@ -107,18 +89,6 @@ export function VillagePage() {
 
   return (
     <div className="page-village k-page">
-      <header className="k-top k-top--hero">
-        <Link to="/home" className="k-logo"><span className="k-mark">꿈</span><span>꿈이</span></Link>
-        <nav className="k-links" aria-label="메인 메뉴">
-          <Link to="/home" className="k-link"><svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM1 4h2v4h-2zM5 4h2v4h-2zM3 4h2v1h-2z" /></svg><span>홈</span></Link>
-          <Link to="/trade" className="k-link"><svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 5h2v3h-2zM3 3h2v5h-2zM6 1h2v7h-2z" /></svg><span>투자</span></Link>
-          <Link to="/apartments" className="k-link"><svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v3h-1zM6 2h1v3h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM7 7h1v1h-1z" /></svg><span>집 찾기</span></Link>
-          <Link to="/village" className="k-link k-on" aria-current="page"><svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 0h2v1h-2zM0 1h4v1h-4zM0 2h4v6h-4zM5 3h2v1h-2zM4 4h4v4h-4z" /></svg><span>내 마을</span></Link>
-        </nav>
-        <div className="k-grow" />
-        {hudChips}
-      </header>
-
       <div className="k-scene">
         <Sprite id="px-cloud" viewBox="0 0 16 6" width={64} height={24} className="sp k-cloud" style={{ left: '8%', top: 130 }} />
         <Sprite id="px-cloud" viewBox="0 0 16 6" width={64} height={24} className="sp k-cloud" style={{ left: '66%', top: 112, opacity: 0.9 }} />
@@ -136,7 +106,6 @@ export function VillagePage() {
           <h1 className="village-title">내 마을</h1>
         </div>
 
-        <div className="k-hero-hud village-hero-hud">{hudChips}</div>
       </div>
 
       <main className="k-wrap village-main">

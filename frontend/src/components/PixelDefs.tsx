@@ -34,6 +34,9 @@ const DEFS = `<symbol id="px-coin" viewBox="0 0 8 8">
 </symbol><symbol id="px-clock" viewBox="0 0 8 8">
 <path d="M2 0h4v1h-4zM1 1h1v1h-1zM6 1h1v1h-1zM0 2h1v4h-1zM7 2h1v4h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h4v1h-4z" style="fill: #B9BCD0"></path>
 <path d="M3 2h1v3h-1zM3 4h2v1h-2z" style="fill: #FFFFFF"></path>
+</symbol><symbol id="px-bell" viewBox="0 0 8 8">
+<path d="M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v3h-6zM0 5h8v1h-8zM3 7h2v1h-2z" style="fill: #FFC93C"></path>
+<path d="M2 2h1v2h-1z" style="fill: #FFE7A0"></path>
 </symbol><symbol id="px-house" viewBox="0 0 22 18">
 <path d="M15 0h3v3h-3z" style="fill: #2B2038"></path>
 <path d="M16 1h1v2h-1z" style="fill: #B5533C"></path>
@@ -118,5 +121,5 @@ export function PixelDefs() {
 }
 
 export type SpriteId =
-  | 'px-apt-low' | 'px-apt-mid' | 'px-tree' | 'px-cloud' | 'px-coin' | 'px-clock'
+  | 'px-apt-low' | 'px-apt-mid' | 'px-tree' | 'px-cloud' | 'px-coin' | 'px-clock' | 'px-bell'
   | 'px-house' | 'px-mansion' | 'px-hanok' | 'px-villa' | 'px-tower';

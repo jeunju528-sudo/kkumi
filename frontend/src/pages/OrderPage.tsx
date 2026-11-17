@@ -12,7 +12,6 @@ import { useStockPricesQuery } from '../hooks/useStockPricesQuery'
 import { useStockCandlesQuery } from '../hooks/useStockCandlesQuery'
 import { CandleChart } from '../components/CandleChart'
 import { toClockLabel, toMonthDayLabel, toSlotCount, toThreeAxisLabels } from '../utils/chart'
-import { OrderHeader } from '../components/OrderHeader'
 import { formatKRW, formatNumber, formatSignedKRW, formatAbsRate } from '../utils/format'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import './OrderPage.css'
@@ -342,7 +341,6 @@ export function OrderPage() {
   // return (...) 안에 있는 html 처럼 생긴 것은 JSX : 화면을 이렇게 그려줘 하는 설계도
   // react가 이걸 보고 실제 브라우저 화면을 만듦
   // <소문자태그> ex) <main /> : HTML 태그 (이 페이지의 본문 영역을 뜻함)
-  // <대문자 태그> ex) <OrderHeader /> : 직접 만든 컴포넌트, 이 함수를 불러서 걔가 돌려준 화면을 넣어라
   // cash={cash} props로 cash 값 넣음
   // { ... } 중괄호 : JSX 안에 JS값 끼워 넣을 때 사용
   // {조건 && <p />} : 조건이 참일 때만 화면을 그려라
@@ -350,7 +348,6 @@ export function OrderPage() {
   // 컴포넌트 하나당 JSX 덩어리 하나만 return 해야된다.
   return (
     <div className="page-order">
-      <OrderHeader cash={cash} />
       <main className="k-wrap">
         <Link to="/trade" className="k-back">
           &lt; 종목 목록

@@ -66,8 +66,9 @@
 | 057 | [HTTPS: EC2 호스트 certbot(webroot) + nginx에서 TLS 종료](057-https-certbot-nginx.md) | 확정 |
 | 058 | [계약서 공유 이미지: html-to-image + Web Share API, 실패 시 미리보기](058-contract-share-image.md) | 확정 |
 | 059 | [Kafka 범위 변경: 시세 스트림 기반 보유 종목 하락 알림](059-kafka-price-drop-alert.md) | 확정 |
+| 060 | [공통 헤더: 레이아웃 라우트(AppLayout)로 한 번만 렌더](060-app-layout-route.md) | 확정 |
 
-다음 번호: 060
+다음 번호: 061
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.

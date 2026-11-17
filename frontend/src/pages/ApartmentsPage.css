@@ -1,5 +1,5 @@
 .page-apartments {
-  min-height: 100vh;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   background: #f7f8fc;
@@ -9,95 +9,11 @@
 .page-apartments input {
   font-family: inherit;
 }
-.page-apartments .k-top {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 64px;
-  box-sizing: border-box;
-  padding: 0 24px;
-  background: #231b3a;
-  border-bottom: 3px solid #0f0b1f;
-}
-.page-apartments .k-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #ffc93c;
-  font-size: 22px;
-  font-weight: 800;
-}
-.page-apartments .k-mark {
-  width: 32px;
-  height: 32px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffc93c;
-  color: #231b3a;
-  border: 2px solid #0f0b1f;
-  box-shadow: 0 2px 0 #0f0b1f;
-  font-size: 16px;
-  font-weight: 800;
-}
-.page-apartments .k-links {
-  display: flex;
-  gap: 4px;
-  margin-left: 12px;
-}
-.page-apartments .k-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 14px;
-  box-sizing: border-box;
-  border: 2px solid transparent;
-  color: #d7d9e8;
-  font-size: 15px;
-  font-weight: 700;
-}
-.page-apartments .k-link svg {
-  fill: currentColor;
-  shape-rendering: crispEdges;
-}
-.page-apartments .k-on {
-  color: #ffc93c;
-  border-color: #ffc93c;
-}
-.page-apartments .k-grow {
-  flex-grow: 1;
-}
-.page-apartments .k-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 10px;
-  background: #231b3a;
-  border: 2px solid #0f0b1f;
-  box-shadow: 0 3px 0 #0f0b1f;
-}
-.page-apartments .k-top .k-chip {
-  background: #2e2450;
-}
 .page-apartments .k-lab {
   font-family: 'Press Start 2P', monospace;
   font-size: 8px;
   line-height: 1.4;
   color: #b9bcd0;
-}
-.page-apartments .k-num {
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-.page-apartments .k-cash {
-  color: #ffc93c;
 }
 .page-apartments .k-wrap {
   width: 100%;
@@ -390,31 +306,5 @@
   }
   .page-apartments .k-wrap {
     padding: 16px 16px 104px;
-  }
-  .page-apartments .k-links {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 30;
-    margin: 0;
-    gap: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 6px 8px 12px;
-    background: #231b3a;
-    border-top: 3px solid #0f0b1f;
-  }
-  .page-apartments .k-link {
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    min-height: 60px;
-    padding: 0;
-    border: 0;
-    font-size: 11px;
-  }
-  .page-apartments .k-top {
-    padding: 0 16px;
   }
 }

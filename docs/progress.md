@@ -370,7 +370,15 @@
 13. (11/13 완료) README + 최종 점검 → 런칭. 계획(11/14)보다 하루 앞당김, 기능 축소 없음. 캡처 화면은 추가 다듬기 없이 확정
 14. 11/16~20 Kafka 보유 종목 하락 알림 (`decisions/059`, 지원 마감 11/20). Kafka 코드(프로듀서, 컨슈머, 설정)는 새 개념이라 대화창 소스 제시 → 개발자 직접 입력 (045)
   - PR 1 `chore/kafka-setup` (11/17 완료): ADR 059 + 문서(053 폐기, CLAUDE.md 예외 문구) + 의존성 + 로컬 브로커(`docker-compose.local.yml`) + 콘솔 producer/consumer 확인(같은 키 → 같은 파티션, 같은 그룹 컨슈머 2개의 파티션 분배, 그룹 랙, `--from-beginning` 재조회). `./gradlew test` 통과
-  - PR 1-1 `feat/app-header` (PR 2~4와 병렬): 공통 헤더 `components/AppHeader`로 통합(지금은 9개 페이지에 `k-top` 복붙, `OrderHeader`만 분리) + 종(안 읽은 수) + `/notifications` 목록 화면 모양·목업. 데스크톱은 로고 + 메뉴 + CASH + 오늘 마감 시계 + 종, 모바일은 로고 빼고 CASH + 시계 + 종(메뉴는 하단 탭 바). 홈·내 마을은 장면형 유지하고 시계 옆에 종만 추가. 로그인 전 화면(시작, 시드 선택) 제외. `design.md`에 기록. 모양은 Claude, 데이터 연결은 PR 5
+  - PR 1-1 `feat/app-header` (11/17 작성, `decisions/060`): 공통 헤더 `components/AppHeader`로 통합(지금은 9개 페이지에 `k-top` 복붙, `OrderHeader`만 분리) + 종(안 읽은 수) + 알림 목록 드롭다운 모양·목업. 데스크톱은 로고 + 메뉴 + CASH + 오늘 마감 시계 + 종, 모바일은 로고 빼고 CASH + 시계 + 종(메뉴는 하단 탭 바). 홈·내 마을은 장면형 유지하고 시계 옆에 종만 추가. 로그인 전 화면(시작, 시드 선택) 제외. `design.md`에 기록. 모양은 Claude, 데이터 연결은 PR 5
+    - 구조: `pages/AppLayout`(레이아웃 라우트, `MemberGuard` 안쪽)이 `components/AppHeader`를 한 번 렌더 + `<Outlet />`. 켜진 메뉴는 주소로(`toActiveMenu`, 계약서 → 집 찾기, 변신 단계 → 내 마을), 장면형은 `HERO_PATHS`(홈, 내 마을)
+    - 현금(`useMemberQuery`)·오늘 마감 시계(`useMidnightCountdown`)는 `AppLayout`에서 호출. 시계 1초 리렌더는 레이아웃만 (react-router `useOutlet`이 같은 outlet element를 memo로 반환, 소스 확인)
+    - 9개 페이지 헤더 마크업·홈/내 마을 HUD 칩·`OrderHeader` 삭제, 페이지 CSS 9개의 헤더·탭 바 규칙 삭제(본문에서 쓰는 `k-lab`만 유지), 페이지 루트 `min-height: 100vh` → `flex: 1 0 auto`
+    - 종: `components/BellButton`(골드 배지, 10개 이상 9+, 0이면 숨김), `px-bell` 스프라이트. 안 읽은 수는 `AppLayout` 목업 `MOCK_UNREAD_COUNT`
+    - 알림 목록: 별도 페이지 대신 종 아래 드롭다운 `components/NotificationPanel`(데스크톱 360px, 모바일 전체 폭 + 어두운 배경막). 목업 `MOCK_NOTIFICATIONS`는 `AppLayout`, 줄 → 주문 화면, X 버튼은 동작 없음. `types/api.ts` `NotificationResponse`(필드는 PR 4에서 확정), `utils/time.toRelativeTime`
+    - 열기·닫기(개발자 작성): 연 화면 주소를 state로 저장해 주소가 바뀌면 자동으로 닫힘, 배경막 클릭·Esc(`useEffect` keydown, cleanup 해제)로 닫힘
+    - 확인: 작업 환경에서 `npm run lint`, `npm run build` 통과. 가짜 API 응답으로 1280px·390px 캡처(홈, 투자, 주문, 내 마을, 변신 단계, 알림): 문서 높이가 헤더만큼 넘치지 않음, 모바일 장면형 칩 겹침 없음, 콘솔 에러 없음. 드롭다운 열기·Esc·바깥 클릭·두 번 누르기·줄 클릭 후 이동 시 닫힘 확인(데스크톱·모바일)
+    - 못 확인한 것: 실제 로그인 상태 브라우저, 360px 이하 폭
   - PR 2: 시세 발행 (`VirtualPriceProvider.tick()` 끝, 비동기, 키 = 종목코드). 브로커를 끈 상태에서 tick이 계속 도는지 확인
   - PR 3: 컨슈머 판정 + `notification` 저장(유니크 키 멱등) + 30초 지난 시세 건너뜀 + 재시도 2번·DLT + `/user/queue/alerts` 토스트 푸시
   - PR 4: 알림함 API(목록, 안 읽은 수, 읽음, 삭제) + 7일 지난 알림 새벽 삭제 스케줄러
