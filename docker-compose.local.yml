@@ -22,6 +22,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # 로컬 Kafka 브로커 1대 (KRaft)
+  kafka:
+    image: apache/kafka:4.2.1
+    container_name: kkumi-kafka
+    ports:
+      - "9092:9092"
 
 volumes:
   kkumi-mysql-data:

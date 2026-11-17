@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-kafka' // 시세 발행·하락 알림 (decisions/059)
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
@@ -36,6 +37,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
 	testCompileOnly 'org.projectlombok:lombok'
 	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1' // 아키텍처 규칙 테스트
 	testRuntimeOnly 'com.h2database:h2' // 테스트 전용 인메모리 DB (MySQL 모드)
