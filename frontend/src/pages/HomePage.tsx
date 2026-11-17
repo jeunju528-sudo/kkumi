@@ -2,13 +2,12 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { usePortfolioQuery } from '../hooks/usePortfolioQuery'
 import { usePortfolioHistoryQuery } from '../hooks/usePortfolioHistoryQuery'
-import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
 import { useAptGoalQuery } from '../hooks/useAptGoalQuery'
 import { ValuationChart } from '../components/ValuationChart'
 import { Link } from 'react-router-dom'
 import { Sprite } from '../components/Sprite'
-import { formatKRW, formatManwon, formatNumber } from '../utils/format'
+import { formatKRW, formatManwon } from '../utils/format'
 import { NetWorthSummary } from '../components/NetWorthSummary'
 import { addDays, daysBetween, toAxisLabels, toDateKey } from '../utils/chart'
 import type { ChartPoint } from '../utils/chart'
@@ -46,10 +45,7 @@ export function HomePage() {
   const { data: myHouses } = useMyHousesQuery()
   const { data: goal, isError: isGoalError } = useAptGoalQuery()
   const { data: history = [] } = usePortfolioHistoryQuery(chartPeriod)
-  // 0시에 오늘 시작가·상하한·일별 기록이 바뀜 → 장 시간 대신 하루 마감 (ADR 050)
-  const dayCloseLeft = useMidnightCountdown()
 
-  const cash = portfolio?.cash ?? 0
   const totalAsset = portfolio?.totalAsset ?? 0
   const holdings = portfolio?.holdings ?? []
 
@@ -75,55 +71,8 @@ export function HomePage() {
   const axisLabels = toAxisLabels(chartFrom, pastDays + 1)
   const chartPeriodLabel = chartPeriod === 'WEEK' ? '1주' : '1달'
 
-  const cashChip = (
-    <div className="k-chip">
-      <Sprite id="px-coin" viewBox="0 0 8 8" width={16} height={16} />
-      <div>
-        <div className="k-lab">CASH</div>
-        <div className="k-num k-num--cash">{formatNumber(cash)}</div>
-      </div>
-    </div>
-  )
-  const clockChip = (
-    <div className="k-chip">
-      <Sprite id="px-clock" viewBox="0 0 8 8" width={16} height={16} />
-      <div>
-        <div className="k-clock-lab">오늘 마감까지</div>
-        <div className="k-num k-num--clock">{dayCloseLeft}</div>
-      </div>
-    </div>
-  )
-
   return (
     <div className="page-home">
-      <header className="k-top k-top--hero">
-        <Link to="/home" className="k-logo">
-          <span className="k-mark">꿈</span>
-          <span>꿈이</span>
-        </Link>
-        <nav className="k-links" aria-label="메인 메뉴">
-          <Link to="/home" className="k-link k-on" aria-current="page">
-            <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v1h-2zM2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM1 4h2v4h-2zM5 4h2v4h-2zM3 4h2v1h-2z" /></svg>
-            <span>홈</span>
-          </Link>
-          <Link to="/trade" className="k-link">
-            <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 5h2v3h-2zM3 3h2v5h-2zM6 1h2v7h-2z" /></svg>
-            <span>투자</span>
-          </Link>
-          <Link to="/apartments" className="k-link">
-            <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 0h3v1h-3zM1 1h1v1h-1zM5 1h1v1h-1zM0 2h1v3h-1zM6 2h1v3h-1zM1 5h1v1h-1zM5 5h1v1h-1zM2 6h3v1h-3zM6 6h1v1h-1zM7 7h1v1h-1z" /></svg>
-            <span>집 찾기</span>
-          </Link>
-          <Link to="/village" className="k-link">
-            <svg width="24" height="24" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 0h2v1h-2zM0 1h4v1h-4zM0 2h4v6h-4zM5 3h2v1h-2zM4 4h4v4h-4z" /></svg>
-            <span>내 마을</span>
-          </Link>
-        </nav>
-        <div className="k-grow" />
-        {cashChip}
-        {clockChip}
-      </header>
-
       <div className="k-scene">
         <Sprite id="px-cloud" viewBox="0 0 16 6" width={64} height={24} className="sp k-cloud" style={{ left: '40%', top: 70 }} />
         <Sprite id="px-cloud" viewBox="0 0 16 6" width={64} height={24} className="sp k-cloud" style={{ left: '5%', top: 96, opacity: 0.9 }} />
@@ -145,10 +94,6 @@ export function HomePage() {
         <div className="k-grass" />
         <div className="k-soil" />
 
-        <div className="k-hero-hud">
-          {cashChip}
-          {clockChip}
-        </div>
       </div>
 
       <main className="k-wrap">

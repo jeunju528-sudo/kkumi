@@ -1,0 +1,2 @@
+/* 헤더 + 화면. 페이지 루트는 flex: 1 0 auto로 남은 높이를 채움 */
+.app-layout{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#F7F8FC}

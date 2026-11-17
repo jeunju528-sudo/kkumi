@@ -12,6 +12,7 @@ import { ApartmentsPage } from './pages/ApartmentsPage'
 import { ContractPage } from './pages/ContractPage'
 import { VillagePage } from './pages/VillagePage'
 import { MemberGuard } from './pages/MemberGuard'
+import { AppLayout } from './pages/AppLayout'
 
 export function App() {
   return (
@@ -21,15 +22,18 @@ export function App() {
         <Route path="/" element={<WelcomePage />} />
         <Route path="/seed" element={<SeedPickPage />} />
         <Route element={<MemberGuard />}>
-          <Route path="/tiers" element={<TiersPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/trade" element={<TradePage />} />
-          <Route path="/trade/search" element={<StockSearchPage />} />
-          <Route path="/trade/history" element={<TradeHistoryPage />} />
-          <Route path="/trade/:code" element={<OrderPage />} />
-          <Route path="/apartments" element={<ApartmentsPage />} />
-          <Route path="/contract/:dealId" element={<ContractPage />} />
-          <Route path="/village" element={<VillagePage />} />
+          {/* 로그인 화면 공통 헤더 */}
+          <Route element={<AppLayout />}>
+            <Route path="/tiers" element={<TiersPage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/trade" element={<TradePage />} />
+            <Route path="/trade/search" element={<StockSearchPage />} />
+            <Route path="/trade/history" element={<TradeHistoryPage />} />
+            <Route path="/trade/:code" element={<OrderPage />} />
+            <Route path="/apartments" element={<ApartmentsPage />} />
+            <Route path="/contract/:dealId" element={<ContractPage />} />
+            <Route path="/village" element={<VillagePage />} />
+          </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -1,0 +1,45 @@
+/* 공통 헤더 (design.md §4, §9). 페이지 CSS에 복붙돼 있던 k-top 규칙을 한 곳으로 */
+.hdr{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;height:64px;box-sizing:border-box;padding:0 24px;background:#231B3A;border-bottom:3px solid #0F0B1F;font-family:'Noto Sans KR',system-ui,sans-serif}
+.hdr-logo{display:flex;align-items:center;gap:10px;color:#FFC93C;font-size:22px;font-weight:800}
+.hdr-mark{width:32px;height:32px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;box-shadow:0 2px 0 #0F0B1F;font-size:16px;font-weight:800}
+.hdr-links{display:flex;gap:4px;margin-left:12px}
+.hdr-link{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid transparent;color:#D7D9E8;font-size:15px;font-weight:700}
+.hdr-link svg{fill:currentColor;shape-rendering:crispEdges}
+.hdr-link--on{color:#FFC93C;border-color:#FFC93C}
+.hdr-grow{flex-grow:1}
+
+/* HUD 칩: 밤보라 + 골드 숫자 */
+.hdr-chip{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;background:#2E2450;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F}
+.hdr-lab{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.4;color:#B9BCD0}
+.hdr-clock-lab{font-size:11px;line-height:1.4;color:#B9BCD0}
+.hdr-num{font-weight:800;font-size:15px;line-height:1.2;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.hdr-num--cash{color:#FFC93C}
+
+/* 종 + 안 읽은 수 (빨강은 손익 전용이라 골드 배지) */
+.hdr-bell{position:relative;flex:none;width:44px;height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#2E2450;border:2px solid #0F0B1F;box-shadow:0 3px 0 #0F0B1F}
+.hdr-bell svg{width:20px;height:20px}
+.hdr-bell-badge{position:absolute;top:-8px;right:-8px;min-width:20px;height:20px;padding:0 4px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#FFC93C;color:#231B3A;border:2px solid #0F0B1F;font-size:11px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.hdr-bell{cursor:pointer;padding:0;z-index:2}
+/* 열림 = 메뉴 켜짐처럼 골드 테두리 */
+.hdr-bell--open{border-color:#FFC93C;background:#3A2E66}
+
+/* 알림 드롭다운: 종 아래, 화면 위에 겹침 */
+.hdr .noti-panel{position:absolute;top:calc(100% + 8px);right:24px;z-index:2;width:360px;max-height:420px}
+.hdr-backdrop{position:fixed;inset:0;z-index:1}
+
+@media (max-width:899px){
+/* 메뉴 → 하단 고정 탭 바 */
+.hdr-links{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;gap:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 8px 12px;background:#231B3A;border-top:3px solid #0F0B1F}
+.hdr-link{flex-direction:column;justify-content:center;gap:4px;min-height:60px;padding:0;border:0;font-size:11px}
+/* 로고 빼고 CASH(왼쪽) · 시계 · 종(오른쪽) */
+.hdr{gap:8px;padding:0 16px}
+.hdr-logo{display:none}
+.hdr-chip--cash{order:-1}
+.hdr-chip{padding:4px 8px 4px 6px}
+.hdr-num{font-size:14px}
+/* 알림: 헤더 아래 전체 폭, 탭 바 위까지. 뒤는 어둡게 */
+.hdr .noti-panel{position:fixed;top:67px;left:0;right:0;width:auto;max-height:calc(100vh - 67px - 96px);border-left:0;border-right:0}
+.hdr-backdrop{background:rgba(15,11,31,.45)}
+/* 장면형(홈·내 마을): 띠 없이 칩만 장면 위에 */
+.hdr--hero{position:absolute;top:14px;left:14px;right:14px;height:auto;padding:0;background:transparent;border:0;align-items:flex-start}
+}

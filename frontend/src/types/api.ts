@@ -177,3 +177,13 @@ export type StockProfitResponse = {
   costBasis: number // 판 수량의 매입 원가 합 (수익률 분모)
   sellCount: number
 }
+
+// GET /api/notifications (보유 종목 하락 알림, ADR 059). 필드는 알림함 API 작업 때 확정
+export type NotificationResponse = {
+  id: number
+  stockCode: string
+  stockName: string
+  dropRate: number // 평균 매입가 대비 등락률 (-0.032 = 3.2% 하락)
+  isRead: boolean
+  createdAt: string // ISO 문자열
+}
