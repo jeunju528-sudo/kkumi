@@ -19,6 +19,7 @@ services:
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?KAKAO_CLIENT_SECRET 필요 (.env 확인)}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 필요 (.env 확인, 32자 이상)}
       AUTH_COOKIE_SECURE: "true" # 인증 쿠키 https 전용 (auth.cookie.secure)
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092 # 같은 compose 네트워크의 서비스 이름
     # 호스트에 노출 X, nginx만 접근
     expose:
       - "8080"
@@ -48,3 +49,29 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+  # Kafka 브로커 1대 (KRaft, 브로커 + 컨트롤러 겸용, decisions/059)
+  kafka:
+    image: apache/kafka:4.2.1
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # 클라이언트에게 알려줄 주소 (기본 localhost면 backend 컨테이너가 접속 실패)
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # 브로커 1대라 내부 토픽 복제 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx256m" # t3.small(2GB)에 Spring과 같이 올리는 크기
+    volumes:
+      - kafka-data:/var/lib/kafka/data # 재생성 시 토픽(파티션 3) 유지
+    expose:
+      - "9092" # 호스트에 노출 X, backend만 접근
+
+volumes:
+  kafka-data:
