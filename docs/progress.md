@@ -381,7 +381,16 @@
     - 로컬 확인: describe 파티션 3, 콘솔 컨슈머 5초마다 20건(같은 종목 같은 파티션, `tickedAt` ISO UTC 문자열), 실행 중 브로커 중지·브로커 없이 기동·브로커 재시작 모두 시세 계속 갱신. 기동 시간 브로커 없음 60초 → 정상 범위(정상 21초)
     - 테스트 yaml에 producer 설정 + 없는 포트(19092). `./gradlew test` 175개 통과 (`troubleshooting.md` 2건)
     - 스케줄러 스레드는 2개(`SchedulingConfig.POOL_SIZE`). tick이 막히면 시세 정지 + 다른 `@Scheduled` 작업이 남은 스레드 하나에 몰림
-  - PR 3: 컨슈머 판정 + `notification` 저장(유니크 키 멱등) + 30초 지난 시세 건너뜀 + 재시도 2번·DLT + `/user/queue/alerts` 토스트 푸시
+  - PR 3-1 `feat/price-alert-consumer` (11/18 완료, `decisions/062`): 컨슈머 판정 + `notification` 저장 + 30초 지난 시세 건너뜀. PR 3을 3-1(판정·저장) / 3-2(재시도·DLT·토스트)로 나눔(새 개념 3개 기준)
+    - 판정: 시세마다 DB 조회 대신 메모리 장부 `notification/PriceAlertBook` (062). ① 종목 → 기준가(평단 × 97% 원 단위 내림) 정렬 → 회원, `TreeMap.tailMap`으로 기준가 ≥ 현재가 구간만 ② 받은 목록 (회원, 종목, 날짜), 날짜 바뀐 뒤 첫 판정 때 지난 날짜 정리(자정 작업 없음)
+    - DB: 서버 시작 때 `PriceAlertBookLoader`(`@PostConstruct`, 보유 전체 `findAllAvgPrices` + 오늘 알림 키), 알림 생길 때 종목 조회 1번 + `saveAll`
+    - 장부 갱신: `TradeService` 매수 후 `HoldingChangedEvent.of`(평단), 전량 매도 후 `soldOut` 발행 → `HoldingChangedListener`(`@TransactionalEventListener(AFTER_COMMIT)`). 매수 보유 처리를 `ifPresentOrElse` → `if / else` 변수 하나로 변경
+    - `Notification` 엔티티: 문구 대신 판정 근거 숫자(현재가, 평단 스냅샷), `alert_date`, `read_at`. 유니크 키 (member_id, stock_id, alert_date)
+    - 컨슈머: `PriceAlertListener`(`@KafkaListener`, 그룹 `price-alert`), `JacksonJsonDeserializer` + `spring.json.value.default.type`(타입 헤더 끔), `auto-offset-reset: latest`, `concurrency: 3`. 테스트 yaml `listener.auto-startup: false`
+    - 테스트: `PriceAlertRuleTest`(기준가 내림, 30초 경계), `PriceAlertBookTest`(기준가 경계, 평단 갱신, 삭제, 날짜 키), `PriceAlertServiceTest`(하루 1번, 다음 날 재알림, 30초 초과·대상 없음이면 DB 안 감). `TradeServiceTest`에 `ApplicationEventPublisher` Mock. `./gradlew test` 196개 통과
+    - 로컬 확인: 평단을 DB에서 2배로 바꾸고 재시작 → `하락 알림 1건: KK0020` + `notification` 1행, 1분 뒤에도 1행(받은 목록), 재시작 후 `오늘 받은 알림 1건` 로드·행 그대로, `kafka-consumer-groups --describe`로 파티션 3개에 컨슈머 3개·LAG 0 근처, 매수 `알림 장부 갱신`·전량 매도 `알림 장부 삭제` 로그
+    - 못 확인한 것: 첫 매수 경로 자동 테스트(수동 매수로만 확인), 서버 2대 이상(062 확장 조건)
+  - PR 3-2: 재시도 2번·DLT(`stock-price-ticked.DLT`) + `/user/queue/alerts` 토스트·안 읽은 수 푸시 (3-1의 `checkPriceDrop` 반환값이 푸시 대상)
   - PR 4: 알림함 API(목록, 안 읽은 수, 읽음, 삭제) + 7일 지난 알림 새벽 삭제 스케줄러
   - PR 5: 헤더 종·알림 목록 화면 데이터 연결 (api, hooks, 읽음·삭제 동작)
   - PR 6: 실서버 (브로커 컨테이너, EC2 t3.medium, AWS Budgets 알림)

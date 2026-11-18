@@ -12,6 +12,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+// kafka 프로듀서
 public class StockPricePublisher {
     private final KafkaTemplate<String, StockPriceTickedEvent> kafkaTemplate;
     

@@ -12,6 +12,8 @@ spring:
         spring.json.add.type.headers: false
     admin:
       auto-create: false
+    listener:
+      auto-startup: false
 
   datasource: # mem : 디스크가 아니라 메모리에 DB를 만들고 테스트 끝나면 사라짐, MODE=MySQL : h2가 mysql문법을 최대한 흉내내게함
     url: jdbc:h2:mem:kkumi;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1

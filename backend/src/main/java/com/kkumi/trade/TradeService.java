@@ -8,8 +8,10 @@ import com.kkumi.stock.Stock;
 import com.kkumi.stock.StockPriceProvider;
 import com.kkumi.stock.StockRepository;
 import com.kkumi.trade.dto.BuyStockRequest;
+import com.kkumi.trade.dto.HoldingChangedEvent;
 import com.kkumi.trade.dto.SellStockRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class TradeService {
     private final StockHoldingRepository stockHoldingRepository;
     private final StockPriceProvider stockPriceProvider;
     private final TradeHistoryRepository tradeHistoryRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void buy(Long memberId, BuyStockRequest request) {
@@ -44,16 +47,25 @@ public class TradeService {
         // 5. 현금에서 차감 (부족하면 INSUFFICIENT_CASH)
         member.withdraw(amount);
 
-        stockHolding.ifPresentOrElse(
-                // 6. 이미 구매했으면 평균값 새로 구하고
-                holding -> holding.buy(request.quantity(), price),
-                // 7. 구매 안했으면 보유 행 새로 만들어서 저장
-                () -> stockHoldingRepository.save(StockHolding.create(member, stock, request.quantity(), price))
-        );
+        StockHolding holding;
+        if(stockHolding.isPresent()){
+            // 6. 이미 구매했으면 평균값 새로 구하고
+            holding = stockHolding.get();
+            holding.buy(request.quantity(), price);
+        } else {
+            // 7. 구매 안했으면 보유 행 새로 만들어서 저장
+            holding = stockHoldingRepository.save(StockHolding.create(member, stock, request.quantity(), price));
+        }
 
         // 8. 구매 히스토리 저장
         TradeHistory tradeHistory = TradeHistory.ofBuy(member, stock, price, request.quantity());
         tradeHistoryRepository.save(tradeHistory);
+
+        // 9. 알림 장부 갱신 이벤트 (커밋 후 반영) - Long memberId, String stockCode, BigDecimal avgPrice
+        // 여기서 HoldingChangedEvent 타입 이벤트를 발생시키면 HoldingChangedEvent를 받는 메서드를 찾음 -> HoldingChangedListener 의 handle
+        // 이 Transaction이 커밋되면 부르는 것임
+        applicationEventPublisher.publishEvent(HoldingChangedEvent.of(member.getId(), stock.getCode(), holding.getAvgPrice()));
+
     }
 
     @Transactional
@@ -77,6 +89,7 @@ public class TradeService {
         // 6. 수량 0이면 행 삭제
         if(stockHolding.getQuantity() == 0){
             stockHoldingRepository.delete(stockHolding);
+            applicationEventPublisher.publishEvent(HoldingChangedEvent.soldOut(member.getId(), stock.getCode()));
         }
         // 7. 매도 히스토리 저장
         TradeHistory tradeHistory = TradeHistory.ofSell(member, stock, price, request.quantity(), realizedProfit);

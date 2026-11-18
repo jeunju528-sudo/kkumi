@@ -1,6 +1,7 @@
 package com.kkumi.trade;
 
 import com.kkumi.member.Member;
+import com.kkumi.trade.dto.HoldingAvgPrice;
 import com.kkumi.stock.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,8 @@ public interface StockHoldingRepository extends JpaRepository<StockHolding, Long
     // 회원 보유 전체 + 종목 같이 조회 (N+1 방지), 코드순
     @Query("select h from StockHolding h join fetch h.stock where h.member.id = :memberId order by h.stock.code")
     List<StockHolding> findAllByMemberIdWithStock(@Param("memberId") Long memberId);
+
+    // 전체 보유의 평균 매입가 (서버 시작 시 알림 장부 로드용)
+    @Query("select new com.kkumi.trade.dto.HoldingAvgPrice(h.member.id, h.stock.code, h.avgPrice) from StockHolding h")
+    List<HoldingAvgPrice> findAllAvgPrices();
 }

@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -54,6 +55,9 @@ class TradeServiceTest {
 
     @Mock
     TradeHistoryRepository tradeHistoryRepository;
+
+    @Mock
+    ApplicationEventPublisher applicationEventPublisher;
 
 	@Test
 	@DisplayName("매수하면 현금 차감, 보유 증가, 이력 저장")
