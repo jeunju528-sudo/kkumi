@@ -78,3 +78,24 @@
   - 다른 출처 CSS는 `crossorigin` + CORS 헤더가 있어야 JS에서 규칙을 읽을 수 있음
   - 에러 호출 경로(`getCSSRules` → `fetchCSS` → `embedFonts`)를 라이브러리 소스에서 따라가 원인 확정
   - `crossorigin`을 붙이는 대안은 에러는 없애도 한글 폰트 조각을 실제로 전부 넣게 되어 더 느려서 제외
+
+## [2026-11-17] 테스트에서 시세 발행이 SerializationException으로 실패, catch에 안 잡힘
+- 증상: `./gradlew test`는 통과했지만 테스트 로그에 tick마다 `Unexpected error occurred in scheduled task` + `SerializationException: Can't convert value of class StockPriceTickedEvent to class StringSerializer`. `ProducerId set` 로그로 테스트가 로컬 브로커(9092)에 실제 접속한 것도 확인
+- 원인
+  - 테스트 `application.yaml`이 메인 yaml 대신 로드됨(합쳐지지 않음). 메인에만 넣은 serializer·`max.block.ms`가 테스트에선 기본값(StringSerializer, 60초)
+  - `publish()`의 catch가 `org.springframework.kafka.KafkaException`만 잡음. 브로커 대기 시간 초과는 KafkaTemplate이 Spring 예외로 감싸지만, 직렬화 실패는 Kafka 클라이언트 예외(`org.apache.kafka...SerializationException`)가 그대로 올라와 빠져나감
+- 해결
+  - 테스트 yaml에 producer 설정 복사, `bootstrap-servers: localhost:19092`(없는 포트)로 로컬 브로커 오염 방지
+  - catch를 `RuntimeException`으로 넓힘. 발행은 부가 기능이라 어떤 실패든 tick에 영향 없게
+  - 재실행: 175개 통과, `Unexpected error` 0건, `시세 발행 실패, 이번 tick 건너뜀` WARN 확인
+- 배운 점
+  - 테스트 통과 ≠ 정상 동작. 스케줄러처럼 테스트 중 뒤에서 도는 작업은 테스트 결과 파일의 로그까지 확인
+  - 이름이 같은 예외(`KafkaException`)도 패키지가 다르면 서로 무관. 라이브러리 예외는 스택에서 실제 클래스 확인 후 catch 범위 결정
+
+## [2026-11-18] 브로커가 꺼진 채 기동하면 기동 시간 21초 → 60초, Rebootstrapping 로그 폭주
+- 증상: 브로커 없이 백엔드 기동 시 `Started BackendApplication in 60.084 seconds`(정상 21.133초). 그동안 `[AdminClient clientId=kkumi-admin-0] Rebootstrapping ...` INFO 로그가 초당 1,000줄 이상
+- 원인: 기동 중 KafkaAdmin이 `NewTopic` 빈을 보고 토픽 확인·생성을 시도. `fail-fast` 기본값 false라 실패해도 앱은 뜨지만, 작업 대기(`operation-timeout` 기본 30초) + 닫기 대기(`close-timeout` 기본 10초)만큼 기동이 멈춤. 지연 39초 ≈ 40초
+- 해결: `spring.kafka.admin.operation-timeout: 5s`, `close-timeout: 2s`
+  - 중간 측정: `operation-timeout 5s` + `close-timeout 5s`일 때 31.656초(지연 약 10초 = 5 + 5초, 설정 적용 확인)
+  - `close-timeout 2s`로 줄인 뒤 재측정 정상 범위 (수치 기록 없음)
+- 배운 점: 장애 상황에서 "뜨긴 뜨는데 느린" 문제는 기동 시간을 정상/장애 두 번 재서 차이로 원인을 좁힘. 지연 시간이 기본값 합과 맞는지로 범인 확정. Spring은 모르는 설정 이름을 에러 없이 무시하므로 설정 변경 후 수치로 적용 여부 확인

@@ -2,6 +2,7 @@ package com.kkumi.stock;
 
 import com.kkumi.global.error.BusinessException;
 import com.kkumi.global.error.ErrorCode;
+import com.kkumi.stock.dto.StockPriceTickedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -10,13 +11,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -47,6 +47,8 @@ public class VirtualPriceProvider implements StockPriceProvider {
     private final StockRepository stockRepository;
 
     private final StockPriceSnapshotService snapshotService;
+
+    private final StockPricePublisher pricePublisher;
 
     private final Random random = new Random();
     private final Map<String, PriceState> states = new ConcurrentHashMap<>();
@@ -105,6 +107,7 @@ public class VirtualPriceProvider implements StockPriceProvider {
         */
         // states의 code의 state값을 next(state, market) 값으로 바꿔라
         states.replaceAll((code, state) -> next(state, market));
+        publishPrices();
     }
 
     // 날짜(KST 기준)가 바뀌면 오늘 시작가를 지금 가격으로 변경
@@ -118,7 +121,14 @@ public class VirtualPriceProvider implements StockPriceProvider {
         today = now;
         log.info("오늘 시작가 갱신: {}", now);
     }
-
+    
+    // 카프카 브로커로 발행
+    private void publishPrices(){
+        Instant now = Instant.now();
+        List<StockPriceTickedEvent> events = new ArrayList<>();
+        states.forEach((code, state) -> events.add(new StockPriceTickedEvent(code, state.price(), now)));
+        pricePublisher.publish(events);
+    }
 
     // 1분마다 메모리 시세를 DB에 저장
     // 기동 직후에 바로 저장하지 않고 1분 뒤에 저장

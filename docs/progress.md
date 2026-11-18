@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-17
+## 기준일: 2026-11-18
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -379,7 +379,11 @@
     - 열기·닫기(개발자 작성): 연 화면 주소를 state로 저장해 주소가 바뀌면 자동으로 닫힘, 배경막 클릭·Esc(`useEffect` keydown, cleanup 해제)로 닫힘
     - 확인: 작업 환경에서 `npm run lint`, `npm run build` 통과. 가짜 API 응답으로 1280px·390px 캡처(홈, 투자, 주문, 내 마을, 변신 단계, 알림): 문서 높이가 헤더만큼 넘치지 않음, 모바일 장면형 칩 겹침 없음, 콘솔 에러 없음. 드롭다운 열기·Esc·바깥 클릭·두 번 누르기·줄 클릭 후 이동 시 닫힘 확인(데스크톱·모바일)
     - 못 확인한 것: 실제 로그인 상태 브라우저, 360px 이하 폭
-  - PR 2: 시세 발행 (`VirtualPriceProvider.tick()` 끝, 비동기, 키 = 종목코드). 브로커를 끈 상태에서 tick이 계속 도는지 확인
+  - PR 2 `feat/stock-price-publish` (11/18 완료): `VirtualPriceProvider.tick()` 끝에서 종목별 `StockPriceTickedEvent{code, price, tickedAt}` 발행(`StockPricePublisher`, 토픽 `stock-price-ticked`, 키 = 종목코드). 토픽은 `global/config/KafkaTopicConfig`(파티션 3, 복제 1, retention 1일, segment 1시간). JSON 직렬화, 타입 헤더 끔
+    - 브로커 장애 대비: `max.block.ms` 1초, 발행 실패 시 그 tick 건너뜀(`RuntimeException` catch), KafkaAdmin `operation-timeout` 5초·`close-timeout` 2초
+    - 로컬 확인: describe 파티션 3, 콘솔 컨슈머 5초마다 20건(같은 종목 같은 파티션, `tickedAt` ISO UTC 문자열), 실행 중 브로커 중지·브로커 없이 기동·브로커 재시작 모두 시세 계속 갱신. 기동 시간 브로커 없음 60초 → 정상 범위(정상 21초)
+    - 테스트 yaml에 producer 설정 + 없는 포트(19092). `./gradlew test` 175개 통과 (`troubleshooting.md` 2건)
+    - 스케줄러 스레드는 2개(`SchedulingConfig.POOL_SIZE`). tick이 막히면 시세 정지 + 다른 `@Scheduled` 작업이 남은 스레드 하나에 몰림
   - PR 3: 컨슈머 판정 + `notification` 저장(유니크 키 멱등) + 30초 지난 시세 건너뜀 + 재시도 2번·DLT + `/user/queue/alerts` 토스트 푸시
   - PR 4: 알림함 API(목록, 안 읽은 수, 읽음, 삭제) + 7일 지난 알림 새벽 삭제 스케줄러
   - PR 5: 헤더 종·알림 목록 화면 데이터 연결 (api, hooks, 읽음·삭제 동작)
