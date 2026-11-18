@@ -29,7 +29,7 @@
 | 020 | [주식 시세 출처: 서버가 만드는 가상 시세 (KIS·공공데이터 포기)](020-stock-price-source.md) | 확정 |
 | 021 | [범위: 프론트 직접 구현 우선](021-scope-frontend-first.md) | 확정 |
 | 022 | [프론트 상태 관리: TanStack Query + Context](022-frontend-state-management.md) | 확정 |
-| 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 확정 |
+| 023 | [자연어 검색: 필터 JSON](023-natural-language-search-filter-json.md) | 폐기 (대체: 061) |
 | 024 | [새 기술 상한선](024-technology-ceiling.md) | 확정 |
 | 025 | [매수 동시성: 비관적 락(Member 행)](025-buy-concurrency-pessimistic-lock.md) | 확정 |
 | 026 | [이미지 저장소: GHCR(public)](026-image-registry-ghcr-public.md) | 확정 |
@@ -67,8 +67,9 @@
 | 058 | [계약서 공유 이미지: html-to-image + Web Share API, 실패 시 미리보기](058-contract-share-image.md) | 확정 |
 | 059 | [Kafka 범위 변경: 시세 스트림 기반 보유 종목 하락 알림](059-kafka-price-drop-alert.md) | 확정 |
 | 060 | [공통 헤더: 레이아웃 라우트(AppLayout)로 한 번만 렌더](060-app-layout-route.md) | 확정 |
+| 061 | [런칭 후 확장: AI 자산 코치 + Elasticsearch, 자연어 검색·골든셋 제외](061-ai-coach-elasticsearch-only.md) | 확정 |
 
-다음 번호: 061
+다음 번호: 062
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.
