@@ -8,6 +8,15 @@ spring:
       properties:
         max.block.ms: 1000 # 브로커를 못 찾을 때 send 대기 최대 1초 (기본 60초면 tick 멈춤)
         spring.json.add.type.headers: false
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      auto-offset-reset: latest # 처음 뜬 컨슈머 그룹은 지난 시세를 안읽고 지금부터 읽음
+      properties:
+        spring.json.value.default.type: com.kkumi.stock.dto.StockPriceTickedEvent # 발행 쪽에서 타입 헤더를 꺼둬서 받는 쪽에서는 어느 클래스로 받을지 정해야함
+        spring.json.use.type.headers: false
+    listener:
+      concurrency: 3 # 파티션 3개를 컨슈머 스레드 3개가 하나씩 나눠 맡음
     # 브로커가 없으면 5 + 2초만 기다림
     admin:
       operation-timeout: 5s

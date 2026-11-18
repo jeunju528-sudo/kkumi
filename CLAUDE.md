@@ -46,6 +46,7 @@ kkumi/
 │   ├── portfolio/   # 평가액, WebSocket 푸시
 │   ├── apartment/   # 실거래가, 배치, 추천
 │   ├── house/       # 집 사기, 컬렉션, 변신 단계
+│   ├── notification/ # 하락 알림 (Kafka 컨슈머, 메모리 장부, 알림함)
 │   └── global/      # config, error, jwt, 공통 응답만. 도메인 로직 금지
 ├── frontend/src/
 │   ├── pages/       # 화면 단위. API 직접 호출 금지
