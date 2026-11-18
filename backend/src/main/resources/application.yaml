@@ -1,5 +1,18 @@
 # 비밀값은 환경변수(.env)로 주입
 spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        max.block.ms: 1000 # 브로커를 못 찾을 때 send 대기 최대 1초 (기본 60초면 tick 멈춤)
+        spring.json.add.type.headers: false
+    # 브로커가 없으면 5 + 2초만 기다림
+    admin:
+      operation-timeout: 5s
+      close-timeout: 2s
+
   application:
     name: kkumi
   profiles:
