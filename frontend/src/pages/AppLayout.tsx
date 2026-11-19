@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
 import type { MenuKey } from '../components/AppHeader'
+import { AlertToast } from '../components/AlertToast'
 import { useMemberQuery } from '../hooks/useMemberQuery'
 import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
+import { useMemberSocket } from '../hooks/useMemberSocket'
 import type { NotificationResponse } from '../types/api'
 import './AppLayout.css'
 
@@ -44,8 +46,11 @@ export function AppLayout() {
   // 0시에 오늘 시작가·상하한·일별 기록이 바뀜 → 장 시간 대신 하루 마감 (ADR 050)
   const dayCloseLeft = useMidnightCountdown()
 
+  const { latestAlert, clearLatestAlert } = useMemberSocket()
+
   // 알림 목록을 연 화면 주소 (null = 닫힘)
   const [notificationOpenPath, setNotificationOpenPath] = useState<string | null>(null)
+
   // 알람 연 주소 = 현재 URL  일 때만 열림, 화면을 옮기면 주소가 달라져 저절로 닫힘
   const isNotificationOpen = notificationOpenPath === pathname
 
@@ -77,6 +82,9 @@ export function AppLayout() {
         onBellClick={handleBellClick} // 종 클릭 시 부를 함수
         onNotificationClose={handleNotificationClose} // 바깥 클릭 시 부를 함수 
       />
+      {latestAlert !== null && !isNotificationOpen && (
+        <AlertToast notification={latestAlert.notification} onClose={clearLatestAlert} />
+      )}
       <Outlet />
     </div>
   )

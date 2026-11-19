@@ -1,17 +1,23 @@
 import { Client } from "@stomp/stompjs";
-import type { PortfolioResponse } from "../types/api";
+import type { PortfolioResponse, PriceAlertPushResponse } from "../types/api";
 
 const PORTFOLIO_DESTINATION = '/user/queue/portfolio'
+const ALERT_DESTINATION = '/user/queue/alerts'
 const RECONNECT_DELAY_MS = 5000
 
-// onMessage: 평가액 올 때마다 불러줄 함수 (콜백), (portfolio: PortfolioResponse) => void : 매개변수 타입 :: 매개변수가 함수임
+type MemberSocketHandlers = {
+    onPortfolio: (portfolio: PortfolioResponse) => void,
+    onAlert: (alert: PriceAlertPushResponse) => void
+}
+
+// onPortfolio·onAlert: 평가액·알림이 올 때마다 불러줄 함수 (콜백), (portfolio: PortfolioResponse) => void : 매개변수 타입 :: 매개변수가 함수임
 // : () => void :: 함수 반환타입 :: 인자 없이 부르면 아무것도 돌려주지 않는 함수
-// 함수를 돌려주는 이유 : 연결객체는 subscribePortfolio 안에서 만들어져서
+// 함수를 돌려주는 이유 : 연결객체는 connectMemberSocket 안에서 만들어져서
 // 밖에서는 client.deactivate() 를 직접 부를 수 없음, 그래서 대신 끝날 때 이걸 부르라고 함수를 돌려줌
 // 돌려준 함수는 자기가 만들어진 곳의 client를 기억하고 있음(클로저)
 
 // 연결·구독 시작하고, 끊을 때 부를 함수를 돌려줌
-export function subscribePortfolio(onMessage: (portfolio: PortfolioResponse) => void): () => void {
+export function connectMemberSocket({onPortfolio, onAlert}: MemberSocketHandlers): () => void {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const client = new Client({
         brokerURL: `${protocol}://${window.location.host}/ws`,
@@ -19,7 +25,10 @@ export function subscribePortfolio(onMessage: (portfolio: PortfolioResponse) => 
         onConnect: () => {
             // 연결 완료되면 구독 (재연결 때도 다시 구독)
             client.subscribe(PORTFOLIO_DESTINATION, (message) => {
-                onMessage(JSON.parse(message.body) as PortfolioResponse)
+                onPortfolio(JSON.parse(message.body) as PortfolioResponse)
+            })
+            client.subscribe(ALERT_DESTINATION, (message) => {
+                onAlert(JSON.parse(message.body) as PriceAlertPushResponse)
             })
         },
     })

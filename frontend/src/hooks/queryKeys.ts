@@ -33,6 +33,8 @@ export const queryKeys = {
     aptDeal: (dealId: number) => ['apartments', 'deal', dealId] as const,
     myHouses: () => ['houses', 'me'] as const,
     aptGoal: () => ['apartments', 'goal'] as const,
+    // 안 읽은 알림 수: WebSocket 푸시로 채움, 조회 API 연결은 PR 5
+    notificationUnreadCount: () => ['notifications', 'unreadCount'] as const,
 }
 
 /**
