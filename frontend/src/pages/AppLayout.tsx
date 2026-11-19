@@ -4,22 +4,14 @@ import { AppHeader } from '../components/AppHeader'
 import type { MenuKey } from '../components/AppHeader'
 import { AlertToast } from '../components/AlertToast'
 import { useMemberQuery } from '../hooks/useMemberQuery'
+import { useNotificationsQuery } from '../hooks/useNotificationsQuery'
+import { useUnreadCountQuery } from '../hooks/useUnreadCountQuery'
+import { useReadNotificationMutation } from '../hooks/useReadNotificationMutation'
+import { useReadAllNotificationsMutation } from '../hooks/useReadAllNotificationsMutation'
+import { useDeleteNotificationMutation } from '../hooks/useDeleteNotificationMutation'
 import { useMidnightCountdown } from '../hooks/useMidnightCountdown'
 import { useMemberSocket } from '../hooks/useMemberSocket'
-import type { NotificationResponse } from '../types/api'
 import './AppLayout.css'
-
-// 1분 = 60,000ms 
-const MINUTE_MS = 60_000
-
-// 알림 목록·안 읽은 수 목업 (알림함 API 연결 때 교체, ADR 059 PR 5)
-const MOCK_NOTIFICATIONS: NotificationResponse[] = [
-  { id: 3, stockCode: 'KK0001', stockName: '세르반반도체', dropRate: -0.032, isRead: false, createdAt: new Date(Date.now() - 5 * MINUTE_MS).toISOString() },
-  { id: 2, stockCode: 'KK0007', stockName: '도르빈바이오', dropRate: -0.05, isRead: false, createdAt: new Date(Date.now() - 70 * MINUTE_MS).toISOString() },
-  { id: 1, stockCode: 'KK0003', stockName: '쿠르텍', dropRate: -0.03, isRead: true, createdAt: new Date(Date.now() - 26 * 60 * MINUTE_MS).toISOString() },
-]
-// 안 읽은 알림만 셈 → 종 배지 숫자
-const MOCK_UNREAD_COUNT = MOCK_NOTIFICATIONS.filter((n) => !n.isRead).length
 
 // 장면형 화면: 모바일에서 띠를 접고 칩만 장면 위에 얹음
 const HERO_PATHS = ['/home', '/village']
@@ -54,6 +46,12 @@ export function AppLayout() {
   // 알람 연 주소 = 현재 URL  일 때만 열림, 화면을 옮기면 주소가 달라져 저절로 닫힘
   const isNotificationOpen = notificationOpenPath === pathname
 
+  const { data: notifications, isPending: isNotificationLoading } = useNotificationsQuery(isNotificationOpen)
+  const { data: unreadCount } = useUnreadCountQuery()
+  const { mutate: readNotification } = useReadNotificationMutation()
+  const { mutate: readAllNotifications } = useReadAllNotificationsMutation()
+  const { mutate: deleteNotification } = useDeleteNotificationMutation()
+
   // 종 클릭 : 열려 있으면 닫기(null), 닫혀 있으면 지금 주소 저장(열기)
   const handleBellClick = () => setNotificationOpenPath(isNotificationOpen ? null : pathname)
   // 배경 클릭 : 닫기
@@ -75,12 +73,16 @@ export function AppLayout() {
         activeMenu={toActiveMenu(pathname)} // 켜진 메뉴 (골드 테두리)
         cash={member?.cash ?? 0} // 조회 전엔 0
         dayCloseLeft={dayCloseLeft} // 시계 문자열
-        unreadCount={MOCK_UNREAD_COUNT} // 종 배지 숫자
+        unreadCount={unreadCount ?? 0} // 종 배지 숫자
         isHero={HERO_PATHS.includes(pathname)} // 홈·내 마을이면 장면형 헤더
-        notifications={MOCK_NOTIFICATIONS} // 드롭다운에 보여줄 목록 
         isNotificationOpen={isNotificationOpen} // 열림 여부
         onBellClick={handleBellClick} // 종 클릭 시 부를 함수
-        onNotificationClose={handleNotificationClose} // 바깥 클릭 시 부를 함수 
+        onNotificationClose={handleNotificationClose} // 바깥 클릭 시 부를 함수
+        notifications={notifications ?? []} // 드롭다운에 보여줄 목록 
+        isNotificationLoading={isNotificationLoading}
+        onNotificationRead={readNotification}
+        onNotificationReadAll={() => readAllNotifications()}
+        onNotificationDelete={deleteNotification}
       />
       {latestAlert !== null && !isNotificationOpen && (
         <AlertToast notification={latestAlert.notification} onClose={clearLatestAlert} />

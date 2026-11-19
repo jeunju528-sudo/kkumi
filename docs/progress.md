@@ -408,7 +408,15 @@
     - `NotificationCleanupScheduler`: 매일 3시(KST, 시세 기록 정리 3:30·실거래가 배치 4시와 분리), `alertDate < 오늘 − 6일` 벌크 delete (오늘 포함 7일 보관)
     - 테스트: `NotificationTest` 2개 추가(읽음 시각, 다시 읽어도 처음 시각), `NotificationServiceTest` 7개(H2: 내 알림만 최신순, 1건 읽음, 남의 알림 읽음·삭제 404, 내 알림 삭제, 모두 읽음 대상, 7일 경계)
     - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 다운로드 차단, 커밋 훅에서 확인), 로컬 curl
-  - PR 5: 헤더 종·알림 목록 화면 데이터 연결 (api, hooks, 읽음·삭제 동작)
+  - PR 5 `feat/notification-connect` (11/19): 헤더 종·알림 목록 데이터 연결 (`decisions/063`)
+    - `api/notificationApi.ts`(목록, 안 읽은 수, 읽음, 모두 읽음, 삭제. 바디 없는 응답은 `Promise<void>`), `queryKeys` `notifications`(앞부분 무효화용)·`notificationList`
+    - `useNotificationsQuery(isEnabled)`: 드롭다운 열릴 때만 요청, 열 때마다 재조회. `useUnreadCountQuery`: 응답 `{count}`에서 숫자만 캐시(WebSocket 푸시와 같은 모양)
+    - 쓰기 훅 3개(`useReadNotificationMutation`·`useReadAllNotificationsMutation`·`useDeleteNotificationMutation`): `onSettled`에서 `['notifications']` 무효화(다른 기기에서 지운 알림 404여도 서버 기준으로 다시 맞춤)
+    - 새 알림 푸시 때 목록 캐시 무효화 추가(`useMemberSocket`), `AppLayout` 목업 `MOCK_NOTIFICATIONS`·`MOCK_UNREAD_COUNT` 삭제
+    - 모양: `NotificationPanel` 줄 클릭 시 안 읽은 알림만 읽음, X 삭제, "모두 읽음" 버튼(안 읽은 알림 있을 때만), 로딩 중 "불러오는 중...". `AppHeader`는 props 전달만. `design.md` 반영
+    - 확인: 작업 환경 `tsc -b` 통과. ESLint는 작업 환경 시간 초과(커밋 훅에서 확인)
+    - 로컬 확인 (11/19): 토스트·종 배지, 드롭다운 열 때만 목록 요청, 줄 클릭 → 주문 화면 + 회색·배지 감소, X 삭제, 모두 읽음 → 배지·버튼 사라짐
+    - 못 확인한 것: 실서버
   - PR 6 `chore/kafka-prod` (11/18, 3-2보다 먼저 진행): 운영 compose에 브로커(KRaft 1대, `advertised.listeners` = `kafka:9092`, 힙 256MB, 볼륨 `kafka-data`) + backend `KAFKA_BOOTSTRAP_SERVERS`. ADR 059 보강(t3.small 유지)
     - 배포 전 실서버 로그: `.env`에 브로커 주소가 없어 yaml 기본값 `localhost:9092`로 컨슈머 3개·프로듀서가 1초에 여러 번 재접속 경고. 서비스는 정상(시세 발행은 브로커 장애 시 tick 건너뜀)
     - EC2: 유형 변경 목록에 t3.medium 없음(프리 플랜) → t3.small 유지, 스왑 2GB(`/swapfile`, `fstab` 등록) 서버에서 생성

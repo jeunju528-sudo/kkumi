@@ -29,9 +29,13 @@ type AppHeaderProps = {
   unreadCount: number
   isHero: boolean
   notifications: NotificationResponse[]
+  isNotificationLoading: boolean
   isNotificationOpen: boolean
   onBellClick: () => void
   onNotificationClose: () => void
+  onNotificationRead: (id: number) => void
+  onNotificationReadAll: () => void
+  onNotificationDelete: (id: number) => void
 }
 
 // 공통 상단 띠. 데스크톱: 로고 + 메뉴 + CASH + 시계 + 종
@@ -44,9 +48,13 @@ export function AppHeader({
   unreadCount,
   isHero,
   notifications,
+  isNotificationLoading,
   isNotificationOpen,
   onBellClick,
   onNotificationClose,
+  onNotificationRead,
+  onNotificationReadAll,
+  onNotificationDelete,
 }: AppHeaderProps) {
   return (
     <header className={isHero ? 'hdr hdr--hero' : 'hdr'}>
@@ -92,7 +100,13 @@ export function AppHeader({
         <>
           {/* 바깥 클릭 → 닫기 (모바일은 뒤를 어둡게) */}
           <div className="hdr-backdrop" onClick={onNotificationClose} aria-hidden="true" />
-          <NotificationPanel notifications={notifications} />
+          <NotificationPanel
+            notifications={notifications}
+            isLoading={isNotificationLoading}
+            onRead={onNotificationRead}
+            onReadAll={onNotificationReadAll}
+            onDelete={onNotificationDelete}
+          />
         </>
       )}
     </header>
