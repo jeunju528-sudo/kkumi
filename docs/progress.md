@@ -314,7 +314,7 @@
   - 화면: 데스크톱에서 시세 카드·주문 카드 높이 맞춤(차트가 남는 높이 채움), 일봉 안내 문구 자리를 분봉에서도 유지해 탭 전환 시 높이 고정
   - 확인: 작업 환경에서 `tsc -b` 통과. `npm run lint`는 개발자 PC에서 확인
 
-- 변신 단계 화면 연결 (2026-11-19, `feat/tiers-connect`)
+- 변신 단계 화면 연결 (2026-11-19, `feat/tiers-connect`, #90 merge)
   - `TiersPage`: 목업 `CURRENT_TIER` 삭제 → `useMyHousesQuery`의 `tier`로 "지금 여기" 표시. 새 API 없음(서버 `Tier` 계산, 홈·내 마을과 같은 캐시, 집 사기 후 invalidate로 갱신)
   - 불러오기 전·실패 시 "지금 여기" 숨김 (홈 변신 카드는 걸뱅이 기본값, 여기는 단계 표 자체라 틀린 단계 강조 방지)
   - 못 확인한 것: 브라우저에서 집 1채 이상 계정으로 서민·졸부 표시
@@ -323,7 +323,7 @@
 
 ### 런칭 후 과제 (우선순위)
 기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능은 Kafka → AI 코치 → Elasticsearch 두 개만 (`decisions/061`, 자연어 검색·골든셋 제외). 번호는 다른 문서 참조 때문에 유지
-0. Kafka (`decisions/059`, 053 대체): 11/16 착수, 지원 마감 11/20 전 실서버까지. 가상 시세 tick → 토픽 `stock-price-ticked`(키 = 종목코드, 파티션 3) → 컨슈머 그룹 `price-alert`가 보유 종목 현재가 ≤ 평균 매입가 × 97% 판정 → `notification` 저장(종목당 하루 1번) + 접속 중이면 토스트. 브로커 1대(KRaft) Compose 추가, EC2는 t3.small 유지(프리 플랜이라 t3.medium 불가, Kafka 힙 256MB + 스왑 2GB, 059 보강). AWS Budgets 알림은 하지 않기로 함(11/19, 크레딧 $98.97, 2027-01-10 만료). 진행 순서는 아래 "다음 할 일" 14번
+0. (11/19 완료, PR #84~#91 merge·배포) Kafka (`decisions/059`, 053 대체): 11/16 착수, 지원 마감 11/20 전 실서버까지 → 하루 앞당겨 완료. 가상 시세 tick → 토픽 `stock-price-ticked`(키 = 종목코드, 파티션 3) → 컨슈머 그룹 `price-alert`가 보유 종목 현재가 ≤ 평균 매입가 × 97% 판정 → `notification` 저장(종목당 하루 1번) + 접속 중이면 토스트. 브로커 1대(KRaft) Compose 추가, EC2는 t3.small 유지(프리 플랜이라 t3.medium 불가, Kafka 힙 256MB + 스왑 2GB, 059 보강). AWS Budgets 알림은 하지 않기로 함(11/19, 크레딧 $98.97, 2027-01-10 만료). 진행 순서는 아래 "다음 할 일" 14번
 0-1. AI 자산 코치 (`decisions/051`, 노션 "9. AI 자산 코치 설계"): Kafka 다음 착수, 약 2주. Spring AI + Gemini, 조회 전용 tool 3개, Redis 호출 한도
 2. 시세 실시간 방송 `/topic/stocks`: 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지 중. 모두에게 같은 값이라 공용 채널 방송이 맞음(평가액은 개인 큐 `/user/queue`, `decisions/046`). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
 4. Elasticsearch 자동완성 (`decisions/061`): AI 코치 다음 착수. 단지 마스터만 인덱싱(거래 행 제외), nori 한글 형태소 분석. EC2 메모리(t3.medium 4GB에 Spring·Kafka·Elasticsearch) 검토 선행. "MySQL LIKE로도 되지만 형태소·부분 일치 때문에 붙였다"로 설명
@@ -369,7 +369,7 @@
     3. 쿠키 없는 401에 `JSESSIONID` 쿠키가 발급되는 원인 확인 (2026-10-27 발견)
     4. `application.yaml`, `docker-compose.yml`의 KIS 키 설정 정리 (가상 시세로 결정, `decisions/020`)
 13. (11/13 완료) README + 최종 점검 → 런칭. 계획(11/14)보다 하루 앞당김, 기능 축소 없음. 캡처 화면은 추가 다듬기 없이 확정
-14. 11/16~20 Kafka 보유 종목 하락 알림 (`decisions/059`, 지원 마감 11/20). Kafka 코드(프로듀서, 컨슈머, 설정)는 새 개념이라 대화창 소스 제시 → 개발자 직접 입력 (045)
+14. (11/19 완료, 계획 11/20보다 하루 앞당김) 11/16~20 Kafka 보유 종목 하락 알림 (`decisions/059`, 지원 마감 11/20). Kafka 코드(프로듀서, 컨슈머, 설정)는 새 개념이라 대화창 소스 제시 → 개발자 직접 입력 (045)
   - PR 1 `chore/kafka-setup` (11/17 완료): ADR 059 + 문서(053 폐기, CLAUDE.md 예외 문구) + 의존성 + 로컬 브로커(`docker-compose.local.yml`) + 콘솔 producer/consumer 확인(같은 키 → 같은 파티션, 같은 그룹 컨슈머 2개의 파티션 분배, 그룹 랙, `--from-beginning` 재조회). `./gradlew test` 통과
   - PR 1-1 `feat/app-header` (11/17 작성, `decisions/060`): 공통 헤더 `components/AppHeader`로 통합(지금은 9개 페이지에 `k-top` 복붙, `OrderHeader`만 분리) + 종(안 읽은 수) + 알림 목록 드롭다운 모양·목업. 데스크톱은 로고 + 메뉴 + CASH + 오늘 마감 시계 + 종, 모바일은 로고 빼고 CASH + 시계 + 종(메뉴는 하단 탭 바). 홈·내 마을은 장면형 유지하고 시계 옆에 종만 추가. 로그인 전 화면(시작, 시드 선택) 제외. `design.md`에 기록. 모양은 Claude, 데이터 연결은 PR 5
     - 구조: `pages/AppLayout`(레이아웃 라우트, `MemberGuard` 안쪽)이 `components/AppHeader`를 한 번 렌더 + `<Outlet />`. 켜진 메뉴는 주소로(`toActiveMenu`, 계약서 → 집 찾기, 변신 단계 → 내 마을), 장면형은 `HERO_PATHS`(홈, 내 마을)
@@ -401,14 +401,14 @@
     - 테스트: `NotificationTest`(하락률 반올림·0·소수 평단, 안 읽음)
     - 로컬 확인: 콘솔 producer `hello` → 재시도 없이 DLT(헤더에 예외·원본 위치, 값은 base64 `"aGVsbG8="`), 리스너 임시 예외(KK0001) → 3번 실패 후 DLT, 평단 2배 + 1주 매수 → 토스트·`/user/queue/alerts` 프레임(unreadCount 포함)·클릭 시 주문 화면 이동, 모바일 폭 토스트 (`troubleshooting.md` 1건)
     - 못 확인한 것: 4초 자동 닫힘(눈으로 따로 확인 안 함), 실서버
-  - PR 4 `feat/notification-inbox-api` (11/19, `decisions/063`): 알림함 API + 7일 지난 알림 삭제
+  - PR 4 `feat/notification-inbox-api` (11/19, #89 merge, `decisions/063`): 알림함 API + 7일 지난 알림 삭제
     - `GET /api/notifications`(최신순, `join fetch stock`), `GET /unread-count` → `UnreadCountResponse{count}`, `POST /{id}/read`, `POST /read-all`, `DELETE /{id}`
     - 읽음은 줄을 누른 1건만 + 모두 읽음 버튼(063). `Notification.markAsRead`는 이미 읽었으면 처음 시각 유지, 모두 읽음은 `readAt is null` 벌크 update(`flushAutomatically`·`clearAutomatically`)
     - 남의 알림 id는 `findByIdAndMemberId`로 못 찾음 → `NOTIFICATION_NOT_FOUND`(404, 존재 여부 숨김)
     - `NotificationCleanupScheduler`: 매일 3시(KST, 시세 기록 정리 3:30·실거래가 배치 4시와 분리), `alertDate < 오늘 − 6일` 벌크 delete (오늘 포함 7일 보관)
     - 테스트: `NotificationTest` 2개 추가(읽음 시각, 다시 읽어도 처음 시각), `NotificationServiceTest` 7개(H2: 내 알림만 최신순, 1건 읽음, 남의 알림 읽음·삭제 404, 내 알림 삭제, 모두 읽음 대상, 7일 경계)
     - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 다운로드 차단, 커밋 훅에서 확인), 로컬 curl
-  - PR 5 `feat/notification-connect` (11/19): 헤더 종·알림 목록 데이터 연결 (`decisions/063`)
+  - PR 5 `feat/notification-connect` (11/19, #91 merge): 헤더 종·알림 목록 데이터 연결 (`decisions/063`)
     - `api/notificationApi.ts`(목록, 안 읽은 수, 읽음, 모두 읽음, 삭제. 바디 없는 응답은 `Promise<void>`), `queryKeys` `notifications`(앞부분 무효화용)·`notificationList`
     - `useNotificationsQuery(isEnabled)`: 드롭다운 열릴 때만 요청, 열 때마다 재조회. `useUnreadCountQuery`: 응답 `{count}`에서 숫자만 캐시(WebSocket 푸시와 같은 모양)
     - 쓰기 훅 3개(`useReadNotificationMutation`·`useReadAllNotificationsMutation`·`useDeleteNotificationMutation`): `onSettled`에서 `['notifications']` 무효화(다른 기기에서 지운 알림 404여도 서버 기준으로 다시 맞춤)
@@ -422,6 +422,7 @@
     - EC2: 유형 변경 목록에 t3.medium 없음(프리 플랜) → t3.small 유지, 스왑 2GB(`/swapfile`, `fstab` 등록) 서버에서 생성
     - 실서버 확인 완료 (11/18): 브로커 기동, 토픽 파티션 3, 컨슈머 그룹 LAG, `free -h`
     - AWS Budgets 알림은 하지 않기로 함 (11/19 개발자 결정)
+15. 다음: AI 자산 코치 (런칭 후 과제 0-1, `decisions/051`, 노션 "9. AI 자산 코치 설계"). 착수 전 남은 확인: Kafka 알림 실서버 화면(종 배지·드롭다운, #91 배포 후)
 - 11/6 점검: 11/4 오후~11/5 개발 공백으로 2일 밀림 → 10번 버퍼 하루 사용 + 추천·집 사기 백엔드를 Claude가 병렬 작성(045 범위)해 하루 확보. 기능 축소 없음 (2026-11-06 개발자와 합의). 남은 버퍼: 11/13(자연어 검색과 겸용). 더 밀리면 자연어 검색 포함 여부를 다시 논의
 - 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 점검 결과 하루 밀림 → 5~8번을 하루씩 미루고 8번 버퍼로 흡수, 11/6부터 원래 일정 (2026-11-01 개발자와 합의, 기능 축소 없음). 남은 버퍼: 10번 하루 + 11/13. 더 밀리면 10번 버퍼 → 11/13 순, 그 이상은 다시 논의 (`decisions/039`)
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영
