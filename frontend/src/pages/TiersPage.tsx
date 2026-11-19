@@ -1,4 +1,5 @@
 import type { Tier } from '../types/api'
+import { useMyHousesQuery } from '../hooks/useMyHousesQuery'
 import tier1 from '../assets/sprites/kkumi-tier1.svg'
 import tier2 from '../assets/sprites/kkumi-tier2.svg'
 import tier3 from '../assets/sprites/kkumi-tier3.svg'
@@ -20,11 +21,12 @@ const TIER_STAGES: TierStage[] = [
   { tier: 'GAPBU', stage: 4, name: '갑부', condition: '집 5채 이상', image: tier4 },
 ]
 
-// 목업: 현재 단계
-const CURRENT_TIER: Tier = 'GEOLBAENGI'
-
 // 변신 4단계 안내
 export function TiersPage() {
+  // 홈·내 마을과 같은 내 마을 캐시 (서버가 집 수로 단계 계산)
+  const { data: myHouses } = useMyHousesQuery()
+  // 불러오기 전엔 undefined → 지금 여기 표시 안 함 (걸뱅이로 잘못 깜빡임 방지)
+  const currentTier = myHouses?.tier
   return (
     <div className="page-tiers">
       <main className="k-wrap">
@@ -33,7 +35,7 @@ export function TiersPage() {
 
         <div className="k-grid">
           {TIER_STAGES.map((stage) => {
-            const isCurrent = stage.tier === CURRENT_TIER
+            const isCurrent = stage.tier === currentTier
             return (
               <article key={stage.tier} className={isCurrent ? 'k-card is-current' : 'k-card'}>
                 {isCurrent && <div className="k-here">지금 여기</div>}
