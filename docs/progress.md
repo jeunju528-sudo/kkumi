@@ -415,7 +415,8 @@
     - 새 알림 푸시 때 목록 캐시 무효화 추가(`useMemberSocket`), `AppLayout` 목업 `MOCK_NOTIFICATIONS`·`MOCK_UNREAD_COUNT` 삭제
     - 모양: `NotificationPanel` 줄 클릭 시 안 읽은 알림만 읽음, X 삭제, "모두 읽음" 버튼(안 읽은 알림 있을 때만), 로딩 중 "불러오는 중...". `AppHeader`는 props 전달만. `design.md` 반영
     - 확인: 작업 환경 `tsc -b` 통과. ESLint는 작업 환경 시간 초과(커밋 훅에서 확인)
-    - 못 확인한 것: 로컬 브라우저(배지, 목록, 읽음·삭제·모두 읽음), 실서버
+    - 로컬 확인 (11/19): 토스트·종 배지, 드롭다운 열 때만 목록 요청, 줄 클릭 → 주문 화면 + 회색·배지 감소, X 삭제, 모두 읽음 → 배지·버튼 사라짐
+    - 못 확인한 것: 실서버
   - PR 6 `chore/kafka-prod` (11/18, 3-2보다 먼저 진행): 운영 compose에 브로커(KRaft 1대, `advertised.listeners` = `kafka:9092`, 힙 256MB, 볼륨 `kafka-data`) + backend `KAFKA_BOOTSTRAP_SERVERS`. ADR 059 보강(t3.small 유지)
     - 배포 전 실서버 로그: `.env`에 브로커 주소가 없어 yaml 기본값 `localhost:9092`로 컨슈머 3개·프로듀서가 1초에 여러 번 재접속 경고. 서비스는 정상(시세 발행은 브로커 장애 시 tick 건너뜀)
     - EC2: 유형 변경 목록에 t3.medium 없음(프리 플랜) → t3.small 유지, 스왑 2GB(`/swapfile`, `fstab` 등록) 서버에서 생성
