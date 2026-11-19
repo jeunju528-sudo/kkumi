@@ -69,8 +69,9 @@
 | 060 | [공통 헤더: 레이아웃 라우트(AppLayout)로 한 번만 렌더](060-app-layout-route.md) | 확정 |
 | 061 | [런칭 후 확장: AI 자산 코치 + Elasticsearch, 자연어 검색·골든셋 제외](061-ai-coach-elasticsearch-only.md) | 확정 |
 | 062 | [하락 알림 판정: 시세마다 DB 조회 대신 메모리 장부](062-price-alert-memory-book.md) | 확정 |
+| 063 | [알림 읽음: 줄을 누른 1건만 읽음 + 모두 읽음 버튼](063-notification-read-on-click.md) | 확정 |
 
-다음 번호: 063
+다음 번호: 064
 
 ## 미정 (아직 ADR로 만들지 않은 것)
 결정이 나면 ADR로 만들고 이 목록에서 지운다.

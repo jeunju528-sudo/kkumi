@@ -2,7 +2,7 @@
 
 새 세션 시작 시 이 파일부터 확인. 작업 끝날 때마다 갱신
 
-## 기준일: 2026-11-18
+## 기준일: 2026-11-19
 
 ### 끝난 것
 - 기획: MVP 4개, 도메인 규칙 확정 (CLAUDE.md "도메인 규칙")
@@ -319,7 +319,7 @@
 
 ### 런칭 후 과제 (우선순위)
 기준: 면접 소재(트레이드오프 설명) 강도 + 사용자 체감. 확장 기능은 Kafka → AI 코치 → Elasticsearch 두 개만 (`decisions/061`, 자연어 검색·골든셋 제외). 번호는 다른 문서 참조 때문에 유지
-0. Kafka (`decisions/059`, 053 대체): 11/16 착수, 지원 마감 11/20 전 실서버까지. 가상 시세 tick → 토픽 `stock-price-ticked`(키 = 종목코드, 파티션 3) → 컨슈머 그룹 `price-alert`가 보유 종목 현재가 ≤ 평균 매입가 × 97% 판정 → `notification` 저장(종목당 하루 1번) + 접속 중이면 토스트. 브로커 1대(KRaft) Compose 추가, EC2는 t3.small 유지(프리 플랜이라 t3.medium 불가, Kafka 힙 256MB + 스왑 2GB, 059 보강). AWS Budgets 알림 설정(크레딧 $98.97, 2027-01-10 만료). 진행 순서는 아래 "다음 할 일" 14번
+0. Kafka (`decisions/059`, 053 대체): 11/16 착수, 지원 마감 11/20 전 실서버까지. 가상 시세 tick → 토픽 `stock-price-ticked`(키 = 종목코드, 파티션 3) → 컨슈머 그룹 `price-alert`가 보유 종목 현재가 ≤ 평균 매입가 × 97% 판정 → `notification` 저장(종목당 하루 1번) + 접속 중이면 토스트. 브로커 1대(KRaft) Compose 추가, EC2는 t3.small 유지(프리 플랜이라 t3.medium 불가, Kafka 힙 256MB + 스왑 2GB, 059 보강). AWS Budgets 알림은 하지 않기로 함(11/19, 크레딧 $98.97, 2027-01-10 만료). 진행 순서는 아래 "다음 할 일" 14번
 0-1. AI 자산 코치 (`decisions/051`, 노션 "9. AI 자산 코치 설계"): Kafka 다음 착수, 약 2주. Spring AI + Gemini, 조회 전용 tool 3개, Redis 호출 한도
 2. 시세 실시간 방송 `/topic/stocks`: 종목 목록·검색·주문 화면은 `useStocksQuery` 5초 폴링 유지 중. 모두에게 같은 값이라 공용 채널 방송이 맞음(평가액은 개인 큐 `/user/queue`, `decisions/046`). 서버 `tick` 뒤 방송 + 브로커 `/topic` 추가 + `ws/` 구독 1개
 4. Elasticsearch 자동완성 (`decisions/061`): AI 코치 다음 착수. 단지 마스터만 인덱싱(거래 행 제외), nori 한글 형태소 분석. EC2 메모리(t3.medium 4GB에 Spring·Kafka·Elasticsearch) 검토 선행. "MySQL LIKE로도 되지만 형태소·부분 일치 때문에 붙였다"로 설명
@@ -397,12 +397,19 @@
     - 테스트: `NotificationTest`(하락률 반올림·0·소수 평단, 안 읽음)
     - 로컬 확인: 콘솔 producer `hello` → 재시도 없이 DLT(헤더에 예외·원본 위치, 값은 base64 `"aGVsbG8="`), 리스너 임시 예외(KK0001) → 3번 실패 후 DLT, 평단 2배 + 1주 매수 → 토스트·`/user/queue/alerts` 프레임(unreadCount 포함)·클릭 시 주문 화면 이동, 모바일 폭 토스트 (`troubleshooting.md` 1건)
     - 못 확인한 것: 4초 자동 닫힘(눈으로 따로 확인 안 함), 실서버
-  - PR 4: 알림함 API(목록, 안 읽은 수, 읽음, 삭제) + 7일 지난 알림 새벽 삭제 스케줄러
+  - PR 4 `feat/notification-inbox-api` (11/19, `decisions/063`): 알림함 API + 7일 지난 알림 삭제
+    - `GET /api/notifications`(최신순, `join fetch stock`), `GET /unread-count` → `UnreadCountResponse{count}`, `POST /{id}/read`, `POST /read-all`, `DELETE /{id}`
+    - 읽음은 줄을 누른 1건만 + 모두 읽음 버튼(063). `Notification.markAsRead`는 이미 읽었으면 처음 시각 유지, 모두 읽음은 `readAt is null` 벌크 update(`flushAutomatically`·`clearAutomatically`)
+    - 남의 알림 id는 `findByIdAndMemberId`로 못 찾음 → `NOTIFICATION_NOT_FOUND`(404, 존재 여부 숨김)
+    - `NotificationCleanupScheduler`: 매일 3시(KST, 시세 기록 정리 3:30·실거래가 배치 4시와 분리), `alertDate < 오늘 − 6일` 벌크 delete (오늘 포함 7일 보관)
+    - 테스트: `NotificationTest` 2개 추가(읽음 시각, 다시 읽어도 처음 시각), `NotificationServiceTest` 7개(H2: 내 알림만 최신순, 1건 읽음, 남의 알림 읽음·삭제 404, 내 알림 삭제, 모두 읽음 대상, 7일 경계)
+    - 못 확인한 것: `./gradlew test`(작업 환경 Gradle 다운로드 차단, 커밋 훅에서 확인), 로컬 curl
   - PR 5: 헤더 종·알림 목록 화면 데이터 연결 (api, hooks, 읽음·삭제 동작)
   - PR 6 `chore/kafka-prod` (11/18, 3-2보다 먼저 진행): 운영 compose에 브로커(KRaft 1대, `advertised.listeners` = `kafka:9092`, 힙 256MB, 볼륨 `kafka-data`) + backend `KAFKA_BOOTSTRAP_SERVERS`. ADR 059 보강(t3.small 유지)
     - 배포 전 실서버 로그: `.env`에 브로커 주소가 없어 yaml 기본값 `localhost:9092`로 컨슈머 3개·프로듀서가 1초에 여러 번 재접속 경고. 서비스는 정상(시세 발행은 브로커 장애 시 tick 건너뜀)
     - EC2: 유형 변경 목록에 t3.medium 없음(프리 플랜) → t3.small 유지, 스왑 2GB(`/swapfile`, `fstab` 등록) 서버에서 생성
-    - 남은 것: AWS Budgets 알림, 배포 후 실서버 확인(브로커 기동 로그, 토픽 파티션 3, 컨슈머 그룹 LAG, `free -h`)
+    - 실서버 확인 완료 (11/18): 브로커 기동, 토픽 파티션 3, 컨슈머 그룹 LAG, `free -h`
+    - AWS Budgets 알림은 하지 않기로 함 (11/19 개발자 결정)
 - 11/6 점검: 11/4 오후~11/5 개발 공백으로 2일 밀림 → 10번 버퍼 하루 사용 + 추천·집 사기 백엔드를 Claude가 병렬 작성(045 범위)해 하루 확보. 기능 축소 없음 (2026-11-06 개발자와 합의). 남은 버퍼: 11/13(자연어 검색과 겸용). 더 밀리면 자연어 검색 포함 여부를 다시 논의
 - 버퍼 약 5일 포함 (1·2·4·8·10번에 하루씩). 11/1 점검 결과 하루 밀림 → 5~8번을 하루씩 미루고 8번 버퍼로 흡수, 11/6부터 원래 일정 (2026-11-01 개발자와 합의, 기능 축소 없음). 남은 버퍼: 10번 하루 + 11/13. 더 밀리면 10번 버퍼 → 11/13 순, 그 이상은 다시 논의 (`decisions/039`)
 - 배포는 마지막 주에 몰지 않음. 기능은 PR merge 때마다 실서버에 바로 반영

@@ -188,6 +188,11 @@ export type NotificationResponse = {
   createdAt: string // ISO 문자열
 }
 
+// GET /api/notifications/unread-count (종 배지)
+export type UnreadCountResponse = {
+  count: number
+}
+
 // /user/queue/alerts 푸시 본문 (토스트 + 종 배지)
 export type PriceAlertPushResponse = {
   notification: NotificationResponse

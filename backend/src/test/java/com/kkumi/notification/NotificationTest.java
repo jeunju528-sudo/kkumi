@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,5 +68,35 @@ class NotificationTest {
 
         // then
         assertThat(isRead).isFalse();
+    }
+
+    @Test
+    @DisplayName("읽음 처리하면 읽은 시각 기록")
+    void markAsRead_setsReadAt() {
+        // given
+        Notification notification = notificationOf(14_000L, "15000");
+        LocalDateTime now = LocalDateTime.of(2026, 11, 19, 12, 0);
+
+        // when
+        notification.markAsRead(now);
+
+        // then
+        assertThat(notification.isRead()).isTrue();
+        assertThat(notification.getReadAt()).isEqualTo(now);
+    }
+
+    @Test
+    @DisplayName("이미 읽은 알림을 다시 읽어도 처음 읽은 시각 유지")
+    void markAsRead_keepsFirstReadAt() {
+        // given
+        Notification notification = notificationOf(14_000L, "15000");
+        LocalDateTime first = LocalDateTime.of(2026, 11, 19, 12, 0);
+        notification.markAsRead(first);
+
+        // when
+        notification.markAsRead(first.plusHours(1));
+
+        // then
+        assertThat(notification.getReadAt()).isEqualTo(first);
     }
 }

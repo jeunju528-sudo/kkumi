@@ -82,6 +82,13 @@ public class Notification {
         return readAt != null;
     }
 
+    // 이미 읽었으면 처음 읽은 시각 유지
+    public void markAsRead(LocalDateTime now) {
+        if (readAt == null) {
+            readAt = now;
+        }
+    }
+
     // 평단 대비 등락률, 소수 4자리 HALF_UP (PortfolioCalculator.toRate와 같은 규칙)
     public BigDecimal calculateDropRate() {
         return BigDecimal.valueOf(price).subtract(avgPrice)
