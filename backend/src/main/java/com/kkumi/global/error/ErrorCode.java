@@ -45,6 +45,8 @@ public enum ErrorCode {
     DEAL_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "지금은 살 수 없는 거래입니다"),
     // 같은 회원이 같은 거래를 다시 구매
     ALREADY_OWNED_DEAL(HttpStatus.CONFLICT, "이미 산 집입니다"),
+    // 없는 알림 또는 남의 알림 (존재 여부 노출 방지로 403 대신 404)
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
     // @Valid 검증 실패 (수량 0, 빈 종목 코드 등)
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다");
 
