@@ -13,4 +13,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("select new com.kkumi.notification.AlertKey(n.member.id, n.stock.code, n.alertDate) "
             + "from Notification n where n.alertDate = :alertDate")
     List<AlertKey> findAlertKeysByAlertDate(@Param("alertDate") LocalDate alertDate);
+
+    // 안 읽은 알림 수 (종 배지, 토스트 푸시)
+    long countByMemberIdAndReadAtIsNull(Long memberId);
 }

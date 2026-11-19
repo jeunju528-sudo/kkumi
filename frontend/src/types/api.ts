@@ -178,7 +178,7 @@ export type StockProfitResponse = {
   sellCount: number
 }
 
-// GET /api/notifications (보유 종목 하락 알림, ADR 059). 필드는 알림함 API 작업 때 확정
+// 보유 종목 하락 알림 1건 (ADR 059). 백엔드 notification/dto/NotificationResponse와 같은 필드
 export type NotificationResponse = {
   id: number
   stockCode: string
@@ -186,4 +186,10 @@ export type NotificationResponse = {
   dropRate: number // 평균 매입가 대비 등락률 (-0.032 = 3.2% 하락)
   isRead: boolean
   createdAt: string // ISO 문자열
+}
+
+// /user/queue/alerts 푸시 본문 (토스트 + 종 배지)
+export type PriceAlertPushResponse = {
+  notification: NotificationResponse
+  unreadCount: number
 }

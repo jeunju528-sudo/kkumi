@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -31,6 +32,8 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification {
+
+    private static final int RATE_SCALE = 4;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,5 +76,15 @@ public class Notification {
 
     public static Notification ofPriceDrop(Member member, Stock stock, long price, BigDecimal avgPrice, LocalDate alertDate) {
         return new Notification(member, stock, price, avgPrice, alertDate);
+    }
+
+    public boolean isRead() {
+        return readAt != null;
+    }
+
+    // 평단 대비 등락률, 소수 4자리 HALF_UP (PortfolioCalculator.toRate와 같은 규칙)
+    public BigDecimal calculateDropRate() {
+        return BigDecimal.valueOf(price).subtract(avgPrice)
+                .divide(avgPrice, RATE_SCALE, RoundingMode.HALF_UP);
     }
 }

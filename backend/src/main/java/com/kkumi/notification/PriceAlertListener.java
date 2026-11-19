@@ -16,14 +16,13 @@ import java.util.List;
 // 컨슈머가 가져온 시세를 받아 판정하는 리스너
 public class PriceAlertListener {
     private final PriceAlertService priceAlertService;
-
+    private final PriceAlertPusher priceAlertPusher;
     @KafkaListener(topics = KafkaTopicConfig.STOCK_PRICE_TICKED, groupId = "price-alert")
     public void onPriceTicked(StockPriceTickedEvent event) {
         List<Notification> saved = priceAlertService.checkPriceDrop(event, Instant.now());
-        if(!saved.isEmpty()){
+        if(!saved.isEmpty()){ // 새로 저장한 알림이 1건 이상이면
             log.info("하락 알림 {}건: {}", saved.size(), event.code());
+            priceAlertPusher.push(saved); // 토스트 푸시!
         }
-
     }
-
 }

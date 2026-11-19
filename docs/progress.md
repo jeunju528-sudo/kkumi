@@ -390,7 +390,13 @@
     - 테스트: `PriceAlertRuleTest`(기준가 내림, 30초 경계), `PriceAlertBookTest`(기준가 경계, 평단 갱신, 삭제, 날짜 키), `PriceAlertServiceTest`(하루 1번, 다음 날 재알림, 30초 초과·대상 없음이면 DB 안 감). `TradeServiceTest`에 `ApplicationEventPublisher` Mock. `./gradlew test` 196개 통과
     - 로컬 확인: 평단을 DB에서 2배로 바꾸고 재시작 → `하락 알림 1건: KK0020` + `notification` 1행, 1분 뒤에도 1행(받은 목록), 재시작 후 `오늘 받은 알림 1건` 로드·행 그대로, `kafka-consumer-groups --describe`로 파티션 3개에 컨슈머 3개·LAG 0 근처, 매수 `알림 장부 갱신`·전량 매도 `알림 장부 삭제` 로그
     - 못 확인한 것: 첫 매수 경로 자동 테스트(수동 매수로만 확인), 서버 2대 이상(062 확장 조건)
-  - PR 3-2: 재시도 2번·DLT(`stock-price-ticked.DLT`) + `/user/queue/alerts` 토스트·안 읽은 수 푸시 (3-1의 `checkPriceDrop` 반환값이 푸시 대상)
+  - PR 3-2 `feat/price-alert-retry-push` (11/19 완료): 재시도 2번(FixedBackOff 1초) 후 DLT `stock-price-ticked-dlt`(059 보강, 파티션 3·보관 7일) + `/user/queue/alerts` 토스트·안 읽은 수 푸시
+    - 에러 처리: `global/config/KafkaErrorConfig`(DefaultErrorHandler 빈 1개 → Boot가 리스너에 자동 연결, BusinessException은 재시도 없이 DLT). 역직렬화는 ErrorHandlingDeserializer로 감쌈(형식 깨진 메시지는 재시도 없이 DLT, 안 감싸면 poll에서 같은 오프셋 반복)
+    - 푸시: `PriceAlertPusher`가 커밋 뒤(리스너에서) 접속 중인 회원에게만 `PriceAlertPushResponse{notification, unreadCount}`. 푸시 실패는 로그만(재시도로 번지지 않게). `NotificationResponse`, `Notification.calculateDropRate()`(소수 4자리 HALF_UP), `countByMemberIdAndReadAtIsNull`
+    - 프론트: WebSocket 연결 1개에 구독 2개(`ws/memberSocket`, `hooks/useMemberSocket`, 기존 portfolioSocket·usePortfolioSocket에서 이름 변경). 훅 호출 MemberGuard → AppLayout. 토스트 `components/AlertToast`(design.md), 4초 자동 닫힘·새 알림이면 교체, 알림 목록 열려 있으면 숨김. 안 읽은 수는 `queryKeys.notificationUnreadCount` 캐시에만 반영(종 배지 연결은 PR 5)
+    - 테스트: `NotificationTest`(하락률 반올림·0·소수 평단, 안 읽음)
+    - 로컬 확인: 콘솔 producer `hello` → 재시도 없이 DLT(헤더에 예외·원본 위치, 값은 base64 `"aGVsbG8="`), 리스너 임시 예외(KK0001) → 3번 실패 후 DLT, 평단 2배 + 1주 매수 → 토스트·`/user/queue/alerts` 프레임(unreadCount 포함)·클릭 시 주문 화면 이동, 모바일 폭 토스트 (`troubleshooting.md` 1건)
+    - 못 확인한 것: 4초 자동 닫힘(눈으로 따로 확인 안 함), 실서버
   - PR 4: 알림함 API(목록, 안 읽은 수, 읽음, 삭제) + 7일 지난 알림 새벽 삭제 스케줄러
   - PR 5: 헤더 종·알림 목록 화면 데이터 연결 (api, hooks, 읽음·삭제 동작)
   - PR 6 `chore/kafka-prod` (11/18, 3-2보다 먼저 진행): 운영 compose에 브로커(KRaft 1대, `advertised.listeners` = `kafka:9092`, 힙 256MB, 볼륨 `kafka-data`) + backend `KAFKA_BOOTSTRAP_SERVERS`. ADR 059 보강(t3.small 유지)

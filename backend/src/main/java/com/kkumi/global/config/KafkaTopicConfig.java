@@ -29,6 +29,7 @@ import java.time.Duration;
 @Configuration
 public class KafkaTopicConfig {
     public static final String STOCK_PRICE_TICKED = "stock-price-ticked";
+    public static final String STOCK_PRICE_TICKED_DLT = STOCK_PRICE_TICKED + "-dlt";
 
     // 앱 기동 때 KafkaAdmin(Spring Boot 자동 생성)이 NewTopic 빈을 찾아 브로커에 토픽 생성 요청, 이미 있으면 생성 안 함
     @Bean
@@ -42,6 +43,19 @@ public class KafkaTopicConfig {
                 .config(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(Duration.ofDays(1).toMillis()))
                 // 기본값(7일)이면 우리 데이터 양으로는 7일이 지나야 세그먼트가 닫혀서 최대 약 8일 보관됨, 세그먼트를 1시간마다 닫는 설정 한 줄 추가함
                 .config(TopicConfig.SEGMENT_MS_CONFIG, String.valueOf(Duration.ofHours(1).toMillis()))
+                .build();
+    }
+
+    // 재시도 2번 후에도 처리 실패한 메시지, 형식이 깨진 메시지(poison pill) 보관 토픽
+    @Bean
+    public NewTopic stockPriceTickedDltTopic() {
+        return TopicBuilder.name(STOCK_PRICE_TICKED_DLT)
+                // 원래 메세지의 파티션 번호를 그대로 쓰게하려고 똑같이 3개로 맞춤
+                .partitions(3)
+                .replicas(1)
+                // dlt는 사람이 확인해야하는 시간이 있어서 조금 더 길게 잡음(7일)
+                .config(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(Duration.ofDays(7).toMillis()))
+                .config(TopicConfig.SEGMENT_MS_CONFIG, String.valueOf(Duration.ofDays(1).toMillis()))
                 .build();
     }
 }

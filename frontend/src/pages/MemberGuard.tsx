@@ -1,11 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useMemberQuery } from "../hooks/useMemberQuery";
-import { usePortfolioSocket } from "../hooks/usePortfolioSocket";
 
 export function MemberGuard() {
-    const { isPending, isError, isSuccess } = useMemberQuery()
-    // 회원 조회 성공하면 평가액 WebSocket 연결·구독 (로딩·실패 중엔 연결 안 함)
-    usePortfolioSocket(isSuccess)
+    const { isPending, isError } = useMemberQuery()
 
     if (isPending) {
         return null;
