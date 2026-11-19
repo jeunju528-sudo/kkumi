@@ -28,6 +28,7 @@ export function useMemberSocket() {
             },
             onAlert: (alert) => {
                 queryClient.setQueryData(queryKeys.notificationUnreadCount(), alert.unreadCount)
+                queryClient.invalidateQueries({queryKey: queryKeys.notificationList() })
                 setLatestAlert(alert)
             },
         })
